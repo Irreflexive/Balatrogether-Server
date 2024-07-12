@@ -64,6 +64,14 @@ void* client_thread(void* arg) {
       int index = req["index"].template get<int>();
       server->use(client, index);
 
+    } else if (command == "BUY") {
+      int index = req["index"].template get<int>();
+      server->buy(client, index);
+
+    } else if (command == "BUY_AND_USE") {
+      int index = req["index"].template get<int>();
+      server->buyAndUse(client, index);
+
     }
   }
 

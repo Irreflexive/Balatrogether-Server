@@ -225,6 +225,22 @@ void Server::use(Player sender, int index)
   this->broadcast(success("USE", data));
 }
 
+void Server::buy(Player sender, int index)
+{
+  if (!this->inGame) return;
+  json data;
+  data["index"] = index;
+  this->broadcast(success("BUY", data));
+}
+
+void Server::buyAndUse(Player sender, int index)
+{
+  if (!this->inGame) return;
+  json data;
+  data["index"] = index;
+  this->broadcast(success("BUY_AND_USE", data));
+}
+
 json Server::toJSON() {
   json server;
   server["inGame"] = this->inGame;
