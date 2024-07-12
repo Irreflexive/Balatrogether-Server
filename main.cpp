@@ -60,6 +60,10 @@ void* client_thread(void* arg) {
       int index = req["index"].template get<int>();
       server->sell(client, selectType, index);
 
+    } else if (command == "USE") {
+      int index = req["index"].template get<int>();
+      server->use(client, index);
+
     }
   }
 

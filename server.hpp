@@ -57,6 +57,7 @@ class Server {
     void skipBlind(Player sender);
 
     void sell(Player sender, std::string selectType, int index);
+    void use(Player sender, int index);
 
     json toJSON();
   private:

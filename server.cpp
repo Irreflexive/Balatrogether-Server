@@ -217,6 +217,14 @@ void Server::sell(Player sender, std::string selectType, int index)
   this->broadcast(success("SELL", data));
 }
 
+void Server::use(Player sender, int index)
+{
+  if (!this->inGame) return;
+  json data;
+  data["index"] = index;
+  this->broadcast(success("USE", data));
+}
+
 json Server::toJSON() {
   json server;
   server["inGame"] = this->inGame;
