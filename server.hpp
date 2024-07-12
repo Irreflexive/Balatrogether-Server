@@ -58,6 +58,8 @@ class Server {
 
     void sell(Player sender, std::string selectType, int index);
     void use(Player sender, int index);
+    void buy(Player sender, int index);
+    void buyAndUse(Player sender, int index);
 
     json toJSON();
   private:
