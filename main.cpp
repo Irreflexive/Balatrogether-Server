@@ -102,6 +102,12 @@ void* client_thread(void* arg) {
     } else if (command == "GO_TO_SHOP") {
       server->goToShop(client);
 
+    } else if (command == "REORDER") {
+      std::string selectType = req["type"].template get<std::string>();
+      int from = req["from"].template get<int>();
+      int to = req["to"].template get<int>();
+      server->reorder(client, selectType, from, to);
+
     }
   }
 

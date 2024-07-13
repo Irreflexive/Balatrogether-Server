@@ -31,7 +31,6 @@ class Server {
     char buffer[BUFFER_SIZE];
     Server(int maxPlayers, bool debugMode);
 
-    void handshake(Player& p);
     void join(Player p);
     void disconnect(Player p);
     bool hasAlreadyJoined(Player p);
@@ -54,6 +53,7 @@ class Server {
     void playHand(Player sender);
     void discardHand(Player sender);
     void sortHand(Player sender, std::string sortType);
+    void reorder(Player sender, std::string selectType, int from, int to);
 
     void selectBlind(Player sender);
     void skipBlind(Player sender);
