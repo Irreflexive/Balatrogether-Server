@@ -256,6 +256,13 @@ void Server::nextRound(Player sender)
   this->broadcast(success("NEXT_ROUND", data));
 }
 
+void Server::goToShop(Player sender)
+{
+  if (!this->inGame) return;
+  json data = json::object();
+  this->broadcast(success("GO_TO_SHOP", data));
+}
+
 json Server::toJSON() {
   json server;
   server["inGame"] = this->inGame;

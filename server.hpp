@@ -63,6 +63,7 @@ class Server {
 
     void reroll(Player sender);
     void nextRound(Player sender);
+    void goToShop(Player sender);
 
     json toJSON();
   private:
