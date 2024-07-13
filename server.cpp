@@ -80,12 +80,14 @@ bool Server::canJoin(Player p)
 
 void Server::sendToPlayer(Player receiver, json payload)
 {
+  pthread_mutex_lock(&this->mutex);
   memset(this->buffer, 0, BUFFER_SIZE);
   std::string jsonString = payload.dump();
   strcpy(this->buffer, jsonString.c_str());
   this->buffer[jsonString.size()] = '\n';
   if (debugMode) std::cout << "[SENT - " << receiver.steamId << "] " << buffer << std::endl;
   send(receiver.fd, this->buffer, BUFFER_SIZE, 0);
+  pthread_mutex_unlock(&this->mutex);
 }
 
 void Server::sendToOthers(Player sender, json payload)
