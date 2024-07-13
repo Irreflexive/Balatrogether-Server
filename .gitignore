@@ -1,5 +1,5 @@
 main
 server
-test_client
+test
 test_client.cpp
 *.o

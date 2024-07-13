@@ -201,7 +201,7 @@ void Server::reorder(Player sender, std::string selectType, int from, int to)
   data["type"] = selectType;
   data["from"] = from;
   data["to"] = to;
-  this->broadcast(success("REORDER", data));
+  this->sendToOthers(sender, success("REORDER", data));
 }
 
 void Server::selectBlind(Player sender)
