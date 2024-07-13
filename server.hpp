@@ -11,6 +11,7 @@
 #include <thread>
 #include <iostream>
 #include <unistd.h>
+#include <sstream>
 #include "json.hpp"
 
 #define BUFFER_SIZE 4096
