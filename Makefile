@@ -1,4 +1,4 @@
-BINARIES=main test_client
+BINARIES=main
 CXXFLAGS=-std=c++11 -pthread
 
 all: $(BINARIES)
