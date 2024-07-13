@@ -32,30 +32,8 @@ Server::Server(int maxPlayers, bool debugMode)
   this->maxPlayers = maxPlayers;
   this->debugMode = debugMode;
   this->inGame = false;
-  this->encryption = Encryption();
   pthread_mutex_init(&this->mutex, nullptr);
   memset(this->buffer, 0, BUFFER_SIZE);
-}
-
-void Server::handshake(Player& p)
-{
-  memset(this->buffer, 0, BUFFER_SIZE);
-  std::string publicKey = this->encryption.getPublicKey();
-  publicKey += '\n';
-  strcpy(this->buffer, publicKey.c_str());
-  send(p.fd, this->buffer, BUFFER_SIZE, 0);
-
-  memset(this->buffer, 0, BUFFER_SIZE);
-  ssize_t n = recv(p.fd, this->buffer, BUFFER_SIZE, 0);
-  if (n <= 0) {
-    close(p.fd);
-    return;
-  }
-  std::string encryptedKey = this->buffer;
-  encryptedKey = encryptedKey.substr(0, encryptedKey.size() - 1);
-  std::string aesKey = this->encryption.decryptSymmetricKey(encryptedKey);
-  p.aesKey = aesKey;
-  std::cout << "Key exchange with client complete" << std::endl;
 }
 
 void Server::join(Player p)
@@ -103,7 +81,7 @@ bool Server::canJoin(Player p)
 void Server::sendToPlayer(Player receiver, json payload)
 {
   memset(this->buffer, 0, BUFFER_SIZE);
-  std::string jsonString = this->encryption.encryptMessage(payload.dump(), receiver.aesKey);
+  std::string jsonString = payload.dump();
   strcpy(this->buffer, jsonString.c_str());
   this->buffer[jsonString.size()] = '\n';
   if (debugMode) std::cout << "[SENT - " << receiver.steamId << "] " << buffer << std::endl;
@@ -134,7 +112,7 @@ json Server::receive(Player sender) {
   if (debugMode) std::cout << "[RECEIVED] " << buffer << std::endl;
   try {
     std::string buffer = this->buffer;
-    json req = json::parse(this->encryption.decryptMessage(buffer, sender.aesKey));
+    json req = json::parse(buffer);
     return req;
   } catch (...) {
     this->disconnect(sender);

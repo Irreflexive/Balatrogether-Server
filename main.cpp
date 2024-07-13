@@ -14,8 +14,6 @@ void* client_thread(void* arg) {
   Server* server = info->server;
   Player client = info->client;
 
-  server->handshake(client);
-
   json req = server->receive(client);
   if (req == json()) {
     server->disconnect(client);
@@ -119,6 +117,12 @@ int main() {
   serv_addr.sin_addr.s_addr = INADDR_ANY;
 
   Server* server = new Server(MAX_PLAYERS, DEBUG);
+
+  int opt = 1;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    fprintf(stderr, "Failed to set reuse address\n");
+    exit(1);
+  }
 
   int bindStatus = bind(sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
   if (bindStatus < 0) {
