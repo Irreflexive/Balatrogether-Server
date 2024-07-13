@@ -225,10 +225,11 @@ void Server::use(Player sender, int index)
   this->broadcast(success("USE", data));
 }
 
-void Server::buy(Player sender, int index)
+void Server::buy(Player sender, std::string selectType, int index)
 {
   if (!this->inGame) return;
   json data;
+  data["type"] = selectType;
   data["index"] = index;
   this->broadcast(success("BUY", data));
 }
@@ -239,6 +240,20 @@ void Server::buyAndUse(Player sender, int index)
   json data;
   data["index"] = index;
   this->broadcast(success("BUY_AND_USE", data));
+}
+
+void Server::reroll(Player sender)
+{
+  if (!this->inGame) return;
+  json data = json::object();
+  this->broadcast(success("REROLL", data));
+}
+
+void Server::nextRound(Player sender)
+{
+  if (!this->inGame) return;
+  json data = json::object();
+  this->broadcast(success("NEXT_ROUND", data));
 }
 
 json Server::toJSON() {

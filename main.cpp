@@ -65,12 +65,19 @@ void* client_thread(void* arg) {
       server->use(client, index);
 
     } else if (command == "BUY") {
+      std::string selectType = req["type"].template get<std::string>();
       int index = req["index"].template get<int>();
-      server->buy(client, index);
+      server->buy(client, selectType, index);
 
     } else if (command == "BUY_AND_USE") {
       int index = req["index"].template get<int>();
       server->buyAndUse(client, index);
+    
+    } else if (command == "REROLL") {
+      server->reroll(client);
+
+    } else if (command == "NEXT_ROUND") {
+      server->nextRound(client);
 
     }
   }
