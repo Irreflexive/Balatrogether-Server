@@ -14,6 +14,28 @@ void* client_thread(void* arg) {
   Server* server = info->server;
   Player client = info->client;
 
+  server->handshake(client);
+
+  json req = server->receive(client);
+  if (req == json()) {
+    server->disconnect(client);
+    pthread_exit(0);
+  }
+  std::string command = req["cmd"].template get<std::string>();
+  if (command == "JOIN") {
+    std::string steamId = req["steam_id"].template get<std::string>();
+    client.steamId = strtoull(steamId.c_str(), NULL, 10);
+    if (server->canJoin(client)) {
+      server->join(client);
+    } else {
+      server->disconnect(client);
+      pthread_exit(0);
+    }
+  } else {
+    server->disconnect(client);
+    pthread_exit(0);
+  }
+
   while (true) {
     json req = server->receive(client);
     if (req == json()) break;
@@ -117,18 +139,8 @@ int main() {
     Player p;
     p.fd = clientfd;
     p.addr = cli_addr;
-    json req = server->receive(p);
-    std::string command = req["cmd"].template get<std::string>();
-    if (command == "JOIN") {
-      std::string steamId = req["steam_id"].template get<std::string>();
-      p.steamId = strtoull(steamId.c_str(), NULL, 10);
-      if (server->canJoin(p)) {
-        server->join(p);
-
-        thread_arg args = {server, p};
-        pthread_t thread;
-        pthread_create(&thread, 0, client_thread, &args);
-      }
-    }
+    thread_arg args = {server, p};
+    pthread_t thread;
+    pthread_create(&thread, 0, client_thread, &args);
   }
 }
