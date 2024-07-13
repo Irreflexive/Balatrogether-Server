@@ -12,7 +12,6 @@
 #include <iostream>
 #include <unistd.h>
 #include <sstream>
-#include "encryption.hpp"
 #include "json.hpp"
 
 #define BUFFER_SIZE 4096
@@ -23,7 +22,6 @@ struct Player {
   int fd;
   struct sockaddr_in addr;
   uint64_t steamId;
-  std::string aesKey;
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };
@@ -73,7 +71,6 @@ class Server {
   private:
     std::vector<Player> players;
     pthread_mutex_t mutex;
-    Encryption encryption;
     int maxPlayers;
     bool inGame;
     bool debugMode;

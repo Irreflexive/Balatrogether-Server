@@ -1,9 +1,9 @@
 BINARIES=main
-CXXFLAGS=-std=c++11 -pthread -I/usr/include/openssl/ -lssl -lcrypto
+CXXFLAGS=-std=c++11 -pthread
 
 all: $(BINARIES)
 
-main: main.o server.o encryption.o
+main: main.o server.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 clean:
