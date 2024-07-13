@@ -79,6 +79,9 @@ void* client_thread(void* arg) {
     } else if (command == "NEXT_ROUND") {
       server->nextRound(client);
 
+    } else if (command == "GO_TO_SHOP") {
+      server->goToShop(client);
+
     }
   }
 
