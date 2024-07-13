@@ -1,5 +1,4 @@
 #include "server.hpp"
-#include "util.hpp"
 
 bool operator==(Player const& lhs, Player const& rhs)
 {
@@ -269,7 +268,9 @@ json Server::toJSON() {
 
   json playerIds = json::array();
   for (Player player : this->players) {
-    playerIds.push_back(uint64_to_string(player.steamId));
+    std::ostringstream os;
+    os << player.steamId;
+    playerIds.push_back(os.str());
   }
   server["players"] = playerIds;
 
