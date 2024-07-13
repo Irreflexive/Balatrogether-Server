@@ -91,7 +91,7 @@ std::string Encryption::decryptSymmetricKey(std::string encryptedKey)
 std::string Encryption::encryptMessage(std::string plaintext, std::string symmetricKey)
 {
   AES_KEY key;
-  AES_set_encrypt_key((unsigned char *)symmetricKey.c_str(), 128, &key);
+  AES_set_encrypt_key((unsigned char *)symmetricKey.c_str(), 256, &key);
   int len = plaintext.size();
   char *ciphertext = (char *)malloc(len);
   unsigned char iv[AES_BLOCK_SIZE];
@@ -105,7 +105,7 @@ std::string Encryption::encryptMessage(std::string plaintext, std::string symmet
 std::string Encryption::decryptMessage(std::string ciphertext, std::string symmetricKey)
 {
   AES_KEY key;
-  AES_set_decrypt_key((unsigned char *)symmetricKey.c_str(), 128, &key);
+  AES_set_decrypt_key((unsigned char *)symmetricKey.c_str(), 256, &key);
   int len = ciphertext.size();
   char *decrypted = (char *)malloc(len);
   unsigned char iv[AES_BLOCK_SIZE];
