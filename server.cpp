@@ -194,6 +194,16 @@ void Server::sortHand(Player sender, std::string sortType)
   this->broadcast(success("SORT_HAND", data));
 }
 
+void Server::reorder(Player sender, std::string selectType, int from, int to)
+{
+  if (!this->inGame) return;
+  json data;
+  data["type"] = selectType;
+  data["from"] = from;
+  data["to"] = to;
+  this->broadcast(success("REORDER", data));
+}
+
 void Server::selectBlind(Player sender)
 {
   if (!this->inGame) return;
