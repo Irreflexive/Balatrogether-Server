@@ -62,6 +62,7 @@ class Server {
     void use(Player sender, int index);
     void buy(Player sender, std::string selectType, int index);
     void buyAndUse(Player sender, int index);
+    void skipBooster(Player sender);
 
     void reroll(Player sender);
     void nextRound(Player sender);

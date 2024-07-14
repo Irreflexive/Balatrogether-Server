@@ -254,6 +254,13 @@ void Server::buyAndUse(Player sender, int index)
   this->broadcast(success("BUY_AND_USE", data));
 }
 
+void Server::skipBooster(Player sender)
+{
+  if (!this->inGame) return;
+  json data = json::object();
+  this->broadcast(success("SKIP_BOOSTER", data));
+}
+
 void Server::reroll(Player sender)
 {
   if (!this->inGame) return;
