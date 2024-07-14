@@ -92,6 +92,9 @@ void* client_thread(void* arg) {
     } else if (command == "BUY_AND_USE") {
       int index = req["index"].template get<int>();
       server->buyAndUse(client, index);
+
+    } else if (command == "SKIP_BOOSTER") {
+      server->skipBooster(client);
     
     } else if (command == "REROLL") {
       server->reroll(client);
