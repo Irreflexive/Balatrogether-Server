@@ -28,7 +28,6 @@ struct Player {
 
 class Server {
   public:
-    char buffer[BUFFER_SIZE];
     Server(int maxPlayers, bool debugMode);
 
     void join(Player p);
