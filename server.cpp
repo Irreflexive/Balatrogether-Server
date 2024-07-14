@@ -107,7 +107,9 @@ json Server::receive(Player sender) {
   memset(buffer, 0, BUFFER_SIZE);
   ssize_t n = recv(sender.fd, buffer, BUFFER_SIZE, 0);
   if (n <= 0) {
+    this->lock();
     this->disconnect(sender);
+    this->unlock();
     return json();
   }
   if (debugMode) std::cout << "[RECEIVED] " << buffer << std::endl;
@@ -115,7 +117,9 @@ json Server::receive(Player sender) {
     json req = json::parse(buffer);
     return req;
   } catch (...) {
+    this->lock();
     this->disconnect(sender);
+    this->unlock();
     return json();
   }
 }
