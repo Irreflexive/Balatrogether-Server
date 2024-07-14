@@ -68,6 +68,8 @@ class Server {
     void goToShop(Player sender);
 
     json toJSON();
+    void lock();
+    void unlock();
   private:
     std::vector<Player> players;
     pthread_mutex_t mutex;

@@ -38,79 +38,87 @@ void* client_thread(void* arg) {
     json req = server->receive(client);
     if (req == json()) break;
 
-    std::string command = req["cmd"].template get<std::string>();
-    if (command == "START") {
-      server->stop();
-      std::string seed = req["seed"].template get<std::string>();
-      std::string deck = req["deck"].template get<std::string>();
-      int stake = req["stake"].template get<int>();
-      server->start(client, seed, deck, stake);
+    try {
+      server->lock();
+      std::string command = req["cmd"].template get<std::string>();
+      if (command == "START") {
+        server->stop();
+        std::string seed = req["seed"].template get<std::string>();
+        std::string deck = req["deck"].template get<std::string>();
+        int stake = req["stake"].template get<int>();
+        server->start(client, seed, deck, stake);
 
-    } else if (command == "HIGHLIGHT") {
-      std::string selectType = req["type"].template get<std::string>();
-      int index = req["index"].template get<int>();
-      server->highlight(client, selectType, index);
+      } else if (command == "HIGHLIGHT") {
+        std::string selectType = req["type"].template get<std::string>();
+        int index = req["index"].template get<int>();
+        server->highlight(client, selectType, index);
 
-    } else if (command == "UNHIGHLIGHT") {
-      std::string selectType = req["type"].template get<std::string>();
-      int index = req["index"].template get<int>();
-      server->unhighlight(client, selectType, index);
+      } else if (command == "UNHIGHLIGHT") {
+        std::string selectType = req["type"].template get<std::string>();
+        int index = req["index"].template get<int>();
+        server->unhighlight(client, selectType, index);
 
-    } else if (command == "UNHIGHTLIGHT_ALL") {
-      server->unhighlightAll(client);
+      } else if (command == "UNHIGHTLIGHT_ALL") {
+        server->unhighlightAll(client);
 
-    } else if (command == "PLAY_HAND") {
-      server->playHand(client);
+      } else if (command == "PLAY_HAND") {
+        server->playHand(client);
+        
+      } else if (command == "DISCARD_HAND") {
+        server->discardHand(client);
+
+      } else if (command == "SORT_HAND") {
+        std::string sortType = req["type"].template get<std::string>();
+        server->sortHand(client, sortType);
+
+      } else if (command == "SELECT_BLIND") {
+        server->selectBlind(client);
+
+      } else if (command == "SKIP_BLIND") {
+        server->skipBlind(client);
+
+      } else if (command == "SELL") {
+        std::string selectType = req["type"].template get<std::string>();
+        int index = req["index"].template get<int>();
+        server->sell(client, selectType, index);
+
+      } else if (command == "USE") {
+        int index = req["index"].template get<int>();
+        server->use(client, index);
+
+      } else if (command == "BUY") {
+        std::string selectType = req["type"].template get<std::string>();
+        int index = req["index"].template get<int>();
+        server->buy(client, selectType, index);
+
+      } else if (command == "BUY_AND_USE") {
+        int index = req["index"].template get<int>();
+        server->buyAndUse(client, index);
+
+      } else if (command == "SKIP_BOOSTER") {
+        server->skipBooster(client);
       
-    } else if (command == "DISCARD_HAND") {
-      server->discardHand(client);
+      } else if (command == "REROLL") {
+        server->reroll(client);
 
-    } else if (command == "SORT_HAND") {
-      std::string sortType = req["type"].template get<std::string>();
-      server->sortHand(client, sortType);
+      } else if (command == "NEXT_ROUND") {
+        server->nextRound(client);
 
-    } else if (command == "SELECT_BLIND") {
-      server->selectBlind(client);
+      } else if (command == "GO_TO_SHOP") {
+        server->goToShop(client);
 
-    } else if (command == "SKIP_BLIND") {
-      server->skipBlind(client);
+      } else if (command == "REORDER") {
+        std::string selectType = req["type"].template get<std::string>();
+        int from = req["from"].template get<int>();
+        int to = req["to"].template get<int>();
+        server->reorder(client, selectType, from, to);
 
-    } else if (command == "SELL") {
-      std::string selectType = req["type"].template get<std::string>();
-      int index = req["index"].template get<int>();
-      server->sell(client, selectType, index);
-
-    } else if (command == "USE") {
-      int index = req["index"].template get<int>();
-      server->use(client, index);
-
-    } else if (command == "BUY") {
-      std::string selectType = req["type"].template get<std::string>();
-      int index = req["index"].template get<int>();
-      server->buy(client, selectType, index);
-
-    } else if (command == "BUY_AND_USE") {
-      int index = req["index"].template get<int>();
-      server->buyAndUse(client, index);
-
-    } else if (command == "SKIP_BOOSTER") {
-      server->skipBooster(client);
-    
-    } else if (command == "REROLL") {
-      server->reroll(client);
-
-    } else if (command == "NEXT_ROUND") {
-      server->nextRound(client);
-
-    } else if (command == "GO_TO_SHOP") {
-      server->goToShop(client);
-
-    } else if (command == "REORDER") {
-      std::string selectType = req["type"].template get<std::string>();
-      int from = req["from"].template get<int>();
-      int to = req["to"].template get<int>();
-      server->reorder(client, selectType, from, to);
-
+      }
+      server->unlock();
+    } catch (...) {
+      server->unlock();
+      server->disconnect(client);
+      pthread_exit(0);
     }
   }
 

@@ -294,3 +294,13 @@ json Server::toJSON() {
 
   return server;
 }
+
+void Server::lock()
+{
+  pthread_mutex_lock(&this->mutex);
+}
+
+void Server::unlock()
+{
+  pthread_mutex_unlock(&this->mutex);
+}
