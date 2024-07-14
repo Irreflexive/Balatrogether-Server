@@ -33,7 +33,6 @@ Server::Server(int maxPlayers, bool debugMode)
   this->debugMode = debugMode;
   this->inGame = false;
   pthread_mutex_init(&this->mutex, nullptr);
-  memset(this->buffer, 0, BUFFER_SIZE);
 }
 
 void Server::join(Player p)
@@ -80,14 +79,13 @@ bool Server::canJoin(Player p)
 
 void Server::sendToPlayer(Player receiver, json payload)
 {
-  pthread_mutex_lock(&this->mutex);
-  memset(this->buffer, 0, BUFFER_SIZE);
+  char buffer[BUFFER_SIZE];
+  memset(buffer, 0, BUFFER_SIZE);
   std::string jsonString = payload.dump();
-  strcpy(this->buffer, jsonString.c_str());
-  this->buffer[jsonString.size()] = '\n';
+  strcpy(buffer, jsonString.c_str());
+  buffer[jsonString.size()] = '\n';
   if (debugMode) std::cout << "[SENT - " << receiver.steamId << "] " << buffer << std::endl;
-  send(receiver.fd, this->buffer, BUFFER_SIZE, 0);
-  pthread_mutex_unlock(&this->mutex);
+  send(receiver.fd, buffer, BUFFER_SIZE, 0);
 }
 
 void Server::sendToOthers(Player sender, json payload)
@@ -105,15 +103,15 @@ void Server::broadcast(json payload)
 }
 
 json Server::receive(Player sender) {
-  memset(this->buffer, 0, BUFFER_SIZE);
-  ssize_t n = recv(sender.fd, this->buffer, BUFFER_SIZE, 0);
+  char buffer[BUFFER_SIZE];
+  memset(buffer, 0, BUFFER_SIZE);
+  ssize_t n = recv(sender.fd, buffer, BUFFER_SIZE, 0);
   if (n <= 0) {
     this->disconnect(sender);
     return json();
   }
   if (debugMode) std::cout << "[RECEIVED] " << buffer << std::endl;
   try {
-    std::string buffer = this->buffer;
     json req = json::parse(buffer);
     return req;
   } catch (...) {
