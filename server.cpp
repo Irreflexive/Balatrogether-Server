@@ -151,6 +151,13 @@ void Server::stop()
   this->inGame = false;
 }
 
+void Server::endless()
+{
+  if (!this->inGame) return;
+  json data = json::object();
+  this->broadcast(success("ENDLESS", data));
+}
+
 void Server::highlight(Player sender, std::string selectType, int index)
 {
   if (!this->inGame) return;

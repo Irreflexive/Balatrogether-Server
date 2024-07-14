@@ -113,6 +113,9 @@ void* client_thread(void* arg) {
         int to = req["to"].template get<int>();
         server->reorder(client, selectType, from, to);
 
+      } else if (command == "ENDLESS") {
+        server->endless();
+
       }
       server->unlock();
     } catch (...) {

@@ -45,6 +45,7 @@ class Server {
 
     void start(Player sender, std::string seed, std::string deck, int stake);
     void stop();
+    void endless();
 
     void highlight(Player sender, std::string selectType, int index);
     void unhighlight(Player sender, std::string selectType, int index);
