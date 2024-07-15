@@ -22,6 +22,7 @@ struct Player {
   int fd;
   struct sockaddr_in addr;
   uint64_t steamId;
+  bool eliminated;
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };
@@ -42,6 +43,10 @@ class Server {
 
     bool isHost(Player p);
     Player getHost();
+    bool isCoop();
+    bool isVersus();
+    std::vector<Player> getRemainingPlayers();
+    std::vector<Player> getEliminatedPlayers();
 
     void start(Player sender, std::string seed, std::string deck, int stake, bool versus);
     void stop();
@@ -67,6 +72,8 @@ class Server {
     void reroll(Player sender);
     void nextRound(Player sender);
     void goToShop(Player sender);
+
+    void annieAndHallie(Player sender, json jokers, json isTargetResponse);
 
     json toJSON();
     void lock();

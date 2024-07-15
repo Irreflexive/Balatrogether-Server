@@ -117,6 +117,11 @@ void* client_thread(void* arg) {
       } else if (command == "ENDLESS") {
         server->endless();
 
+      } else if (command == "ANNIE_AND_HALLIE") {
+        json jokers = req["jokers"];
+        json targetResponse = req["player"];
+        server->annieAndHallie(client, jokers, targetResponse);
+
       }
       server->unlock();
     } catch (...) {
