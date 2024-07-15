@@ -1,5 +1,11 @@
 #include "server.hpp"
 
+std::string uint64ToString(uint64_t n) {
+  std::ostringstream os;
+  os << n;
+  return os.str();
+}
+
 bool operator==(Player const& lhs, Player const& rhs)
 {
   return lhs.steamId == rhs.steamId;
@@ -133,11 +139,44 @@ Player Server::getHost() {
   return players.at(0);
 }
 
+bool Server::isCoop()
+{
+  return !this->versus;
+}
+
+bool Server::isVersus()
+{
+  return this->versus;
+}
+
+std::vector<Player> Server::getRemainingPlayers()
+{
+  std::vector<Player> remainingPlayers;
+  for (Player player : this->players) {
+    if (!player.eliminated) remainingPlayers.push_back(player);
+  }
+  return remainingPlayers;
+}
+
+std::vector<Player> Server::getEliminatedPlayers()
+{
+  std::vector<Player> eliminatedPlayers;
+  for (Player player : this->players) {
+    if (player.eliminated) eliminatedPlayers.push_back(player);
+  }
+  return eliminatedPlayers;
+}
+
 void Server::start(Player sender, std::string seed, std::string deck, int stake, bool versus)
 {
   if (this->inGame || !this->isHost(sender)) return;
   std::cout << "Starting multiplayer run" << std::endl;
+
   this->inGame = true;
+  this->versus = versus;
+  for (Player player : this->players) {
+    player.eliminated = false;
+  }
   json data;
   data["seed"] = seed;
   data["deck"] = deck;
@@ -156,7 +195,7 @@ void Server::stop()
 void Server::endless()
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("ENDLESS", data));
 }
@@ -164,7 +203,7 @@ void Server::endless()
 void Server::highlight(Player sender, std::string selectType, int index)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["type"] = selectType;
   data["index"] = index;
@@ -174,7 +213,7 @@ void Server::highlight(Player sender, std::string selectType, int index)
 void Server::unhighlight(Player sender, std::string selectType, int index)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["type"] = selectType;
   data["index"] = index;
@@ -184,7 +223,7 @@ void Server::unhighlight(Player sender, std::string selectType, int index)
 void Server::unhighlightAll(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->sendToOthers(sender, success("UNHIGHLIGHT_ALL", data));
 }
@@ -192,7 +231,7 @@ void Server::unhighlightAll(Player sender)
 void Server::playHand(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("PLAY_HAND", data));
 }
@@ -200,7 +239,7 @@ void Server::playHand(Player sender)
 void Server::discardHand(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("DISCARD_HAND", data));
 }
@@ -208,7 +247,7 @@ void Server::discardHand(Player sender)
 void Server::sortHand(Player sender, std::string sortType)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["type"] = sortType;
   this->broadcast(success("SORT_HAND", data));
@@ -217,7 +256,7 @@ void Server::sortHand(Player sender, std::string sortType)
 void Server::reorder(Player sender, std::string selectType, int from, int to)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["type"] = selectType;
   data["from"] = from;
@@ -228,7 +267,7 @@ void Server::reorder(Player sender, std::string selectType, int from, int to)
 void Server::selectBlind(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("SELECT_BLIND", data));
 }
@@ -236,7 +275,7 @@ void Server::selectBlind(Player sender)
 void Server::skipBlind(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("SKIP_BLIND", data));
 }
@@ -244,7 +283,7 @@ void Server::skipBlind(Player sender)
 void Server::sell(Player sender, std::string selectType, int index)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["type"] = selectType;
   data["index"] = index;
@@ -254,7 +293,7 @@ void Server::sell(Player sender, std::string selectType, int index)
 void Server::use(Player sender, int index)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["index"] = index;
   this->broadcast(success("USE", data));
@@ -263,7 +302,7 @@ void Server::use(Player sender, int index)
 void Server::buy(Player sender, std::string selectType, int index)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["type"] = selectType;
   data["index"] = index;
@@ -273,7 +312,7 @@ void Server::buy(Player sender, std::string selectType, int index)
 void Server::buyAndUse(Player sender, int index)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data;
   data["index"] = index;
   this->broadcast(success("BUY_AND_USE", data));
@@ -282,7 +321,7 @@ void Server::buyAndUse(Player sender, int index)
 void Server::skipBooster(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("SKIP_BOOSTER", data));
 }
@@ -290,7 +329,7 @@ void Server::skipBooster(Player sender)
 void Server::reroll(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("REROLL", data));
 }
@@ -298,7 +337,7 @@ void Server::reroll(Player sender)
 void Server::nextRound(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("NEXT_ROUND", data));
 }
@@ -306,9 +345,41 @@ void Server::nextRound(Player sender)
 void Server::goToShop(Player sender)
 {
   if (!this->inGame) return;
-  if (this->versus) return;
+  if (!this->isCoop()) return;
   json data = json::object();
   this->broadcast(success("GO_TO_SHOP", data));
+}
+
+void Server::annieAndHallie(Player sender, json jokers, json targetResponse)
+{
+  if (!this->inGame) return;
+  if (!this->isVersus()) return;
+  if (targetResponse.type() == json::value_t::null) { // no req["player"], so it is the initial sender
+    std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+    for (int i = 0; i < remainingPlayers.size(); i++) {
+      if (remainingPlayers[i] == sender) {
+        remainingPlayers.erase(remainingPlayers.begin() + i);
+        break;
+      }
+    }
+    if (remainingPlayers.size() == 0) return;
+    int randomIndex = rand() % remainingPlayers.size();
+    Player randomPlayer = remainingPlayers[randomIndex];
+    json data;
+    data["jokers"] = jokers;
+    data["user"] = sender.steamId;
+    this->sendToPlayer(randomPlayer, success("ANNIE_AND_HALLIE", jokers));
+  } else { // target sent a response with the jokers they are giving up
+    std::string targetId = targetResponse.template get<std::string>();
+    json data;
+    data["jokers"] = jokers;
+    for (Player player : this->players) {
+      if (uint64ToString(player.steamId) == targetId) {
+        this->sendToPlayer(player, success("ANNIE_AND_HALLIE", data));
+        break;
+      }
+    }
+  }
 }
 
 json Server::toJSON() {
@@ -317,9 +388,7 @@ json Server::toJSON() {
 
   json playerIds = json::array();
   for (Player player : this->players) {
-    std::ostringstream os;
-    os << player.steamId;
-    playerIds.push_back(os.str());
+    playerIds.push_back(uint64ToString(player.steamId));
   }
   server["players"] = playerIds;
 
