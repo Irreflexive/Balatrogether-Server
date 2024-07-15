@@ -46,7 +46,8 @@ void* client_thread(void* arg) {
         std::string seed = req["seed"].template get<std::string>();
         std::string deck = req["deck"].template get<std::string>();
         int stake = req["stake"].template get<int>();
-        server->start(client, seed, deck, stake);
+        bool versus = req["versus"].template get<bool>();
+        server->start(client, seed, deck, stake, versus);
 
       } else if (command == "HIGHLIGHT") {
         std::string selectType = req["type"].template get<std::string>();

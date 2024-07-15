@@ -43,7 +43,7 @@ class Server {
     bool isHost(Player p);
     Player getHost();
 
-    void start(Player sender, std::string seed, std::string deck, int stake);
+    void start(Player sender, std::string seed, std::string deck, int stake, bool versus);
     void stop();
     void endless();
 
@@ -76,6 +76,7 @@ class Server {
     pthread_mutex_t mutex;
     int maxPlayers;
     bool inGame;
+    bool versus;
     bool debugMode;
 };
 
