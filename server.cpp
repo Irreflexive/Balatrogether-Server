@@ -350,11 +350,11 @@ void Server::goToShop(Player sender)
   this->broadcast(success("GO_TO_SHOP", data));
 }
 
-void Server::annieAndHallie(Player sender, json jokers, json targetResponse)
+void Server::annieAndHallie(Player sender, json jokers, bool responding, json targetResponse)
 {
   if (!this->inGame) return;
   if (!this->isVersus()) return;
-  if (targetResponse.type() == json::value_t::null) { // no req["player"], so it is the initial sender
+  if (!responding) { // no req["player"], so it is the initial sender
     std::vector<Player> remainingPlayers = this->getRemainingPlayers();
     for (int i = 0; i < remainingPlayers.size(); i++) {
       if (remainingPlayers[i] == sender) {
@@ -367,8 +367,8 @@ void Server::annieAndHallie(Player sender, json jokers, json targetResponse)
     Player randomPlayer = remainingPlayers[randomIndex];
     json data;
     data["jokers"] = jokers;
-    data["user"] = sender.steamId;
-    this->sendToPlayer(randomPlayer, success("ANNIE_AND_HALLIE", jokers));
+    data["user"] = uint64ToString(sender.steamId);
+    this->sendToPlayer(randomPlayer, success("ANNIE_AND_HALLIE", data));
   } else { // target sent a response with the jokers they are giving up
     std::string targetId = targetResponse.template get<std::string>();
     json data;
@@ -380,6 +380,16 @@ void Server::annieAndHallie(Player sender, json jokers, json targetResponse)
       }
     }
   }
+}
+
+void Server::theCup(Player sender)
+{
+  if (!this->inGame) return;
+  if (!this->isVersus()) return;
+  json data;
+  data["eliminated"] = this->getEliminatedPlayers().size();
+  std::cout << data << std::endl;
+  this->broadcast(success("THE_CUP", data));
 }
 
 json Server::toJSON() {

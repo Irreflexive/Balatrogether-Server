@@ -73,7 +73,8 @@ class Server {
     void nextRound(Player sender);
     void goToShop(Player sender);
 
-    void annieAndHallie(Player sender, json jokers, json isTargetResponse);
+    void annieAndHallie(Player sender, json jokers, bool responding, json isTargetResponse);
+    void theCup(Player sender);
 
     json toJSON();
     void lock();

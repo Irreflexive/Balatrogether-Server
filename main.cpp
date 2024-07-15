@@ -119,8 +119,12 @@ void* client_thread(void* arg) {
 
       } else if (command == "ANNIE_AND_HALLIE") {
         json jokers = req["jokers"];
+        bool responding = req["responding"].template get<bool>();
         json targetResponse = req["player"];
-        server->annieAndHallie(client, jokers, targetResponse);
+        server->annieAndHallie(client, jokers, responding, targetResponse);
+
+      } else if (command == "THE_CUP") {
+        server->theCup(client);
 
       }
       server->unlock();
