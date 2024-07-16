@@ -22,9 +22,25 @@ struct Player {
   int fd;
   struct sockaddr_in addr;
   uint64_t steamId;
-  bool eliminated;
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
+};
+
+class Game {
+  public:
+    Game();
+    void start(bool versus);
+    void stop();
+    bool isRunning();
+    bool isVersus();
+    bool isCoop();
+    std::vector<Player> getRemainingPlayers(std::vector<Player> connected);
+    std::vector<Player> getEliminatedPlayers();
+    void eliminate(Player p);
+  private:
+    bool inGame;
+    bool versus;
+    std::vector<Player> eliminated;
 };
 
 class Server {
@@ -43,10 +59,6 @@ class Server {
 
     bool isHost(Player p);
     Player getHost();
-    bool isCoop();
-    bool isVersus();
-    std::vector<Player> getRemainingPlayers();
-    std::vector<Player> getEliminatedPlayers();
 
     void start(Player sender, std::string seed, std::string deck, int stake, bool versus);
     void stop();
@@ -83,8 +95,7 @@ class Server {
     std::vector<Player> players;
     pthread_mutex_t mutex;
     int maxPlayers;
-    bool inGame;
-    bool versus;
+    Game game;
     bool debugMode;
 };
 
