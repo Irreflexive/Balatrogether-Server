@@ -26,26 +26,12 @@ struct Player {
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };
 
-class Game {
-  friend class Server;
-  public:
-    Game();
-    void start(bool versus);
-    void stop();
-    bool isRunning();
-    bool isVersus();
-    bool isCoop();
-    std::vector<Player> getRemainingPlayers(std::vector<Player> connected);
-    std::vector<Player> getEliminatedPlayers();
-    void eliminate(Player p);
-    void markReadyForBoss(Player p);
-    void startBoss();
-  private:
-    bool inGame;
-    bool versus;
-    std::vector<Player> ready;
-    std::vector<Player> defeatedBoss;
-    std::vector<Player> eliminated;
+struct Game {
+  bool inGame;
+  bool versus;
+  std::vector<Player> ready;
+  std::vector<Player> defeatedBoss;
+  std::vector<Player> eliminated;
 };
 
 class Server {
@@ -67,6 +53,12 @@ class Server {
 
     void start(Player sender, std::string seed, std::string deck, int stake, bool versus);
     void stop();
+    bool isRunning();
+    bool isVersus();
+    bool isCoop();
+    std::vector<Player> getRemainingPlayers();
+    std::vector<Player> getEliminatedPlayers();
+    void eliminate(Player p);
 
     // Co-op network events
     void endless();
