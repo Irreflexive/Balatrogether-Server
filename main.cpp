@@ -126,6 +126,9 @@ void* client_thread(void* arg) {
       } else if (command == "THE_CUP") {
         server->theCup(client);
 
+      } else if (command == "READY_FOR_BOSS") {
+        server->readyForBoss(client);
+
       }
       server->unlock();
     } catch (...) {
