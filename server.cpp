@@ -153,6 +153,8 @@ void Server::start(Player sender, std::string seed, std::string deck, int stake,
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.eliminated = std::vector<Player>();
+  this->game.ready = std::vector<Player>();
+  this->game.defeatedBoss = std::vector<Player>();
   json data;
   data["seed"] = seed;
   data["deck"] = deck;
@@ -200,14 +202,6 @@ std::vector<Player> Server::getRemainingPlayers() {
 
 std::vector<Player> Server::getEliminatedPlayers() {
   return this->game.eliminated;
-}
-
-void Server::eliminate(Player p)
-{
-  for (Player player : this->game.eliminated) {
-    if (player == p) return;
-  }
-  this->game.eliminated.push_back(p);
 }
 
 void Server::endless()
@@ -398,6 +392,20 @@ void Server::readyForBoss(Player sender)
   }
   this->game.ready = std::vector<Player>();
   this->broadcast(success("START_BOSS"));
+}
+
+void Server::eliminate(Player p)
+{
+  if (!this->isVersus()) return;
+  for (Player player : this->game.eliminated) {
+    if (player == p) return;
+  }
+  this->game.eliminated.push_back(p);
+  std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+  if (remainingPlayers.size() == 1) {
+    Player winner = remainingPlayers[0];
+    this->sendToPlayer(winner, success("WIN"));
+  }
 }
 
 json Server::toJSON() {

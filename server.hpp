@@ -26,6 +26,10 @@ struct Player {
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };
 
+json success(std::string cmd, json data);
+json success(std::string cmd);
+json error(std::string msg);
+
 struct Game {
   bool inGame;
   bool versus;
@@ -58,7 +62,6 @@ class Server {
     bool isCoop();
     std::vector<Player> getRemainingPlayers();
     std::vector<Player> getEliminatedPlayers();
-    void eliminate(Player p);
 
     // Co-op network events
     void endless();
@@ -88,6 +91,7 @@ class Server {
     void annieAndHallie(Player sender, json jokers, bool responding, json isTargetResponse);
     void theCup(Player sender);
     void readyForBoss(Player sender);
+    void eliminate(Player p);
 
     // State management
     json toJSON();
