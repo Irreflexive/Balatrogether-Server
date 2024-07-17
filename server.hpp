@@ -27,6 +27,7 @@ struct Player {
 };
 
 class Game {
+  friend class Server;
   public:
     Game();
     void start(bool versus);
@@ -37,9 +38,13 @@ class Game {
     std::vector<Player> getRemainingPlayers(std::vector<Player> connected);
     std::vector<Player> getEliminatedPlayers();
     void eliminate(Player p);
+    void markReadyForBoss(Player p);
+    void startBoss();
   private:
     bool inGame;
     bool versus;
+    std::vector<Player> ready;
+    std::vector<Player> defeatedBoss;
     std::vector<Player> eliminated;
 };
 
@@ -62,6 +67,8 @@ class Server {
 
     void start(Player sender, std::string seed, std::string deck, int stake, bool versus);
     void stop();
+
+    // Co-op network events
     void endless();
 
     void highlight(Player sender, std::string selectType, int index);
@@ -85,9 +92,12 @@ class Server {
     void nextRound(Player sender);
     void goToShop(Player sender);
 
+    // Versus network events
     void annieAndHallie(Player sender, json jokers, bool responding, json isTargetResponse);
     void theCup(Player sender);
+    void readyForBoss(Player sender);
 
+    // State management
     json toJSON();
     void lock();
     void unlock();

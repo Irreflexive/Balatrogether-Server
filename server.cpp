@@ -25,6 +25,11 @@ json success(std::string cmd, json data)
   return res;
 }
 
+json success(std::string cmd)
+{
+  return success(cmd, json::object());
+}
+
 json error(std::string msg)
 {
   json res;
@@ -56,6 +61,7 @@ void Server::disconnect(Player p) {
   close(p.fd);
   if (!this->hasAlreadyJoined(p)) return;
   std::cout << "Player " << p.steamId << " disconnecting" << std::endl;
+  this->game.eliminate(p);
   for (int i = 0; i < this->players.size(); i++) {
     if (this->players[i] == p) {
       this->players.erase(this->players.begin() + i);
@@ -161,8 +167,7 @@ void Server::stop()
 void Server::endless()
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("ENDLESS", data));
+  this->broadcast(success("ENDLESS"));
 }
 
 void Server::highlight(Player sender, std::string selectType, int index)
@@ -186,22 +191,19 @@ void Server::unhighlight(Player sender, std::string selectType, int index)
 void Server::unhighlightAll(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->sendToOthers(sender, success("UNHIGHLIGHT_ALL", data));
+  this->sendToOthers(sender, success("UNHIGHLIGHT_ALL"));
 }
 
 void Server::playHand(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("PLAY_HAND", data));
+  this->broadcast(success("PLAY_HAND"));
 }
 
 void Server::discardHand(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("DISCARD_HAND", data));
+  this->broadcast(success("DISCARD_HAND"));
 }
 
 void Server::sortHand(Player sender, std::string sortType)
@@ -225,15 +227,13 @@ void Server::reorder(Player sender, std::string selectType, int from, int to)
 void Server::selectBlind(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("SELECT_BLIND", data));
+  this->broadcast(success("SELECT_BLIND"));
 }
 
 void Server::skipBlind(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("SKIP_BLIND", data));
+  this->broadcast(success("SKIP_BLIND"));
 }
 
 void Server::sell(Player sender, std::string selectType, int index)
@@ -273,29 +273,25 @@ void Server::buyAndUse(Player sender, int index)
 void Server::skipBooster(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("SKIP_BOOSTER", data));
+  this->broadcast(success("SKIP_BOOSTER"));
 }
 
 void Server::reroll(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("REROLL", data));
+  this->broadcast(success("REROLL"));
 }
 
 void Server::nextRound(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("NEXT_ROUND", data));
+  this->broadcast(success("NEXT_ROUND"));
 }
 
 void Server::goToShop(Player sender)
 {
   if (!this->game.isCoop()) return;
-  json data = json::object();
-  this->broadcast(success("GO_TO_SHOP", data));
+  this->broadcast(success("GO_TO_SHOP"));
 }
 
 void Server::annieAndHallie(Player sender, json jokers, bool responding, json targetResponse)
@@ -335,6 +331,16 @@ void Server::theCup(Player sender)
   json data;
   data["eliminated"] = this->game.getEliminatedPlayers().size();
   this->broadcast(success("THE_CUP", data));
+}
+
+void Server::readyForBoss(Player sender)
+{
+  if (!this->game.isVersus()) return;
+  this->game.markReadyForBoss(sender);
+  if (this->game.ready.size() == this->game.getRemainingPlayers(this->players).size()) {
+    this->game.startBoss();
+    this->broadcast(success("START_BOSS"));
+  }
 }
 
 json Server::toJSON() {
@@ -420,4 +426,17 @@ void Game::eliminate(Player p)
     if (player == p) return;
   }
   this->eliminated.push_back(p);
+}
+
+void Game::markReadyForBoss(Player p)
+{
+  for (Player player : this->ready) {
+    if (player == p) return;
+  }
+  this->ready.push_back(p);
+}
+
+void Game::startBoss()
+{
+  this->ready = std::vector<Player>(); 
 }
