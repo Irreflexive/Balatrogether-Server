@@ -38,11 +38,10 @@ json error(std::string msg)
   return res;
 }
 
-Server::Server(int maxPlayers, bool debugMode) 
+Server::Server(int maxPlayers) 
 {
   this->rsa = generateRSA();
   this->maxPlayers = maxPlayers;
-  this->debugMode = debugMode;
   pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
@@ -50,6 +49,7 @@ Server::Server(int maxPlayers, bool debugMode)
 
 bool Server::handshake(Player* p)
 {
+  if (!ENCRYPT) return true;
   char buffer[BUFFER_SIZE];
 
   memset(buffer, 0, BUFFER_SIZE);
@@ -75,7 +75,7 @@ bool Server::handshake(Player* p)
     p->aesIV = payload["aesIV"];
     return true;
   } catch (const char* e) {
-    if (this->debugMode) std::cerr << e << std::endl;
+    if (DEBUG) std::cerr << e << std::endl;
     return false;
   }
 }
@@ -127,10 +127,10 @@ void Server::sendToPlayer(Player receiver, json payload)
 {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  std::string jsonString = encryptAES(receiver.aesKey, receiver.aesIV, payload.dump());
+  std::string jsonString = ENCRYPT ? encryptAES(receiver.aesKey, receiver.aesIV, payload.dump()) : payload.dump();
   strcpy(buffer, jsonString.c_str());
   buffer[jsonString.size()] = '\n';
-  if (debugMode) std::cout << "[SENT - " << receiver.steamId << "] " << payload.dump() << std::endl;
+  if (DEBUG) std::cout << "[SENT - " << receiver.steamId << "] " << payload.dump() << std::endl;
   send(receiver.fd, buffer, BUFFER_SIZE, 0);
 }
 
@@ -159,8 +159,8 @@ json Server::receive(Player sender) {
     return json();
   }
   try {
-    std::string decrypted = decryptAES(sender.aesKey, sender.aesIV, std::string(buffer));
-    if (debugMode) std::cout << "[RECEIVED] " << decrypted << std::endl;
+    std::string decrypted = ENCRYPT ? decryptAES(sender.aesKey, sender.aesIV, std::string(buffer)) : std::string(buffer);
+    if (DEBUG) std::cout << "[RECEIVED] " << decrypted << std::endl;
     json req = json::parse(decrypted);
     return req;
   } catch (...) {

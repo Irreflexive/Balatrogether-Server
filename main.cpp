@@ -2,7 +2,6 @@
 
 #define PORT 7063
 #define MAX_PLAYERS 8
-#define DEBUG true
 
 struct thread_arg {
   Server* server;
@@ -157,7 +156,7 @@ int main() {
   serv_addr.sin_port = htons(7063);
   serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-  Server* server = new Server(MAX_PLAYERS, DEBUG);
+  Server* server = new Server(MAX_PLAYERS);
 
   int opt = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
