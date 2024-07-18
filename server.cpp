@@ -40,11 +40,44 @@ json error(std::string msg)
 
 Server::Server(int maxPlayers, bool debugMode) 
 {
+  this->rsa = generateRSA();
   this->maxPlayers = maxPlayers;
   this->debugMode = debugMode;
   pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
+}
+
+bool Server::handshake(Player* p)
+{
+  char buffer[BUFFER_SIZE];
+
+  memset(buffer, 0, BUFFER_SIZE);
+  strcpy(buffer, this->rsa.publicKey.c_str());
+  send(p->fd, buffer, BUFFER_SIZE, 0);
+
+  memset(buffer, 0, BUFFER_SIZE);
+  ssize_t n = recv(p->fd, buffer, BUFFER_SIZE, 0);
+  if (n <= 0) {
+    return false;
+  }
+
+  std::string encryptedPayload(buffer);
+  try {
+    std::string decryptedPayload = decryptRSA(this->rsa.privateKey, encryptedPayload);
+    json payload = json::parse(decryptedPayload);
+    std::cout << payload << std::endl;
+    if (payload["aesKey"].is_null() || payload["aesIV"].is_null()) {
+      return false;
+    }
+
+    p->aesKey = payload["aesKey"];
+    p->aesIV = payload["aesIV"];
+    return true;
+  } catch (const char* e) {
+    if (this->debugMode) std::cerr << e << std::endl;
+    return false;
+  }
 }
 
 void Server::join(Player p)
@@ -94,10 +127,10 @@ void Server::sendToPlayer(Player receiver, json payload)
 {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  std::string jsonString = payload.dump();
+  std::string jsonString = encryptAES(receiver.aesKey, receiver.aesIV, payload.dump());
   strcpy(buffer, jsonString.c_str());
   buffer[jsonString.size()] = '\n';
-  if (debugMode) std::cout << "[SENT - " << receiver.steamId << "] " << buffer << std::endl;
+  if (debugMode) std::cout << "[SENT - " << receiver.steamId << "] " << payload.dump() << std::endl;
   send(receiver.fd, buffer, BUFFER_SIZE, 0);
 }
 
@@ -125,9 +158,10 @@ json Server::receive(Player sender) {
     this->unlock();
     return json();
   }
-  if (debugMode) std::cout << "[RECEIVED] " << buffer << std::endl;
   try {
-    json req = json::parse(buffer);
+    std::string decrypted = decryptAES(sender.aesKey, sender.aesIV, std::string(buffer));
+    if (debugMode) std::cout << "[RECEIVED] " << decrypted << std::endl;
+    json req = json::parse(decrypted);
     return req;
   } catch (...) {
     this->lock();

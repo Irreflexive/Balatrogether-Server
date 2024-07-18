@@ -14,8 +14,16 @@ void* client_thread(void* arg) {
   Server* server = info->server;
   Player client = info->client;
 
+  if (DEBUG) std::cout << "Performing handshake" << std::endl;
+  if (!server->handshake(&client)) {
+    server->disconnect(client);
+    pthread_exit(0);
+  } else {
+    if (DEBUG) std::cout << "AES: " << client.aesKey << " " << client.aesIV << std::endl;
+  }
+
   json req = server->receive(client);
-  if (req == json()) {
+  if (req == json() || !req["cmd"].is_string() || !req["steam_id"].is_string()) {
     server->disconnect(client);
     pthread_exit(0);
   }
@@ -36,7 +44,7 @@ void* client_thread(void* arg) {
 
   while (true) {
     json req = server->receive(client);
-    if (req == json()) break;
+    if (req == json() || !req["cmd"].is_string()) break;
 
     try {
       server->lock();

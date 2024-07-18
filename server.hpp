@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sstream>
 #include "json.hpp"
+#include "encrypt.hpp"
 
 #define BUFFER_SIZE 4096
 
@@ -22,6 +23,8 @@ struct Player {
   int fd;
   struct sockaddr_in addr;
   uint64_t steamId;
+  std::string aesKey;
+  std::string aesIV;
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };
@@ -42,6 +45,7 @@ class Server {
   public:
     Server(int maxPlayers, bool debugMode);
 
+    bool handshake(Player* p);
     void join(Player p);
     void disconnect(Player p);
     bool hasAlreadyJoined(Player p);
@@ -98,6 +102,7 @@ class Server {
     void lock();
     void unlock();
   private:
+    RSAKeypair rsa;
     std::vector<Player> players;
     pthread_mutex_t mutex;
     int maxPlayers;
