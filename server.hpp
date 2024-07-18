@@ -16,6 +16,8 @@
 #include "encrypt.hpp"
 
 #define BUFFER_SIZE 4096
+#define ENCRYPT true
+#define DEBUG true
 
 using json = nlohmann::json;
 
@@ -43,7 +45,7 @@ struct Game {
 
 class Server {
   public:
-    Server(int maxPlayers, bool debugMode);
+    Server(int maxPlayers);
 
     bool handshake(Player* p);
     void join(Player p);
@@ -107,7 +109,6 @@ class Server {
     pthread_mutex_t mutex;
     int maxPlayers;
     Game game;
-    bool debugMode;
 };
 
 #endif
