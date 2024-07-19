@@ -148,6 +148,7 @@ void* client_thread(void* arg) {
 
       } else if (command == "DEFEATED_BOSS") {
         double score = req["score"].get<double>();
+        server->defeatedBoss(client, score);
 
       }
       server->unlock();

@@ -35,12 +35,15 @@ json success(std::string cmd, json data);
 json success(std::string cmd);
 json error(std::string msg);
 
+typedef std::pair<Player, double> player_score_t;
+
 struct Game {
   bool inGame;
   bool versus;
+  bool bossPhase;
   std::vector<Player> ready;
-  std::vector<Player> defeatedBoss;
   std::vector<Player> eliminated;
+  std::vector<player_score_t> scores;
 };
 
 class Server {
@@ -100,6 +103,7 @@ class Server {
     void greenSeal(Player sender);
     void readyForBoss(Player sender);
     void eliminate(Player p);
+    void defeatedBoss(Player p, double score);
 
     // State management
     json toJSON();

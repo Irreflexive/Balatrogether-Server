@@ -186,9 +186,10 @@ void Server::start(Player sender, std::string seed, std::string deck, int stake,
 
   this->game.inGame = true;
   this->game.versus = versus;
+  this->game.bossPhase = false;
   this->game.eliminated = std::vector<Player>();
   this->game.ready = std::vector<Player>();
-  this->game.defeatedBoss = std::vector<Player>();
+  this->game.scores = std::vector<player_score_t>();
   json data;
   data["seed"] = seed;
   data["deck"] = deck;
@@ -417,6 +418,7 @@ void Server::greenSeal(Player sender)
 void Server::readyForBoss(Player sender)
 {
   if (!this->isVersus()) return;
+  if (this->game.bossPhase) return;
   for (Player player : this->game.ready) {
     if (player == sender) return;
   }
@@ -431,7 +433,9 @@ void Server::readyForBoss(Player sender)
     }
     if (!isReady) return;
   }
+  this->game.bossPhase = true;
   this->game.ready = std::vector<Player>();
+  this->game.scores = std::vector<player_score_t>();
   this->broadcast(success("START_BOSS"));
 }
 
@@ -442,10 +446,40 @@ void Server::eliminate(Player p)
     if (player == p) return;
   }
   this->game.eliminated.push_back(p);
+  for (player_score_t pair : this->game.scores) {
+    if (pair.first == p) {
+      this->game.scores.erase(std::remove(this->game.scores.begin(), this->game.scores.end(), pair), this->game.scores.end());
+      break;
+    }
+  }
   std::vector<Player> remainingPlayers = this->getRemainingPlayers();
   if (remainingPlayers.size() == 1) {
     Player winner = remainingPlayers[0];
     this->sendToPlayer(winner, success("WIN"));
+  }
+}
+
+void Server::defeatedBoss(Player p, double score)
+{
+  if (!this->isVersus()) return;
+  if (!this->game.bossPhase) return;
+  for (player_score_t pair : this->game.scores) {
+    if (pair.first == p) return;
+  }
+  this->game.scores.push_back(player_score_t(p, score));
+  if (this->game.scores.size() == this->getRemainingPlayers().size()) {
+    std::sort(this->game.scores.begin(), this->game.scores.end(), [](player_score_t a, player_score_t b) {
+      return a.second > b.second;
+    });
+    json data;
+    data["leaderboard"] = json::array();
+    for (player_score_t pair : this->game.scores) {
+      json player;
+      player["player"] = uint64ToString(pair.first.steamId);
+      player["score"] = pair.second;
+      data["leaderboard"].push_back(player);
+    }
+    this->broadcast(success("LEADERBOARD", data));
   }
 }
 
