@@ -134,16 +134,18 @@ void Server::sendToPlayer(Player receiver, json payload)
   send(receiver.fd, buffer, BUFFER_SIZE, 0);
 }
 
-void Server::sendToOthers(Player sender, json payload)
+void Server::sendToOthers(Player sender, json payload, bool ignoreEliminated)
 {
-  for (Player player : this->players) {
+  std::vector<Player> playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
+  for (Player player : playerList) {
     if (player != sender) this->sendToPlayer(player, payload);
   }
 }
 
-void Server::broadcast(json payload)
+void Server::broadcast(json payload, bool ignoreEliminated)
 {
-  for (Player player : this->players) {
+  std::vector<Player> playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
+  for (Player player : playerList) {
     this->sendToPlayer(player, payload);
   }
 }
@@ -221,6 +223,7 @@ bool Server::isCoop()
 }
 
 std::vector<Player> Server::getRemainingPlayers() {
+  if (!this->isVersus()) return this->players;
   std::vector<Player> remaining;
   for (Player player : this->players) {
     bool eliminated = false;
@@ -479,6 +482,7 @@ void Server::defeatedBoss(Player p, double score)
       player["score"] = pair.second;
       data["leaderboard"].push_back(player);
     }
+    this->game.bossPhase = false;
     this->broadcast(success("LEADERBOARD", data));
   }
 }

@@ -57,8 +57,8 @@ class Server {
     bool canJoin(Player p);
 
     void sendToPlayer(Player receiver, json payload);
-    void sendToOthers(Player sender, json payload);
-    void broadcast(json payload);
+    void sendToOthers(Player sender, json payload, bool ignoreEliminated = false);
+    void broadcast(json payload, bool ignoreEliminated = false);
     json receive(Player sender);
 
     bool isHost(Player p);
