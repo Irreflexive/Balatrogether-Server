@@ -94,8 +94,10 @@ class Server {
     void goToShop(Player sender);
 
     // Versus network events
-    void annieAndHallie(Player sender, json jokers, bool responding, json isTargetResponse);
+    void annieAndHallie(Player sender, json jokers);
+    void annieAndHallie(Player sender, json jokers, std::string targetId);
     void theCup(Player sender);
+    void greenSeal(Player sender);
     void readyForBoss(Player sender);
     void eliminate(Player p);
 
