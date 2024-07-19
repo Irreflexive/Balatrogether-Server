@@ -136,6 +136,12 @@ void* client_thread(void* arg) {
       } else if (command == "READY_FOR_BOSS") {
         server->readyForBoss(client);
 
+      } else if (command == "ELIMINATED") {
+        server->eliminate(client);
+
+      } else if (command == "DEFEATED_BOSS") {
+        double score = req["score"].template get<double>();
+
       }
       server->unlock();
     } catch (...) {
