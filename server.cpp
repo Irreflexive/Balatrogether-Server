@@ -368,33 +368,34 @@ void Server::goToShop(Player sender)
   this->broadcast(success("GO_TO_SHOP"));
 }
 
-void Server::annieAndHallie(Player sender, json jokers, bool responding, json targetResponse)
+void Server::annieAndHallie(Player sender, json jokers)
 {
   if (!this->isVersus()) return;
-  if (!responding) { // no req["player"], so it is the initial sender
-    std::vector<Player> remainingPlayers = this->getRemainingPlayers();
-    for (int i = 0; i < remainingPlayers.size(); i++) {
-      if (remainingPlayers[i] == sender) {
-        remainingPlayers.erase(remainingPlayers.begin() + i);
-        break;
-      }
+  std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+  for (int i = 0; i < remainingPlayers.size(); i++) {
+    if (remainingPlayers[i] == sender) {
+      remainingPlayers.erase(remainingPlayers.begin() + i);
+      break;
     }
-    if (remainingPlayers.size() == 0) return;
-    int randomIndex = rand() % remainingPlayers.size();
-    Player randomPlayer = remainingPlayers[randomIndex];
-    json data;
-    data["jokers"] = jokers;
-    data["user"] = uint64ToString(sender.steamId);
-    this->sendToPlayer(randomPlayer, success("ANNIE_AND_HALLIE", data));
-  } else { // target sent a response with the jokers they are giving up
-    std::string targetId = targetResponse.template get<std::string>();
-    json data;
-    data["jokers"] = jokers;
-    for (Player player : this->players) {
-      if (uint64ToString(player.steamId) == targetId) {
-        this->sendToPlayer(player, success("ANNIE_AND_HALLIE", data));
-        break;
-      }
+  }
+  if (remainingPlayers.size() == 0) return;
+  int randomIndex = rand() % remainingPlayers.size();
+  Player randomPlayer = remainingPlayers[randomIndex];
+  json data;
+  data["jokers"] = jokers;
+  data["user"] = uint64ToString(sender.steamId);
+  this->sendToPlayer(randomPlayer, success("ANNIE_AND_HALLIE", data));
+}
+
+void Server::annieAndHallie(Player sender, json jokers, std::string targetId)
+{
+  if (!this->isVersus()) return;
+  json data;
+  data["jokers"] = jokers;
+  for (Player player : this->players) {
+    if (uint64ToString(player.steamId) == targetId) {
+      this->sendToPlayer(player, success("ANNIE_AND_HALLIE", data));
+      break;
     }
   }
 }
@@ -405,6 +406,12 @@ void Server::theCup(Player sender)
   json data;
   data["eliminated"] = this->getEliminatedPlayers().size();
   this->broadcast(success("THE_CUP", data));
+}
+
+void Server::greenSeal(Player sender)
+{
+  if (!this->isVersus()) return;
+  this->sendToOthers(sender, success("GREEN_SEAL"));
 }
 
 void Server::readyForBoss(Player sender)
