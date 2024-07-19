@@ -16,7 +16,7 @@
 #include "encrypt.hpp"
 
 #define BUFFER_SIZE 4096
-#define ENCRYPT true
+#define ENCRYPT false
 #define DEBUG true
 
 using json = nlohmann::json;
