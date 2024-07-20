@@ -21,26 +21,7 @@ void* client_thread(void* arg) {
     if (DEBUG) std::cout << "AES: " << client.aesKey << " " << client.aesIV << std::endl;
   }
 
-  json req = server->receive(client);
-  if (req == json() || !req["cmd"].is_string() || !req["steam_id"].is_string()) {
-    server->disconnect(client);
-    pthread_exit(0);
-  }
-  std::string command = req["cmd"].get<std::string>();
-  if (command == "JOIN") {
-    std::string steamId = req["steam_id"].get<std::string>();
-    client.steamId = strtoull(steamId.c_str(), NULL, 10);
-    if (server->canJoin(client)) {
-      server->join(client);
-    } else {
-      server->disconnect(client);
-      pthread_exit(0);
-    }
-  } else {
-    server->disconnect(client);
-    pthread_exit(0);
-  }
-
+  bool hasJoined = false;
   while (true) {
     json req = server->receive(client);
     if (req == json() || !req["cmd"].is_string()) break;
@@ -48,7 +29,23 @@ void* client_thread(void* arg) {
     try {
       server->lock();
       std::string command = req["cmd"].get<std::string>();
-      if (command == "START") {
+
+      if (!hasJoined) {
+        if (command == "JOIN") {
+          std::string steamId = req["steam_id"].get<std::string>();
+          client.steamId = strtoull(steamId.c_str(), NULL, 10);
+          if (server->canJoin(client)) {
+            server->join(client);
+            hasJoined = true;
+          } else {
+            server->unlock();
+            break;
+          }
+        } else {
+          server->unlock();
+          break;
+        }
+      } else if (command == "START") {
         server->stop();
         std::string seed = req["seed"].get<std::string>();
         std::string deck = req["deck"].get<std::string>();
