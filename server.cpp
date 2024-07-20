@@ -477,10 +477,16 @@ void Server::defeatedBoss(Player p, double score)
     json data;
     data["leaderboard"] = json::array();
     for (player_score_t pair : this->game.scores) {
-      json player;
-      player["player"] = uint64ToString(pair.first.steamId);
-      player["score"] = pair.second;
-      data["leaderboard"].push_back(player);
+      json row;
+      row["player"] = uint64ToString(pair.first.steamId);
+      row["score"] = pair.second;
+      data["leaderboard"].push_back(row);
+    }
+    std::vector<Player> eliminatedPlayers = this->getEliminatedPlayers();
+    std::reverse(eliminatedPlayers.begin(), eliminatedPlayers.end());
+    for (Player player : eliminatedPlayers) {
+      json row;
+      row["player"] = uint64ToString(player.steamId);
     }
     this->game.bossPhase = false;
     this->broadcast(success("LEADERBOARD", data));
