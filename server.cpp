@@ -197,6 +197,7 @@ void Server::start(Player sender, std::string seed, std::string deck, int stake,
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
+  if (DEBUG) data["debug"] = true;
   this->broadcast(success("START", data));
 }
 
