@@ -106,6 +106,7 @@ class Server {
     void defeatedBoss(Player p, double score);
 
     // State management
+    json getState();
     json toJSON();
     void lock();
     void unlock();
