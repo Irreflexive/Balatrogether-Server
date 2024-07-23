@@ -214,6 +214,7 @@ int main() {
     int clientfd = accept(sockfd, (struct sockaddr*) &cli_addr, &cli_len);
     Player p;
     p.fd = clientfd;
+    p.steamId = 0;
     p.addr = cli_addr;
     thread_arg args = {server, p};
     pthread_t thread;
