@@ -199,6 +199,7 @@ void Server::start(Player sender, std::string seed, std::string deck, int stake,
   data["versus"] = versus;
   if (DEBUG) data["debug"] = true;
   this->broadcast(success("START", data));
+  if (versus) this->broadcast(success("STATE_INFO", this->getState()));
 }
 
 void Server::stop()
@@ -460,6 +461,8 @@ void Server::eliminate(Player p)
   if (remainingPlayers.size() == 1) {
     Player winner = remainingPlayers[0];
     this->sendToPlayer(winner, success("WIN"));
+  } else {
+    this->broadcast(success("STATE_INFO", this->getState()));
   }
 }
 
@@ -492,6 +495,12 @@ void Server::defeatedBoss(Player p, double score)
     this->game.bossPhase = false;
     this->broadcast(success("LEADERBOARD", data));
   }
+}
+
+json Server::getState() {
+  json state;
+  state["remaining"] = this->getRemainingPlayers().size();
+  return state;
 }
 
 json Server::toJSON() {
