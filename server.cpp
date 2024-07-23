@@ -162,7 +162,7 @@ json Server::receive(Player sender) {
   }
   try {
     std::string decrypted = ENCRYPT ? decryptAES(sender.aesKey, sender.aesIV, std::string(buffer)) : std::string(buffer);
-    if (DEBUG) std::cout << "[RECEIVED] " << decrypted << std::endl;
+    if (DEBUG) std::cout << "[RECEIVED - " << sender.steamId << "] " << decrypted << std::endl;
     json req = json::parse(decrypted);
     return req;
   } catch (...) {
@@ -496,6 +496,7 @@ void Server::defeatedBoss(Player p, double score)
 
 json Server::toJSON() {
   json server;
+  server["maxPlayers"] = this->maxPlayers;
   server["inGame"] = this->isRunning();
 
   json playerIds = json::array();
