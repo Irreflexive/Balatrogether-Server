@@ -28,6 +28,7 @@ struct Player {
   uint64_t steamId;
   string aesKey;
   string aesIV;
+  operator string() const { return std::to_string(steamId); };
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };

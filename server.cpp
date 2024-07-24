@@ -592,6 +592,7 @@ void Server::defeatedBoss(Player p, double score)
     for (Player player : eliminatedPlayers) {
       json row;
       row["player"] = uint64ToString(player.steamId);
+      data["leaderboard"].push_back(row);
     }
     this->game.bossPhase = false;
     this->broadcast(success("LEADERBOARD", data));
