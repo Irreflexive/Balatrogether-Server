@@ -101,6 +101,7 @@ class Server {
     void annieAndHallie(Player sender, json jokers, std::string targetId);
     void theCup(Player sender);
     void greenSeal(Player sender);
+    void reduceHandSize(Player sender, bool chooseRandom);
     void readyForBoss(Player sender);
     void eliminate(Player p);
     void defeatedBoss(Player p, double score);

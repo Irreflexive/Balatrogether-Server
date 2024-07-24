@@ -136,6 +136,9 @@ void* client_thread(void* arg) {
       } else if (command == "GREEN_SEAL") {
         server->greenSeal(client);
 
+      } else if (command == "ERASER" || command == "PAINT_BUCKET") {
+        server->reduceHandSize(client, command == "ERASER");
+
       } else if (command == "READY_FOR_BOSS") {
         server->readyForBoss(client);
 

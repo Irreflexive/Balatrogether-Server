@@ -420,6 +420,26 @@ void Server::greenSeal(Player sender)
   this->sendToOthers(sender, success("GREEN_SEAL"));
 }
 
+void Server::reduceHandSize(Player sender, bool chooseRandom)
+{
+  if (!this->isVersus()) return;
+  if (chooseRandom) {
+    std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+    for (int i = 0; i < remainingPlayers.size(); i++) {
+      if (remainingPlayers[i] == sender) {
+        remainingPlayers.erase(remainingPlayers.begin() + i);
+        break;
+      }
+    }
+    if (remainingPlayers.size() == 0) return;
+    int randomIndex = rand() % remainingPlayers.size();
+    Player randomPlayer = remainingPlayers[randomIndex];
+    this->sendToPlayer(randomPlayer, success("VS_VOUCHER"));
+  } else {
+    this->sendToOthers(sender, success("VS_VOUCHER"), true);
+  }
+}
+
 void Server::readyForBoss(Player sender)
 {
   if (!this->isVersus()) return;
