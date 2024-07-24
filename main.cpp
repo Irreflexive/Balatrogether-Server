@@ -120,24 +120,24 @@ void* client_thread(void* arg) {
       } else if (command == "ENDLESS") {
         server->endless();
 
-      } else if (command == "ANNIE_AND_HALLIE") {
+      } else if (command == "SWAP_JOKERS") {
         json jokers = req["jokers"];
         bool responding = req["responding"].get<bool>();
         if (responding) {
           std::string targetId = req["player"].get<std::string>();
-          server->annieAndHallie(client, jokers, targetId);
+          server->swapJokers(client, jokers, targetId);
         } else {
-          server->annieAndHallie(client, jokers);
+          server->swapJokers(client, jokers);
         }
 
       } else if (command == "THE_CUP") {
-        server->theCup(client);
+        server->changeMoney(client, server->getEliminatedPlayers().size() * 8);
 
       } else if (command == "GREEN_SEAL") {
-        server->greenSeal(client);
+        server->changeOthersMoney(client, -1);
 
       } else if (command == "ERASER" || command == "PAINT_BUCKET") {
-        server->reduceHandSize(client, command == "ERASER");
+        server->changeHandSize(client, -1, command == "ERASER");
 
       } else if (command == "READY_FOR_BOSS") {
         server->readyForBoss(client);

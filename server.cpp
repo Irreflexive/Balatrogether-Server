@@ -374,7 +374,7 @@ void Server::goToShop(Player sender)
   this->broadcast(success("GO_TO_SHOP"));
 }
 
-void Server::annieAndHallie(Player sender, json jokers)
+void Server::swapJokers(Player sender, json jokers)
 {
   if (!this->isVersus()) return;
   std::vector<Player> remainingPlayers = this->getRemainingPlayers();
@@ -390,39 +390,43 @@ void Server::annieAndHallie(Player sender, json jokers)
   json data;
   data["jokers"] = jokers;
   data["user"] = uint64ToString(sender.steamId);
-  this->sendToPlayer(randomPlayer, success("ANNIE_AND_HALLIE", data));
+  this->sendToPlayer(randomPlayer, success("SWAP_JOKERS", data));
 }
 
-void Server::annieAndHallie(Player sender, json jokers, std::string targetId)
+void Server::swapJokers(Player sender, json jokers, std::string targetId)
 {
   if (!this->isVersus()) return;
   json data;
   data["jokers"] = jokers;
   for (Player player : this->players) {
     if (uint64ToString(player.steamId) == targetId) {
-      this->sendToPlayer(player, success("ANNIE_AND_HALLIE", data));
+      this->sendToPlayer(player, success("SWAP_JOKERS", data));
       break;
     }
   }
 }
 
-void Server::theCup(Player sender)
+void Server::changeMoney(Player sender, int change)
 {
   if (!this->isVersus()) return;
   json data;
-  data["eliminated"] = this->getEliminatedPlayers().size();
-  this->broadcast(success("THE_CUP", data));
+  data["money"] = change;
+  this->sendToPlayer(sender, success("MONEY", data));
 }
 
-void Server::greenSeal(Player sender)
+void Server::changeOthersMoney(Player sender, int change)
 {
   if (!this->isVersus()) return;
-  this->sendToOthers(sender, success("GREEN_SEAL"));
+  json data;
+  data["money"] = change;
+  this->sendToOthers(sender, success("MONEY", data));
 }
 
-void Server::reduceHandSize(Player sender, bool chooseRandom)
+void Server::changeHandSize(Player sender, int change, bool chooseRandom)
 {
   if (!this->isVersus()) return;
+  json data;
+  data["hand_size"] = change;
   if (chooseRandom) {
     std::vector<Player> remainingPlayers = this->getRemainingPlayers();
     for (int i = 0; i < remainingPlayers.size(); i++) {
@@ -434,9 +438,9 @@ void Server::reduceHandSize(Player sender, bool chooseRandom)
     if (remainingPlayers.size() == 0) return;
     int randomIndex = rand() % remainingPlayers.size();
     Player randomPlayer = remainingPlayers[randomIndex];
-    this->sendToPlayer(randomPlayer, success("VS_VOUCHER"));
+    this->sendToPlayer(randomPlayer, success("HAND_SIZE", data));
   } else {
-    this->sendToOthers(sender, success("VS_VOUCHER"), true);
+    this->sendToOthers(sender, success("HAND_SIZE", data), true);
   }
 }
 
