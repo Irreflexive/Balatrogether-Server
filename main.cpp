@@ -27,11 +27,11 @@ void* client_thread(void* arg) {
 
     try {
       server->lock();
-      std::string command = req["cmd"].get<std::string>();
+      string command = req["cmd"].get<string>();
 
       if (!hasJoined) {
         if (command == "JOIN") {
-          std::string steamId = req["steam_id"].get<std::string>();
+          string steamId = req["steam_id"].get<string>();
           client.steamId = strtoull(steamId.c_str(), NULL, 10);
           if (server->canJoin(client)) {
             server->join(client);
@@ -46,19 +46,19 @@ void* client_thread(void* arg) {
         }
       } else if (command == "START") {
         server->stop();
-        std::string seed = req["seed"].get<std::string>();
-        std::string deck = req["deck"].get<std::string>();
+        string seed = req["seed"].get<string>();
+        string deck = req["deck"].get<string>();
         int stake = req["stake"].get<int>();
         bool versus = req["versus"].get<bool>();
         server->start(client, seed, deck, stake, versus);
 
       } else if (command == "HIGHLIGHT") {
-        std::string selectType = req["type"].get<std::string>();
+        string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
         server->highlight(client, selectType, index);
 
       } else if (command == "UNHIGHLIGHT") {
-        std::string selectType = req["type"].get<std::string>();
+        string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
         server->unhighlight(client, selectType, index);
 
@@ -72,7 +72,7 @@ void* client_thread(void* arg) {
         server->discardHand(client);
 
       } else if (command == "SORT_HAND") {
-        std::string sortType = req["type"].get<std::string>();
+        string sortType = req["type"].get<string>();
         server->sortHand(client, sortType);
 
       } else if (command == "SELECT_BLIND") {
@@ -82,7 +82,7 @@ void* client_thread(void* arg) {
         server->skipBlind(client);
 
       } else if (command == "SELL") {
-        std::string selectType = req["type"].get<std::string>();
+        string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
         server->sell(client, selectType, index);
 
@@ -91,7 +91,7 @@ void* client_thread(void* arg) {
         server->use(client, index);
 
       } else if (command == "BUY") {
-        std::string selectType = req["type"].get<std::string>();
+        string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
         server->buy(client, selectType, index);
 
@@ -112,7 +112,7 @@ void* client_thread(void* arg) {
         server->goToShop(client);
 
       } else if (command == "REORDER") {
-        std::string selectType = req["type"].get<std::string>();
+        string selectType = req["type"].get<string>();
         int from = req["from"].get<int>();
         int to = req["to"].get<int>();
         server->reorder(client, selectType, from, to);
@@ -124,7 +124,7 @@ void* client_thread(void* arg) {
         json jokers = req["jokers"];
         bool responding = req["responding"].get<bool>();
         if (responding) {
-          std::string targetId = req["player"].get<std::string>();
+          string targetId = req["player"].get<string>();
           server->swapJokers(client, jokers, targetId);
         } else {
           server->swapJokers(client, jokers);
