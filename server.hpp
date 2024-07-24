@@ -19,31 +19,34 @@
 #define ENCRYPT false
 #define DEBUG true
 
+using std::string;
 using json = nlohmann::json;
 
 struct Player {
   int fd;
   struct sockaddr_in addr;
   uint64_t steamId;
-  std::string aesKey;
-  std::string aesIV;
+  string aesKey;
+  string aesIV;
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
 };
 
-json success(std::string cmd, json data);
-json success(std::string cmd);
-json error(std::string msg);
+json success(string cmd, json data);
+json success(string cmd);
+json error(string msg);
 
+typedef std::vector<Player> player_list_t;
 typedef std::pair<Player, double> player_score_t;
+typedef std::vector<player_score_t> leaderboard_t;
 
 struct Game {
   bool inGame;
   bool versus;
   bool bossPhase;
-  std::vector<Player> ready;
-  std::vector<Player> eliminated;
-  std::vector<player_score_t> scores;
+  player_list_t ready;
+  player_list_t eliminated;
+  leaderboard_t scores;
 };
 
 class Server {
@@ -64,31 +67,31 @@ class Server {
     bool isHost(Player p);
     Player getHost();
 
-    void start(Player sender, std::string seed, std::string deck, int stake, bool versus);
+    void start(Player sender, string seed, string deck, int stake, bool versus);
     void stop();
     bool isRunning();
     bool isVersus();
     bool isCoop();
-    std::vector<Player> getRemainingPlayers();
-    std::vector<Player> getEliminatedPlayers();
+    player_list_t getRemainingPlayers();
+    player_list_t getEliminatedPlayers();
 
     // Co-op network events
     void endless();
 
-    void highlight(Player sender, std::string selectType, int index);
-    void unhighlight(Player sender, std::string selectType, int index);
+    void highlight(Player sender, string selectType, int index);
+    void unhighlight(Player sender, string selectType, int index);
     void unhighlightAll(Player sender);
     void playHand(Player sender);
     void discardHand(Player sender);
-    void sortHand(Player sender, std::string sortType);
-    void reorder(Player sender, std::string selectType, int from, int to);
+    void sortHand(Player sender, string sortType);
+    void reorder(Player sender, string selectType, int from, int to);
 
     void selectBlind(Player sender);
     void skipBlind(Player sender);
 
-    void sell(Player sender, std::string selectType, int index);
+    void sell(Player sender, string selectType, int index);
     void use(Player sender, int index);
-    void buy(Player sender, std::string selectType, int index);
+    void buy(Player sender, string selectType, int index);
     void buyAndUse(Player sender, int index);
     void skipBooster(Player sender);
 
@@ -98,7 +101,7 @@ class Server {
 
     // Versus network events
     void swapJokers(Player sender, json jokers);
-    void swapJokers(Player sender, json jokers, std::string targetId);
+    void swapJokers(Player sender, json jokers, string targetId);
     void changeMoney(Player sender, int change);
     void changeOthersMoney(Player sender, int change);
     void changeHandSize(Player sender, int change, bool chooseRandom);
@@ -113,7 +116,7 @@ class Server {
     void unlock();
   private:
     RSAKeypair rsa;
-    std::vector<Player> players;
+    player_list_t players;
     pthread_mutex_t mutex;
     int maxPlayers;
     Game game;

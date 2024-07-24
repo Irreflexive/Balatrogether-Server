@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-std::string uint64ToString(uint64_t n) {
+string uint64ToString(uint64_t n) {
   std::ostringstream os;
   os << n;
   return os.str();
@@ -16,7 +16,7 @@ bool operator!=(Player const &lhs, Player const &rhs)
   return lhs.steamId != rhs.steamId;
 }
 
-json success(std::string cmd, json data)
+json success(string cmd, json data)
 {
   json res;
   res["success"] = true;
@@ -25,12 +25,12 @@ json success(std::string cmd, json data)
   return res;
 }
 
-json success(std::string cmd)
+json success(string cmd)
 {
   return success(cmd, json::object());
 }
 
-json error(std::string msg)
+json error(string msg)
 {
   json res;
   res["success"] = false;
@@ -62,9 +62,9 @@ bool Server::handshake(Player* p)
     return false;
   }
 
-  std::string encryptedPayload(buffer);
+  string encryptedPayload(buffer);
   try {
-    std::string decryptedPayload = decryptRSA(this->rsa.privateKey, encryptedPayload);
+    string decryptedPayload = decryptRSA(this->rsa.privateKey, encryptedPayload);
     json payload = json::parse(decryptedPayload);
     std::cout << payload << std::endl;
     if (payload["aesKey"].is_null() || payload["aesIV"].is_null()) {
@@ -127,7 +127,7 @@ void Server::sendToPlayer(Player receiver, json payload)
 {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  std::string jsonString = ENCRYPT ? encryptAES(receiver.aesKey, receiver.aesIV, payload.dump()) : payload.dump();
+  string jsonString = ENCRYPT ? encryptAES(receiver.aesKey, receiver.aesIV, payload.dump()) : payload.dump();
   strcpy(buffer, jsonString.c_str());
   buffer[jsonString.size()] = '\n';
   if (DEBUG) std::cout << "[SENT - " << receiver.steamId << "] " << payload.dump() << std::endl;
@@ -136,7 +136,7 @@ void Server::sendToPlayer(Player receiver, json payload)
 
 void Server::sendToOthers(Player sender, json payload, bool ignoreEliminated)
 {
-  std::vector<Player> playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
+  player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
   for (Player player : playerList) {
     if (player != sender) this->sendToPlayer(player, payload);
   }
@@ -144,7 +144,7 @@ void Server::sendToOthers(Player sender, json payload, bool ignoreEliminated)
 
 void Server::broadcast(json payload, bool ignoreEliminated)
 {
-  std::vector<Player> playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
+  player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
   for (Player player : playerList) {
     this->sendToPlayer(player, payload);
   }
@@ -161,7 +161,7 @@ json Server::receive(Player sender) {
     return json();
   }
   try {
-    std::string decrypted = ENCRYPT ? decryptAES(sender.aesKey, sender.aesIV, std::string(buffer)) : std::string(buffer);
+    string decrypted = ENCRYPT ? decryptAES(sender.aesKey, sender.aesIV, string(buffer)) : string(buffer);
     if (DEBUG) std::cout << "[RECEIVED - " << sender.steamId << "] " << decrypted << std::endl;
     json req = json::parse(decrypted);
     return req;
@@ -181,7 +181,7 @@ Player Server::getHost() {
   return players.at(0);
 }
 
-void Server::start(Player sender, std::string seed, std::string deck, int stake, bool versus)
+void Server::start(Player sender, string seed, string deck, int stake, bool versus)
 {
   if (this->isRunning() || !this->isHost(sender)) return;
   std::cout << "Starting multiplayer run" << std::endl;
@@ -189,9 +189,9 @@ void Server::start(Player sender, std::string seed, std::string deck, int stake,
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.bossPhase = false;
-  this->game.eliminated = std::vector<Player>();
-  this->game.ready = std::vector<Player>();
-  this->game.scores = std::vector<player_score_t>();
+  this->game.eliminated = player_list_t();
+  this->game.ready = player_list_t();
+  this->game.scores = leaderboard_t();
   json data;
   data["seed"] = seed;
   data["deck"] = deck;
@@ -224,9 +224,9 @@ bool Server::isCoop()
   return this->isRunning() && !this->game.versus;
 }
 
-std::vector<Player> Server::getRemainingPlayers() {
+player_list_t Server::getRemainingPlayers() {
   if (!this->isVersus()) return this->players;
-  std::vector<Player> remaining;
+  player_list_t remaining;
   for (Player player : this->players) {
     bool eliminated = false;
     for (Player eliminatedPlayer : this->game.eliminated) {
@@ -240,7 +240,7 @@ std::vector<Player> Server::getRemainingPlayers() {
   return remaining;
 }
 
-std::vector<Player> Server::getEliminatedPlayers() {
+player_list_t Server::getEliminatedPlayers() {
   return this->game.eliminated;
 }
 
@@ -250,7 +250,7 @@ void Server::endless()
   this->broadcast(success("ENDLESS"));
 }
 
-void Server::highlight(Player sender, std::string selectType, int index)
+void Server::highlight(Player sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
   json data;
@@ -259,7 +259,7 @@ void Server::highlight(Player sender, std::string selectType, int index)
   this->sendToOthers(sender, success("HIGHLIGHT", data));
 }
 
-void Server::unhighlight(Player sender, std::string selectType, int index)
+void Server::unhighlight(Player sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
   json data;
@@ -286,7 +286,7 @@ void Server::discardHand(Player sender)
   this->broadcast(success("DISCARD_HAND"));
 }
 
-void Server::sortHand(Player sender, std::string sortType)
+void Server::sortHand(Player sender, string sortType)
 {
   if (!this->isCoop()) return;
   json data;
@@ -294,7 +294,7 @@ void Server::sortHand(Player sender, std::string sortType)
   this->broadcast(success("SORT_HAND", data));
 }
 
-void Server::reorder(Player sender, std::string selectType, int from, int to)
+void Server::reorder(Player sender, string selectType, int from, int to)
 {
   if (!this->isCoop()) return;
   json data;
@@ -316,7 +316,7 @@ void Server::skipBlind(Player sender)
   this->broadcast(success("SKIP_BLIND"));
 }
 
-void Server::sell(Player sender, std::string selectType, int index)
+void Server::sell(Player sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
   json data;
@@ -333,7 +333,7 @@ void Server::use(Player sender, int index)
   this->broadcast(success("USE", data));
 }
 
-void Server::buy(Player sender, std::string selectType, int index)
+void Server::buy(Player sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
   json data;
@@ -377,7 +377,7 @@ void Server::goToShop(Player sender)
 void Server::swapJokers(Player sender, json jokers)
 {
   if (!this->isVersus()) return;
-  std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+  player_list_t remainingPlayers = this->getRemainingPlayers();
   for (int i = 0; i < remainingPlayers.size(); i++) {
     if (remainingPlayers[i] == sender) {
       remainingPlayers.erase(remainingPlayers.begin() + i);
@@ -393,7 +393,7 @@ void Server::swapJokers(Player sender, json jokers)
   this->sendToPlayer(randomPlayer, success("SWAP_JOKERS", data));
 }
 
-void Server::swapJokers(Player sender, json jokers, std::string targetId)
+void Server::swapJokers(Player sender, json jokers, string targetId)
 {
   if (!this->isVersus()) return;
   json data;
@@ -428,7 +428,7 @@ void Server::changeHandSize(Player sender, int change, bool chooseRandom)
   json data;
   data["hand_size"] = change;
   if (chooseRandom) {
-    std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+    player_list_t remainingPlayers = this->getRemainingPlayers();
     for (int i = 0; i < remainingPlayers.size(); i++) {
       if (remainingPlayers[i] == sender) {
         remainingPlayers.erase(remainingPlayers.begin() + i);
@@ -463,8 +463,8 @@ void Server::readyForBoss(Player sender)
     if (!isReady) return;
   }
   this->game.bossPhase = true;
-  this->game.ready = std::vector<Player>();
-  this->game.scores = std::vector<player_score_t>();
+  this->game.ready = player_list_t();
+  this->game.scores = leaderboard_t();
   this->broadcast(success("START_BOSS"));
 }
 
@@ -481,7 +481,7 @@ void Server::eliminate(Player p)
       break;
     }
   }
-  std::vector<Player> remainingPlayers = this->getRemainingPlayers();
+  player_list_t remainingPlayers = this->getRemainingPlayers();
   if (remainingPlayers.size() == 1) {
     Player winner = remainingPlayers[0];
     this->sendToPlayer(winner, success("WIN"));
@@ -510,7 +510,7 @@ void Server::defeatedBoss(Player p, double score)
       row["score"] = pair.second;
       data["leaderboard"].push_back(row);
     }
-    std::vector<Player> eliminatedPlayers = this->getEliminatedPlayers();
+    player_list_t eliminatedPlayers = this->getEliminatedPlayers();
     std::reverse(eliminatedPlayers.begin(), eliminatedPlayers.end());
     for (Player player : eliminatedPlayers) {
       json row;
