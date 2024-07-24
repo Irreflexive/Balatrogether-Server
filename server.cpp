@@ -45,6 +45,7 @@ Server::Server(int maxPlayers)
   pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
+  srand(time(NULL));
 }
 
 bool Server::handshake(Player* p)
@@ -244,6 +245,36 @@ player_list_t Server::getEliminatedPlayers() {
   return this->game.eliminated;
 }
 
+PersistentRequest *Server::createPersistentRequest(Player creator)
+{
+  int id = rand();
+  PersistentRequest* req = new PersistentRequest;
+  req->original = creator;
+  req->data = json::object();
+  req->id = std::to_string(id);
+  this->persistentRequests.push_back(req);
+  return req;
+}
+
+PersistentRequest *Server::getPersistentRequest(string id)
+{
+  for (PersistentRequest* req : this->persistentRequests) {
+    if (req->id == id) return req;
+  }
+  return nullptr;
+}
+
+void Server::completePersistentRequest(string id)
+{
+  for (int i = 0; i < this->persistentRequests.size(); i++) {
+    PersistentRequest* req = this->persistentRequests[i];
+    if (req->id == id) {
+      this->persistentRequests.erase(this->persistentRequests.begin() + i);
+      delete req;
+    }
+  }
+}
+
 void Server::endless()
 {
   if (!this->isCoop()) return;
@@ -387,22 +418,22 @@ void Server::swapJokers(Player sender, json jokers)
   if (remainingPlayers.size() == 0) return;
   int randomIndex = rand() % remainingPlayers.size();
   Player randomPlayer = remainingPlayers[randomIndex];
+  PersistentRequest* preq = this->createPersistentRequest(sender);
   json data;
   data["jokers"] = jokers;
-  data["user"] = uint64ToString(sender.steamId);
+  data["request_id"] = preq->id;
   this->sendToPlayer(randomPlayer, success("SWAP_JOKERS", data));
 }
 
-void Server::swapJokers(Player sender, json jokers, string targetId)
+void Server::swapJokers(Player sender, json jokers, string requestId)
 {
   if (!this->isVersus()) return;
   json data;
   data["jokers"] = jokers;
-  for (Player player : this->players) {
-    if (uint64ToString(player.steamId) == targetId) {
-      this->sendToPlayer(player, success("SWAP_JOKERS", data));
-      break;
-    }
+  PersistentRequest* preq = this->getPersistentRequest(requestId);
+  if (preq) {
+    this->sendToPlayer(preq->original, success("SWAP_JOKERS", data));
+    this->completePersistentRequest(preq->id);
   }
 }
 
