@@ -97,11 +97,11 @@ class Server {
     void goToShop(Player sender);
 
     // Versus network events
-    void annieAndHallie(Player sender, json jokers);
-    void annieAndHallie(Player sender, json jokers, std::string targetId);
-    void theCup(Player sender);
-    void greenSeal(Player sender);
-    void reduceHandSize(Player sender, bool chooseRandom);
+    void swapJokers(Player sender, json jokers);
+    void swapJokers(Player sender, json jokers, std::string targetId);
+    void changeMoney(Player sender, int change);
+    void changeOthersMoney(Player sender, int change);
+    void changeHandSize(Player sender, int change, bool chooseRandom);
     void readyForBoss(Player sender);
     void eliminate(Player p);
     void defeatedBoss(Player p, double score);
