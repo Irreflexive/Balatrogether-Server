@@ -252,6 +252,7 @@ PersistentRequest *Server::createPersistentRequest(Player creator)
   req->original = creator;
   req->data = json::object();
   req->id = std::to_string(id);
+  req->created = clock();
   this->persistentRequests.push_back(req);
   return req;
 }
@@ -259,7 +260,14 @@ PersistentRequest *Server::createPersistentRequest(Player creator)
 PersistentRequest *Server::getPersistentRequest(string id)
 {
   for (PersistentRequest* req : this->persistentRequests) {
-    if (req->id == id) return req;
+    if (req->id == id) {
+      if ((clock() - req->created)/CLOCKS_PER_SEC <= 10) {
+        return req;
+      } else {
+        this->completePersistentRequest(id);
+        return nullptr;
+      }
+    }
   }
   return nullptr;
 }
@@ -431,10 +439,9 @@ void Server::swapJokers(Player sender, json jokers, string requestId)
   json data;
   data["jokers"] = jokers;
   PersistentRequest* preq = this->getPersistentRequest(requestId);
-  if (preq) {
-    this->sendToPlayer(preq->original, success("SWAP_JOKERS", data));
-    this->completePersistentRequest(preq->id);
-  }
+  if (!preq) return;
+  this->sendToPlayer(preq->original, success("SWAP_JOKERS", data));
+  this->completePersistentRequest(preq->id);
 }
 
 void Server::changeMoney(Player sender, int change)
@@ -473,6 +480,45 @@ void Server::changeHandSize(Player sender, int change, bool chooseRandom)
   } else {
     this->sendToOthers(sender, success("HAND_SIZE", data), true);
   }
+}
+
+void Server::getCardsAndJokers(Player sender)
+{
+  if (!this->isVersus()) return;
+  PersistentRequest* preq = this->createPersistentRequest(sender);
+  preq->data["contributed"] = json::object();
+  preq->data["contributed"][uint64ToString(sender.steamId)] = true;
+  preq->data["results"] = json::object();
+  preq->data["results"]["jokers"] = json::array();
+  preq->data["results"]["cards"] = json::array();
+  json data;
+  data["request_id"] = preq->id;
+  this->sendToOthers(sender, success("GET_CARDS_AND_JOKERS", data), true);
+  for (Player p : this->getRemainingPlayers()) {
+    if (!preq->data["contributed"][uint64ToString(p.steamId)].get<bool>()) return;
+  }
+  this->sendToPlayer(preq->original, success("GET_CARDS_AND_JOKERS", preq->data["results"]));
+  this->completePersistentRequest(preq->id);
+}
+
+void Server::getCardsAndJokers(Player sender, json jokers, json cards, string requestId)
+{
+  if (!this->isVersus()) return;
+  PersistentRequest* preq = this->getPersistentRequest(requestId);
+  if (!preq) return;
+  if (preq->data["contributed"][uint64ToString(sender.steamId)].get<bool>()) return;
+  preq->data["contributed"][uint64ToString(sender.steamId)] = true;
+  for (json joker : jokers) {
+    preq->data["results"]["jokers"].push_back(joker);
+  }
+  for (json card : cards) {
+    preq->data["results"]["cards"].push_back(card);
+  }
+  for (Player p : this->getRemainingPlayers()) {
+    if (!preq->data["contributed"][uint64ToString(p.steamId)].get<bool>()) return;
+  }
+  this->sendToPlayer(preq->original, success("GET_CARDS_AND_JOKERS", preq->data["results"]));
+  this->completePersistentRequest(requestId);
 }
 
 void Server::readyForBoss(Player sender)

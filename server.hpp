@@ -53,6 +53,7 @@ struct PersistentRequest {
   string id;
   Player original;
   json data;
+  clock_t created;
 };
 
 class Server {
@@ -117,6 +118,8 @@ class Server {
     void changeMoney(Player sender, int change);
     void changeOthersMoney(Player sender, int change);
     void changeHandSize(Player sender, int change, bool chooseRandom);
+    void getCardsAndJokers(Player sender);
+    void getCardsAndJokers(Player sender, json jokers, json cards, string requestId);
     void readyForBoss(Player sender);
     void eliminate(Player p);
     void defeatedBoss(Player p, double score);

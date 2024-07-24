@@ -138,6 +138,16 @@ void* client_thread(void* arg) {
       } else if (command == "ERASER" || command == "PAINT_BUCKET") {
         server->changeHandSize(client, -1, command == "ERASER");
 
+      } else if (command == "GET_CARDS_AND_JOKERS") {
+        if (req["request_id"].is_string()) {
+          json jokers = req["jokers"];
+          json cards = req["cards"];
+          string requestId = req["request_id"].get<string>();
+          server->getCardsAndJokers(client, jokers, cards, requestId);
+        } else {
+          server->getCardsAndJokers(client);
+        }
+
       } else if (command == "READY_FOR_BOSS") {
         server->readyForBoss(client);
 
