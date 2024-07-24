@@ -122,10 +122,9 @@ void* client_thread(void* arg) {
 
       } else if (command == "SWAP_JOKERS") {
         json jokers = req["jokers"];
-        bool responding = req["responding"].get<bool>();
-        if (responding) {
-          string targetId = req["player"].get<string>();
-          server->swapJokers(client, jokers, targetId);
+        if (req["request_id"].is_string()) {
+          string requestId = req["request_id"].get<string>();
+          server->swapJokers(client, jokers, requestId);
         } else {
           server->swapJokers(client, jokers);
         }

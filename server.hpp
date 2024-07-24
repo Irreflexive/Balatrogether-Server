@@ -49,6 +49,12 @@ struct Game {
   leaderboard_t scores;
 };
 
+struct PersistentRequest {
+  string id;
+  Player original;
+  json data;
+};
+
 class Server {
   public:
     Server(int maxPlayers);
@@ -67,6 +73,7 @@ class Server {
     bool isHost(Player p);
     Player getHost();
 
+    // Game state methods
     void start(Player sender, string seed, string deck, int stake, bool versus);
     void stop();
     bool isRunning();
@@ -74,6 +81,11 @@ class Server {
     bool isCoop();
     player_list_t getRemainingPlayers();
     player_list_t getEliminatedPlayers();
+    
+    // Persistent request management
+    PersistentRequest* createPersistentRequest(Player creator);
+    PersistentRequest* getPersistentRequest(string id);
+    void completePersistentRequest(string id);
 
     // Co-op network events
     void endless();
@@ -101,7 +113,7 @@ class Server {
 
     // Versus network events
     void swapJokers(Player sender, json jokers);
-    void swapJokers(Player sender, json jokers, string targetId);
+    void swapJokers(Player sender, json jokers, string requestId);
     void changeMoney(Player sender, int change);
     void changeOthersMoney(Player sender, int change);
     void changeHandSize(Player sender, int change, bool chooseRandom);
@@ -120,6 +132,7 @@ class Server {
     pthread_mutex_t mutex;
     int maxPlayers;
     Game game;
+    std::vector<PersistentRequest*> persistentRequests;
 };
 
 #endif
