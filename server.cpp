@@ -1,11 +1,5 @@
 #include "server.hpp"
 
-string uint64ToString(uint64_t n) {
-  std::ostringstream os;
-  os << n;
-  return os.str();
-}
-
 bool operator==(Player const& lhs, Player const& rhs)
 {
   return lhs.steamId == rhs.steamId;
@@ -487,7 +481,7 @@ void Server::getCardsAndJokers(Player sender)
   if (!this->isVersus()) return;
   PersistentRequest* preq = this->createPersistentRequest(sender);
   preq->data["contributed"] = json::object();
-  preq->data["contributed"][uint64ToString(sender.steamId)] = true;
+  preq->data["contributed"][(string) sender] = true;
   preq->data["results"] = json::object();
   preq->data["results"]["jokers"] = json::array();
   preq->data["results"]["cards"] = json::array();
@@ -495,7 +489,7 @@ void Server::getCardsAndJokers(Player sender)
   data["request_id"] = preq->id;
   this->sendToOthers(sender, success("GET_CARDS_AND_JOKERS", data), true);
   for (Player p : this->getRemainingPlayers()) {
-    if (!preq->data["contributed"][uint64ToString(p.steamId)].get<bool>()) return;
+    if (!preq->data["contributed"][(string) p].get<bool>()) return;
   }
   this->sendToPlayer(preq->original, success("GET_CARDS_AND_JOKERS", preq->data["results"]));
   this->completePersistentRequest(preq->id);
@@ -506,8 +500,8 @@ void Server::getCardsAndJokers(Player sender, json jokers, json cards, string re
   if (!this->isVersus()) return;
   PersistentRequest* preq = this->getPersistentRequest(requestId);
   if (!preq) return;
-  if (preq->data["contributed"][uint64ToString(sender.steamId)].get<bool>()) return;
-  preq->data["contributed"][uint64ToString(sender.steamId)] = true;
+  if (preq->data["contributed"][(string) sender].get<bool>()) return;
+  preq->data["contributed"][(string) sender] = true;
   for (json joker : jokers) {
     preq->data["results"]["jokers"].push_back(joker);
   }
@@ -515,7 +509,7 @@ void Server::getCardsAndJokers(Player sender, json jokers, json cards, string re
     preq->data["results"]["cards"].push_back(card);
   }
   for (Player p : this->getRemainingPlayers()) {
-    if (!preq->data["contributed"][uint64ToString(p.steamId)].get<bool>()) return;
+    if (!preq->data["contributed"][(string) p].get<bool>()) return;
   }
   this->sendToPlayer(preq->original, success("GET_CARDS_AND_JOKERS", preq->data["results"]));
   this->completePersistentRequest(requestId);
@@ -583,7 +577,7 @@ void Server::defeatedBoss(Player p, double score)
     data["leaderboard"] = json::array();
     for (player_score_t pair : this->game.scores) {
       json row;
-      row["player"] = uint64ToString(pair.first.steamId);
+      row["player"] = (string) pair.first;
       row["score"] = pair.second;
       data["leaderboard"].push_back(row);
     }
@@ -591,7 +585,7 @@ void Server::defeatedBoss(Player p, double score)
     std::reverse(eliminatedPlayers.begin(), eliminatedPlayers.end());
     for (Player player : eliminatedPlayers) {
       json row;
-      row["player"] = uint64ToString(player.steamId);
+      row["player"] = (string) player;
       data["leaderboard"].push_back(row);
     }
     this->game.bossPhase = false;
@@ -612,7 +606,7 @@ json Server::toJSON() {
 
   json playerIds = json::array();
   for (Player player : this->players) {
-    playerIds.push_back(uint64ToString(player.steamId));
+    playerIds.push_back((string) player);
   }
   server["players"] = playerIds;
 
