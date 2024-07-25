@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include "encrypt.hpp"
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 16384
 #define ENCRYPT false
 #define DEBUG true
 
