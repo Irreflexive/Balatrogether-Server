@@ -61,7 +61,7 @@ bool Server::handshake(Player* p)
   try {
     string decryptedPayload = decryptRSA(this->rsa.privateKey, encryptedPayload);
     json payload = json::parse(decryptedPayload);
-    std::cout << payload << std::endl;
+    if (DEBUG) std::cout << payload << std::endl;
     if (payload["aesKey"].is_null() || payload["aesIV"].is_null()) {
       return false;
     }
@@ -268,17 +268,15 @@ PersistentRequest *Server::createPersistentRequest(Player creator)
 
 PersistentRequest *Server::getPersistentRequest(string id)
 {
+  PersistentRequest* result = nullptr;
   for (PersistentRequest* req : this->persistentRequests) {
-    if (req->id == id) {
-      if ((clock() - req->created)/CLOCKS_PER_SEC <= 10) {
-        return req;
-      } else {
-        this->completePersistentRequest(id);
-        return nullptr;
-      }
+    if ((clock() - req->created)/CLOCKS_PER_SEC > 10) {
+      this->completePersistentRequest(req->id);
+    } else if (req->id == id) {
+      result = req;
     }
   }
-  return nullptr;
+  return result;
 }
 
 void Server::completePersistentRequest(string id)
@@ -541,9 +539,10 @@ void Server::eliminate(Player p)
     if (player == p) return;
   }
   this->game.eliminated.push_back(p);
-  for (player_score_t pair : this->game.scores) {
+  for (int i = 0; i < this->game.scores.size(); i++) {
+    player_score_t pair = this->game.scores[i];
     if (pair.first == p) {
-      this->game.scores.erase(std::remove(this->game.scores.begin(), this->game.scores.end(), pair), this->game.scores.end());
+      this->game.scores.erase(this->game.scores.begin() + i);
       break;
     }
   }
