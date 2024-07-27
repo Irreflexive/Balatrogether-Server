@@ -129,6 +129,21 @@ void Server::sendToPlayer(Player receiver, json payload)
   send(receiver.fd, buffer, BUFFER_SIZE, 0);
 }
 
+void Server::sendToRandom(Player sender, json payload)
+{
+  player_list_t remainingPlayers = this->getRemainingPlayers();
+  for (int i = 0; i < remainingPlayers.size(); i++) {
+    if (remainingPlayers[i] == sender) {
+      remainingPlayers.erase(remainingPlayers.begin() + i);
+      break;
+    }
+  }
+  if (remainingPlayers.size() == 0) return;
+  int randomIndex = rand() % remainingPlayers.size();
+  Player randomPlayer = remainingPlayers[randomIndex];
+  this->sendToPlayer(randomPlayer, payload);
+}
+
 void Server::sendToOthers(Player sender, json payload, bool ignoreEliminated)
 {
   player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
@@ -410,21 +425,11 @@ void Server::goToShop(Player sender)
 void Server::swapJokers(Player sender, json jokers)
 {
   if (!this->isVersus()) return;
-  player_list_t remainingPlayers = this->getRemainingPlayers();
-  for (int i = 0; i < remainingPlayers.size(); i++) {
-    if (remainingPlayers[i] == sender) {
-      remainingPlayers.erase(remainingPlayers.begin() + i);
-      break;
-    }
-  }
-  if (remainingPlayers.size() == 0) return;
-  int randomIndex = rand() % remainingPlayers.size();
-  Player randomPlayer = remainingPlayers[randomIndex];
   PersistentRequest* preq = this->createPersistentRequest(sender);
   json data;
   data["jokers"] = jokers;
   data["request_id"] = preq->id;
-  this->sendToPlayer(randomPlayer, success("SWAP_JOKERS", data));
+  this->sendToRandom(sender, success("SWAP_JOKERS", data));
 }
 
 void Server::swapJokers(Player sender, json jokers, string requestId)
@@ -451,7 +456,7 @@ void Server::changeOthersMoney(Player sender, int change)
   if (!this->isVersus()) return;
   json data;
   data["money"] = change;
-  this->sendToOthers(sender, success("MONEY", data));
+  this->sendToOthers(sender, success("MONEY", data), true);
 }
 
 void Server::changeHandSize(Player sender, int change, bool chooseRandom)
@@ -460,17 +465,7 @@ void Server::changeHandSize(Player sender, int change, bool chooseRandom)
   json data;
   data["hand_size"] = change;
   if (chooseRandom) {
-    player_list_t remainingPlayers = this->getRemainingPlayers();
-    for (int i = 0; i < remainingPlayers.size(); i++) {
-      if (remainingPlayers[i] == sender) {
-        remainingPlayers.erase(remainingPlayers.begin() + i);
-        break;
-      }
-    }
-    if (remainingPlayers.size() == 0) return;
-    int randomIndex = rand() % remainingPlayers.size();
-    Player randomPlayer = remainingPlayers[randomIndex];
-    this->sendToPlayer(randomPlayer, success("HAND_SIZE", data));
+    this->sendToRandom(sender, success("HAND_SIZE", data));
   } else {
     this->sendToOthers(sender, success("HAND_SIZE", data), true);
   }
@@ -536,7 +531,7 @@ void Server::readyForBoss(Player sender)
   this->game.bossPhase = true;
   this->game.ready = player_list_t();
   this->game.scores = leaderboard_t();
-  this->broadcast(success("START_BOSS"));
+  this->broadcast(success("START_BOSS"), true);
 }
 
 void Server::eliminate(Player p)
@@ -589,7 +584,7 @@ void Server::defeatedBoss(Player p, double score)
       data["leaderboard"].push_back(row);
     }
     this->game.bossPhase = false;
-    this->broadcast(success("LEADERBOARD", data));
+    this->broadcast(success("LEADERBOARD", data), true);
   }
 }
 
