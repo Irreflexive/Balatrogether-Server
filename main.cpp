@@ -13,7 +13,9 @@ void* client_thread(void* arg) {
   Player* client = info->client;
 
   if (!server->handshake(client)) {
+    server->lock();
     server->disconnect(client);
+    server->unlock();
     pthread_exit(0);
   }
 

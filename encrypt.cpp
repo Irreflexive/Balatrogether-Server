@@ -4,7 +4,7 @@
 // and https://gist.github.com/nathan-osman/5041136
 
 /* Generates a 2048-bit RSA key. */
-EVP_PKEY *generate_key()
+EVP_PKEY *generate_key(bool debugMode)
 {
   BIGNUM *bne = BN_new();
   if (!bne) {
@@ -44,6 +44,11 @@ EVP_PKEY *generate_key()
     RSA_free(rsa);
     return NULL;
   }
+
+  FILE* fp = fopen("key.pem", "w");
+  PEM_write_RSAPrivateKey(fp, rsa, NULL, 0, 0, NULL, NULL);
+  fflush(fp);
+  fclose(fp);
   
   /* The key has been generated, return it. */
   BN_free(bne);
@@ -81,7 +86,7 @@ X509 *generate_x509(EVP_PKEY *pkey)
   X509_set_issuer_name(x509, name);
   
   /* Actually sign the certificate with our key. */
-  if (!X509_sign(x509, pkey, EVP_sha1())) {
+  if (!X509_sign(x509, pkey, EVP_sha384())) {
     X509_free(x509);
     return NULL;
   }
@@ -106,10 +111,10 @@ SSL_CTX *create_context()
   return ctx;
 }
 
-void configure_context(SSL_CTX *ctx)
+void configure_context(SSL_CTX *ctx, bool debugMode)
 {
   /* Set the key and cert */
-  EVP_PKEY *pkey = generate_key();
+  EVP_PKEY *pkey = generate_key(debugMode);
   if (!pkey) exit(EXIT_FAILURE);
   X509 *x509 = generate_x509(pkey);
   if (!x509) {

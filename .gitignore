@@ -2,4 +2,5 @@ balatro_server
 test
 test_client.cpp
 config.json
+key.pem
 *.o

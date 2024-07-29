@@ -38,7 +38,6 @@ SSL *Player::getSSL()
 
 void Player::setSSL(SSL *ssl)
 {
-  SSL_set_fd(ssl, this->fd);
   this->ssl = ssl;
 }
 
