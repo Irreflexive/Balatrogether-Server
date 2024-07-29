@@ -11,7 +11,6 @@
 #include <thread>
 #include <iostream>
 #include <unistd.h>
-#include <sstream>
 #include "json.hpp"
 #include "encrypt.hpp"
 
@@ -25,9 +24,8 @@ using json = nlohmann::json;
 struct Player {
   int fd;
   struct sockaddr_in addr;
-  uint64_t steamId;
-  string aesKey;
-  string aesIV;
+  uint64_t steamId = 0;
+  SSL *ssl = nullptr;
   operator string() const { return std::to_string(steamId); };
   friend bool operator==(Player const &lhs, Player const &rhs);
   friend bool operator!=(Player const &lhs, Player const &rhs);
@@ -60,6 +58,7 @@ struct PersistentRequest {
 class Server {
   public:
     Server(int maxPlayers);
+    ~Server();
 
     bool handshake(Player* p);
     void join(Player p);
@@ -132,7 +131,7 @@ class Server {
     void lock();
     void unlock();
   private:
-    RSAKeypair rsa;
+    SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
     pthread_mutex_t mutex;
     int maxPlayers;

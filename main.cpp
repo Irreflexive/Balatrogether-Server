@@ -16,8 +16,6 @@ void* client_thread(void* arg) {
   if (!server->handshake(&client)) {
     server->disconnect(client);
     pthread_exit(0);
-  } else {
-    if (DEBUG) std::cout << "AES: " << client.aesKey << " " << client.aesIV << std::endl;
   }
 
   bool hasJoined = false;
