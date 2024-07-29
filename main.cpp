@@ -12,12 +12,10 @@ void* client_thread(void* arg) {
   Server* server = info->server;
   Player* client = info->client;
 
-  if (DEBUG) std::cout << "Performing handshake" << std::endl;
   if (!server->handshake(client)) {
     server->disconnect(client);
     pthread_exit(0);
   }
-  if (DEBUG) std::cout << "SSL handshake complete" << std::endl;
 
   while (true) {
     json req = server->receive(client);
@@ -163,13 +161,17 @@ void* client_thread(void* arg) {
     }
   }
 
+  server->lock();
   server->disconnect(client);
+  server->unlock();
   pthread_exit(0);
 }
 
 json getDefaultConfig() {
   json config;
   config["max_players"] = 8;
+  config["tls_enabled"] = true;
+  config["debug_mode"] = false;
   return config;
 }
 
@@ -196,7 +198,18 @@ int main() {
   if (config["max_players"].is_number_integer()) {
     max_players = config["max_players"].get<int>();
   }
-  Server* server = new Server(max_players);
+
+  bool tls_enabled = defaultConfig["tls_enabled"].get<bool>();
+  if (config["tls_enabled"].is_boolean()) {
+    tls_enabled = config["tls_enabled"].get<bool>();
+  }
+
+  bool debug_mode = defaultConfig["debug_mode"].get<bool>();
+  if (config["debug_mode"].is_boolean()) {
+    debug_mode = config["debug_mode"].get<bool>();
+  }
+
+  Server* server = new Server(max_players, tls_enabled, debug_mode);
 
   int opt = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {

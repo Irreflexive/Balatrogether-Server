@@ -19,8 +19,6 @@
 #include "preq.hpp"
 
 #define BUFFER_SIZE 16384
-#define ENCRYPT true
-#define DEBUG true
 
 using std::string;
 using json = nlohmann::json;
@@ -31,7 +29,7 @@ json error(string msg);
 
 class Server {
   public:
-    Server(int maxPlayers);
+    Server(int maxPlayers, bool encrypt = true, bool debug = false);
     ~Server();
 
     bool handshake(Player* p);
@@ -104,6 +102,8 @@ class Server {
     player_list_t players;
     pthread_mutex_t mutex;
     int maxPlayers;
+    bool useEncryption;
+    bool debugMode;
     Game game;
     PersistentRequestManager persistentRequests;
 };
