@@ -1,5 +1,5 @@
 BINARIES=balatro_server test
-CXXFLAGS=-std=c++11 -pthread -lcrypto -lssl
+CXXFLAGS=-std=c++11 -pthread -lcrypto -lssl -g
 
 balatro_server: main.o server.o encrypt.o player.o preq.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
