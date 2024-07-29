@@ -17,6 +17,7 @@ void* client_thread(void* arg) {
     server->disconnect(client);
     pthread_exit(0);
   }
+  if (DEBUG) std::cout << "SSL handshake complete" << std::endl;
 
   bool hasJoined = false;
   while (true) {

@@ -72,9 +72,10 @@ void Server::join(Player p)
 }
 
 void Server::disconnect(Player p) {
-  if (ENCRYPT) {
+  if (ENCRYPT && p.ssl) {
     SSL_shutdown(p.ssl);
     SSL_free(p.ssl);
+    p.ssl = nullptr;
   }
   close(p.fd);
   if (!this->hasAlreadyJoined(p)) return;
