@@ -34,45 +34,29 @@ json error(string msg)
 
 Server::Server(int maxPlayers) 
 {
-  this->rsa = generateRSA();
   this->maxPlayers = maxPlayers;
   pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
   srand(time(NULL));
+  if (ENCRYPT) {
+    this->ssl_ctx = create_context();
+    configure_context(this->ssl_ctx);
+  }
+}
+
+Server::~Server()
+{
+  if (ENCRYPT) SSL_CTX_free(this->ssl_ctx);
 }
 
 bool Server::handshake(Player* p)
 {
   if (!ENCRYPT) return true;
-  char buffer[BUFFER_SIZE];
-
-  memset(buffer, 0, BUFFER_SIZE);
-  strcpy(buffer, this->rsa.publicKey.c_str());
-  send(p->fd, buffer, BUFFER_SIZE, 0);
-
-  memset(buffer, 0, BUFFER_SIZE);
-  ssize_t n = recv(p->fd, buffer, BUFFER_SIZE, 0);
-  if (n <= 0) {
-    return false;
-  }
-
-  string encryptedPayload(buffer);
-  try {
-    string decryptedPayload = decryptRSA(this->rsa.privateKey, encryptedPayload);
-    json payload = json::parse(decryptedPayload);
-    if (DEBUG) std::cout << payload << std::endl;
-    if (payload["aesKey"].is_null() || payload["aesIV"].is_null()) {
-      return false;
-    }
-
-    p->aesKey = payload["aesKey"];
-    p->aesIV = payload["aesIV"];
-    return true;
-  } catch (const char* e) {
-    if (DEBUG) std::cerr << e << std::endl;
-    return false;
-  }
+  SSL *ssl = SSL_new(this->ssl_ctx);
+  SSL_set_fd(ssl, p->fd);
+  p->ssl = ssl;
+  return SSL_accept(ssl) > 0;
 }
 
 void Server::join(Player p)
@@ -88,6 +72,10 @@ void Server::join(Player p)
 }
 
 void Server::disconnect(Player p) {
+  if (ENCRYPT) {
+    SSL_shutdown(p.ssl);
+    SSL_free(p.ssl);
+  }
   close(p.fd);
   if (!this->hasAlreadyJoined(p)) return;
   std::cout << "Player " << p.steamId << " disconnecting" << std::endl;
@@ -122,11 +110,15 @@ void Server::sendToPlayer(Player receiver, json payload)
 {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  string jsonString = ENCRYPT ? encryptAES(receiver.aesKey, receiver.aesIV, payload.dump()) : payload.dump();
-  strcpy(buffer, jsonString.c_str());
+  string jsonString = payload.dump();
+  strncpy(buffer, jsonString.c_str(), BUFFER_SIZE - 2);
   buffer[jsonString.size()] = '\n';
   if (DEBUG) std::cout << "[SENT - " << receiver.steamId << "] " << payload.dump() << std::endl;
-  send(receiver.fd, buffer, BUFFER_SIZE, 0);
+  if (ENCRYPT && receiver.ssl) {
+    SSL_write(receiver.ssl, buffer, strlen(buffer));
+  } else {
+    send(receiver.fd, buffer, strlen(buffer), 0);
+  }
 }
 
 void Server::sendToRandom(Player sender, json payload)
@@ -163,7 +155,12 @@ void Server::broadcast(json payload, bool ignoreEliminated)
 json Server::receive(Player sender) {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  ssize_t n = recv(sender.fd, buffer, BUFFER_SIZE, 0);
+  ssize_t n;
+  if (ENCRYPT && sender.ssl) {
+    n = SSL_read(sender.ssl, buffer, BUFFER_SIZE);
+  } else {
+    n = recv(sender.fd, buffer, BUFFER_SIZE, 0);
+  }
   if (n <= 0) {
     this->lock();
     this->disconnect(sender);
@@ -171,9 +168,8 @@ json Server::receive(Player sender) {
     return json();
   }
   try {
-    string decrypted = ENCRYPT ? decryptAES(sender.aesKey, sender.aesIV, string(buffer)) : string(buffer);
-    if (DEBUG) std::cout << "[RECEIVED - " << sender.steamId << "] " << decrypted << std::endl;
-    json req = json::parse(decrypted);
+    if (DEBUG) std::cout << "[RECEIVED - " << sender.steamId << "] " << buffer << std::endl;
+    json req = json::parse(buffer);
     return req;
   } catch (...) {
     this->lock();
