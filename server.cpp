@@ -38,6 +38,9 @@ Server::Server(int maxPlayers)
 Server::~Server()
 {
   if (ENCRYPT) SSL_CTX_free(this->ssl_ctx);
+  for (Player* p : this->players) {
+    delete p;
+  }
 }
 
 bool Server::handshake(Player* p)
