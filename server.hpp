@@ -15,7 +15,7 @@
 #include "encrypt.hpp"
 
 #define BUFFER_SIZE 16384
-#define ENCRYPT false
+#define ENCRYPT true
 #define DEBUG true
 
 using std::string;
