@@ -22,14 +22,16 @@ json error(string msg)
   return res;
 }
 
-Server::Server(int maxPlayers) 
+Server::Server(int maxPlayers, bool encrypt, bool debug) 
 {
   this->maxPlayers = maxPlayers;
+  this->useEncryption = encrypt;
+  this->debugMode = debug;
   pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
   srand(time(NULL));
-  if (ENCRYPT) {
+  if (this->useEncryption) {
     this->ssl_ctx = create_context();
     configure_context(this->ssl_ctx);
   }
@@ -37,7 +39,7 @@ Server::Server(int maxPlayers)
 
 Server::~Server()
 {
-  if (ENCRYPT) SSL_CTX_free(this->ssl_ctx);
+  if (this->useEncryption) SSL_CTX_free(this->ssl_ctx);
   for (Player* p : this->players) {
     delete p;
   }
@@ -45,7 +47,7 @@ Server::~Server()
 
 bool Server::handshake(Player* p)
 {
-  if (!ENCRYPT) return true;
+  if (!this->useEncryption) return true;
   SSL *ssl = SSL_new(this->ssl_ctx);
   p->setSSL(ssl);
   return SSL_accept(ssl) > 0;
@@ -102,8 +104,8 @@ void Server::sendToPlayer(Player* receiver, json payload)
   string jsonString = payload.dump();
   strncpy(buffer, jsonString.c_str(), BUFFER_SIZE - 2);
   buffer[jsonString.size()] = '\n';
-  if (DEBUG) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
-  if (ENCRYPT && receiver->getSSL()) {
+  if (this->debugMode) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
+  if (this->useEncryption && receiver->getSSL()) {
     SSL_write(receiver->getSSL(), buffer, strlen(buffer));
   } else {
     send(receiver->getFd(), buffer, strlen(buffer), 0);
@@ -145,7 +147,7 @@ json Server::receive(Player* sender) {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
   ssize_t n;
-  if (ENCRYPT && sender->getSSL()) {
+  if (this->useEncryption && sender->getSSL()) {
     n = SSL_read(sender->getSSL(), buffer, BUFFER_SIZE);
   } else {
     n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
@@ -154,7 +156,7 @@ json Server::receive(Player* sender) {
     return json();
   }
   try {
-    if (DEBUG) std::cout << "[RECEIVED - " << sender->getSteamId() << "] " << buffer << std::endl;
+    if (this->debugMode) std::cout << "[RECEIVED - " << sender->getSteamId() << "] " << buffer << std::endl;
     json req = json::parse(buffer);
     return req;
   } catch (...) {
@@ -186,7 +188,7 @@ void Server::start(Player* sender, string seed, string deck, int stake, bool ver
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
-  if (DEBUG) data["debug"] = true;
+  if (this->debugMode) data["debug"] = true;
   this->broadcast(success("START", data));
   if (versus) this->broadcast(success("STATE_INFO", this->getState()));
 }
