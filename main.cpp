@@ -19,7 +19,6 @@ void* client_thread(void* arg) {
   }
   if (DEBUG) std::cout << "SSL handshake complete" << std::endl;
 
-  bool hasJoined = false;
   while (true) {
     json req = server->receive(client);
     if (req == json() || !req["cmd"].is_string()) break;
@@ -28,13 +27,12 @@ void* client_thread(void* arg) {
       server->lock();
       string command = req["cmd"].get<string>();
 
-      if (!hasJoined) {
+      if (!server->hasAlreadyJoined(client)) {
         if (command == "JOIN" && req["steam_id"].is_string()) {
           string steamId = req["steam_id"].get<string>();
           client->setSteamId(strtoull(steamId.c_str(), NULL, 10));
           if (server->canJoin(client)) {
             server->join(client);
-            hasJoined = true;
           } else {
             server->unlock();
             break;
@@ -161,8 +159,7 @@ void* client_thread(void* arg) {
       server->unlock();
     } catch (...) {
       server->unlock();
-      server->disconnect(client);
-      pthread_exit(0);
+      break;
     }
   }
 
