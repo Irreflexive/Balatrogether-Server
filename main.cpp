@@ -4,16 +4,16 @@
 
 struct thread_arg {
   Server* server;
-  Player client;
+  Player* client;
 };
 
 void* client_thread(void* arg) {
   thread_arg* info = (thread_arg*) arg;
   Server* server = info->server;
-  Player client = info->client;
+  Player* client = info->client;
 
   if (DEBUG) std::cout << "Performing handshake" << std::endl;
-  if (!server->handshake(&client)) {
+  if (!server->handshake(client)) {
     server->disconnect(client);
     pthread_exit(0);
   }
@@ -29,9 +29,9 @@ void* client_thread(void* arg) {
       string command = req["cmd"].get<string>();
 
       if (!hasJoined) {
-        if (command == "JOIN") {
+        if (command == "JOIN" && req["steam_id"].is_string()) {
           string steamId = req["steam_id"].get<string>();
-          client.steamId = strtoull(steamId.c_str(), NULL, 10);
+          client->setSteamId(strtoull(steamId.c_str(), NULL, 10));
           if (server->canJoin(client)) {
             server->join(client);
             hasJoined = true;
@@ -223,10 +223,7 @@ int main() {
     struct sockaddr_in cli_addr;
     socklen_t cli_len = sizeof(cli_addr);
     int clientfd = accept(sockfd, (struct sockaddr*) &cli_addr, &cli_len);
-    Player p;
-    p.fd = clientfd;
-    p.steamId = 0;
-    p.addr = cli_addr;
+    Player* p = new Player(clientfd, cli_addr);
     thread_arg args = {server, p};
     pthread_t thread;
     pthread_create(&thread, 0, client_thread, &args);
