@@ -33,7 +33,7 @@ Server::Server(int maxPlayers, bool encrypt, bool debug)
   srand(time(NULL));
   if (this->useEncryption) {
     this->ssl_ctx = create_context();
-    configure_context(this->ssl_ctx);
+    configure_context(this->ssl_ctx, debug);
   }
 }
 
@@ -49,8 +49,11 @@ bool Server::handshake(Player* p)
 {
   if (!this->useEncryption) return true;
   SSL *ssl = SSL_new(this->ssl_ctx);
+  if (SSL_set_fd(ssl, p->getFd()) != 1) {
+    return false;
+  }
   p->setSSL(ssl);
-  return SSL_accept(ssl) > 0;
+  return SSL_accept(ssl) == 1;
 }
 
 void Server::join(Player* p)
@@ -146,14 +149,14 @@ void Server::broadcast(json payload, bool ignoreEliminated)
 json Server::receive(Player* sender) {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  ssize_t n;
+  size_t n;
   if (this->useEncryption && sender->getSSL()) {
-    n = SSL_read(sender->getSSL(), buffer, BUFFER_SIZE);
+    int s = SSL_read_ex(sender->getSSL(), buffer, BUFFER_SIZE, &n);
+    if (this->debugMode && s <= 0) std::cout << "SSL error code " << SSL_get_error(sender->getSSL(), s) << std::endl;
+    if (s <= 0 || n == 0) return json();
   } else {
     n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
-  }
-  if (n <= 0) {
-    return json();
+    if (n <= 0) return json();
   }
   try {
     if (this->debugMode) std::cout << "[RECEIVED - " << sender->getSteamId() << "] " << buffer << std::endl;

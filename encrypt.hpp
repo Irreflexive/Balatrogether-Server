@@ -7,6 +7,6 @@
 #include <openssl/x509.h>
 
 SSL_CTX *create_context();
-void configure_context(SSL_CTX *ctx);
+void configure_context(SSL_CTX *ctx, bool debug);
 
 #endif
