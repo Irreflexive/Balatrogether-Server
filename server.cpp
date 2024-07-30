@@ -93,6 +93,7 @@ bool Server::canJoin(Player* p)
 {
   if (this->isRunning()) return false;
   if (this->config.getMaxPlayers() <= this->players.size()) return false;
+  if (this->config.isBanned(p)) return false;
   if (this->hasAlreadyJoined(p)) return false;
   return true;
 }
