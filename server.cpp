@@ -107,12 +107,13 @@ void Server::sendToPlayer(Player* receiver, json payload)
   string jsonString = payload.dump();
   strncpy(buffer, jsonString.c_str(), BUFFER_SIZE - 2);
   buffer[jsonString.size()] = '\n';
-  if (this->debugMode) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
   if (this->useEncryption && receiver->getSSL()) {
-    SSL_write(receiver->getSSL(), buffer, strlen(buffer));
+    int s = SSL_write(receiver->getSSL(), buffer, strlen(buffer));
+    if (this->debugMode && s <= 0) std::cout << "[SSL] Send error " << SSL_get_error(receiver->getSSL(), s) << std::endl;
   } else {
     send(receiver->getFd(), buffer, strlen(buffer), 0);
   }
+  if (this->debugMode) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
 }
 
 void Server::sendToRandom(Player* sender, json payload)
@@ -152,7 +153,7 @@ json Server::receive(Player* sender) {
   size_t n;
   if (this->useEncryption && sender->getSSL()) {
     int s = SSL_read_ex(sender->getSSL(), buffer, BUFFER_SIZE, &n);
-    if (this->debugMode && s <= 0) std::cout << "SSL error code " << SSL_get_error(sender->getSSL(), s) << std::endl;
+    if (this->debugMode && s <= 0) std::cout << "[SSL] Receive error " << SSL_get_error(sender->getSSL(), s) << std::endl;
     if (s <= 0 || n == 0) return json();
   } else {
     n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
