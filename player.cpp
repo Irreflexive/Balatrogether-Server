@@ -31,6 +31,11 @@ void Player::setSteamId(uint64_t steamId)
   this->steamId = steamId;
 }
 
+void Player::setUnlocks(std::string unlockHash)
+{
+  this->unlockHash = unlockHash;
+}
+
 SSL *Player::getSSL()
 {
   return this->ssl;

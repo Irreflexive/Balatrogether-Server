@@ -15,6 +15,7 @@ class Player {
     int getFd();
     uint64_t getSteamId();
     void setSteamId(uint64_t steamId);
+    void setUnlocks(std::string unlockHash);
     SSL *getSSL();
     void setSSL(SSL *ssl);
 
@@ -23,6 +24,7 @@ class Player {
     int fd;
     struct sockaddr_in addr;
     uint64_t steamId = 0;
+    std::string unlockHash;
     SSL *ssl = nullptr;
 };
 
