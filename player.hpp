@@ -15,6 +15,7 @@ class Player {
     int getFd();
     uint64_t getSteamId();
     void setSteamId(uint64_t steamId);
+    std::string getUnlocks();
     void setUnlocks(std::string unlockHash);
     SSL *getSSL();
     void setSSL(SSL *ssl);

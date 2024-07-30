@@ -31,6 +31,11 @@ void Player::setSteamId(uint64_t steamId)
   this->steamId = steamId;
 }
 
+std::string Player::getUnlocks()
+{
+  return this->unlockHash;
+}
+
 void Player::setUnlocks(std::string unlockHash)
 {
   this->unlockHash = unlockHash;

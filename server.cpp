@@ -179,8 +179,20 @@ Player* Server::getHost() {
 void Server::start(Player* sender, string seed, string deck, int stake, bool versus)
 {
   if (this->isRunning() || !this->isHost(sender)) return;
-  std::cout << "Starting multiplayer run" << std::endl;
+  if (!versus) {
+    bool initialized = false;
+    std::string unlockHash;
+    for (Player* p : this->players) {
+      if (!initialized) {
+        initialized = true;
+        unlockHash = p->getUnlocks();
+      } else if (unlockHash != p->getUnlocks()) {
+        return;
+      }
+    }
+  }
 
+  std::cout << "Starting multiplayer run" << std::endl;
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.bossPhase = false;
