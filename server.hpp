@@ -18,7 +18,7 @@
 #include "game.hpp"
 #include "preq.hpp"
 
-#define BUFFER_SIZE 16384
+#define BUFFER_SIZE 65536
 
 using std::string;
 using json = nlohmann::json;
