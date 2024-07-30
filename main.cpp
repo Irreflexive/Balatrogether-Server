@@ -171,49 +171,14 @@ void* client_thread(void* arg) {
   pthread_exit(0);
 }
 
-json getDefaultConfig() {
-  json config;
-  config["max_players"] = 8;
-  config["tls_enabled"] = true;
-  config["debug_mode"] = false;
-  return config;
-}
-
 int main() {
-  FILE* config_file = fopen("config.json", "r");
-  json defaultConfig = getDefaultConfig();
-  json config;
-  if (!config_file) {
-    config = defaultConfig;
-    config_file = fopen("config.json", "w");
-    fprintf(config_file, config.dump(2).c_str());
-  } else {
-    config = json::parse(config_file);
-  }
-  fclose(config_file);
-
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in serv_addr;
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(PORT);
   serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-  int max_players = defaultConfig["max_players"].get<int>();
-  if (config["max_players"].is_number_integer()) {
-    max_players = config["max_players"].get<int>();
-  }
-
-  bool tls_enabled = defaultConfig["tls_enabled"].get<bool>();
-  if (config["tls_enabled"].is_boolean()) {
-    tls_enabled = config["tls_enabled"].get<bool>();
-  }
-
-  bool debug_mode = defaultConfig["debug_mode"].get<bool>();
-  if (config["debug_mode"].is_boolean()) {
-    debug_mode = config["debug_mode"].get<bool>();
-  }
-
-  Server* server = new Server(max_players, tls_enabled, debug_mode);
+  Server* server = new Server();
 
   int opt = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {

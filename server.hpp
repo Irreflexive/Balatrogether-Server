@@ -17,6 +17,7 @@
 #include "player.hpp"
 #include "game.hpp"
 #include "preq.hpp"
+#include "config.hpp"
 
 #define BUFFER_SIZE 65536
 
@@ -29,7 +30,7 @@ json error(string msg);
 
 class Server {
   public:
-    Server(int maxPlayers, bool encrypt = true, bool debug = false);
+    Server();
     ~Server();
 
     bool handshake(Player* p);
@@ -101,9 +102,7 @@ class Server {
     SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
     pthread_mutex_t mutex;
-    int maxPlayers;
-    bool useEncryption;
-    bool debugMode;
+    Config config;
     Game game;
     PersistentRequestManager persistentRequests;
 };
