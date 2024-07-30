@@ -22,24 +22,21 @@ json error(string msg)
   return res;
 }
 
-Server::Server(int maxPlayers, bool encrypt, bool debug) 
+Server::Server() 
 {
-  this->maxPlayers = maxPlayers;
-  this->useEncryption = encrypt;
-  this->debugMode = debug;
   pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
   srand(time(NULL));
-  if (this->useEncryption) {
+  if (this->config.isTLSEnabled()) {
     this->ssl_ctx = create_context();
-    configure_context(this->ssl_ctx, debug);
+    configure_context(this->ssl_ctx, this->config.isDebugMode());
   }
 }
 
 Server::~Server()
 {
-  if (this->useEncryption) SSL_CTX_free(this->ssl_ctx);
+  if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
   for (Player* p : this->players) {
     delete p;
   }
@@ -47,7 +44,7 @@ Server::~Server()
 
 bool Server::handshake(Player* p)
 {
-  if (!this->useEncryption) return true;
+  if (!this->config.isTLSEnabled()) return true;
   SSL *ssl = SSL_new(this->ssl_ctx);
   if (SSL_set_fd(ssl, p->getFd()) != 1) {
     return false;
@@ -95,7 +92,7 @@ bool Server::hasAlreadyJoined(Player* p)
 bool Server::canJoin(Player* p)
 {
   if (this->isRunning()) return false;
-  if (this->maxPlayers <= this->players.size()) return false;
+  if (this->config.getMaxPlayers() <= this->players.size()) return false;
   if (this->hasAlreadyJoined(p)) return false;
   return true;
 }
@@ -107,13 +104,13 @@ void Server::sendToPlayer(Player* receiver, json payload)
   string jsonString = payload.dump();
   strncpy(buffer, jsonString.c_str(), BUFFER_SIZE - 2);
   buffer[jsonString.size()] = '\n';
-  if (this->useEncryption && receiver->getSSL()) {
+  if (this->config.isTLSEnabled() && receiver->getSSL()) {
     int s = SSL_write(receiver->getSSL(), buffer, strlen(buffer));
-    if (this->debugMode && s <= 0) std::cout << "[SSL] Send error " << SSL_get_error(receiver->getSSL(), s) << std::endl;
+    if (this->config.isDebugMode() && s <= 0) std::cout << "[SSL] Send error " << SSL_get_error(receiver->getSSL(), s) << std::endl;
   } else {
     send(receiver->getFd(), buffer, strlen(buffer), 0);
   }
-  if (this->debugMode) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
+  if (this->config.isDebugMode()) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
 }
 
 void Server::sendToRandom(Player* sender, json payload)
@@ -151,16 +148,16 @@ json Server::receive(Player* sender) {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
   size_t n;
-  if (this->useEncryption && sender->getSSL()) {
+  if (this->config.isTLSEnabled() && sender->getSSL()) {
     int s = SSL_read_ex(sender->getSSL(), buffer, BUFFER_SIZE, &n);
-    if (this->debugMode && s <= 0) std::cout << "[SSL] Receive error " << SSL_get_error(sender->getSSL(), s) << std::endl;
+    if (this->config.isDebugMode() && s <= 0) std::cout << "[SSL] Receive error " << SSL_get_error(sender->getSSL(), s) << std::endl;
     if (s <= 0 || n == 0) return json();
   } else {
     n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
     if (n <= 0) return json();
   }
   try {
-    if (this->debugMode) std::cout << "[RECEIVED - " << sender->getSteamId() << "] " << buffer << std::endl;
+    if (this->config.isDebugMode()) std::cout << "[RECEIVED - " << sender->getSteamId() << "] " << buffer << std::endl;
     json req = json::parse(buffer);
     return req;
   } catch (...) {
@@ -204,7 +201,7 @@ void Server::start(Player* sender, string seed, string deck, int stake, bool ver
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
-  if (this->debugMode) data["debug"] = true;
+  if (this->config.isDebugMode()) data["debug"] = true;
   this->broadcast(success("START", data));
   if (versus) this->broadcast(success("STATE_INFO", this->getState()));
 }
@@ -560,7 +557,7 @@ json Server::getState() {
 
 json Server::toJSON() {
   json server;
-  server["maxPlayers"] = this->maxPlayers;
+  server["maxPlayers"] = this->config.getMaxPlayers();
   server["inGame"] = this->isRunning();
 
   json playerIds = json::array();
