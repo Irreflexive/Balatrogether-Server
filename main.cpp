@@ -198,6 +198,12 @@ int main() {
     exit(1);
   }
 
+  int keepalive = 1;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
+    fprintf(stderr, "Failed to set keepalive\n");
+    exit(1);
+  }
+
   int bindStatus = bind(sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
   if (bindStatus < 0) {
     fprintf(stderr, "Failed to bind\n");
