@@ -33,7 +33,7 @@ class Player {
 typedef Player* player_t;
 typedef std::vector<player_t> player_list_t;
 typedef std::vector<steamid_t> steamid_list_t;
-typedef std::pair<steamid_t, double> player_score_t;
-typedef std::vector<player_score_t> leaderboard_t;
+typedef std::pair<steamid_t, double> score_t;
+typedef std::vector<score_t> leaderboard_t;
 
 #endif
