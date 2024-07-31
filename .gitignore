@@ -1,3 +1,4 @@
+.vscode
 balatro_server
 test
 test_client.cpp
