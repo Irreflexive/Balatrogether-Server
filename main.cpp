@@ -186,6 +186,18 @@ int main() {
     exit(1);
   }
 
+  int send_size = BUFFER_SIZE;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &send_size, sizeof(send_size)) < 0) {
+    fprintf(stderr, "Failed to set send buffer size\n");
+    exit(1);
+  }
+
+  int recv_size = BUFFER_SIZE;
+  if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &recv_size, sizeof(recv_size)) < 0) {
+    fprintf(stderr, "Failed to set receive buffer size\n");
+    exit(1);
+  }
+
   int bindStatus = bind(sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
   if (bindStatus < 0) {
     fprintf(stderr, "Failed to bind\n");
