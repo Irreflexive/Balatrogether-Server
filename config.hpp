@@ -17,9 +17,9 @@ class Config {
     void setTLSEnabled(bool tlsEnabled);
     bool isDebugMode();
     void setDebugMode(bool debugMode);
-    bool isBanned(Player* p);
-    void ban(Player* p);
-    void unban(Player* p);
+    bool isBanned(player_t p);
+    void ban(player_t p);
+    void unban(player_t p);
   private:
     void save();
     int maxPlayers = 8;

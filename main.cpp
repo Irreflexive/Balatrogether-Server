@@ -4,13 +4,13 @@
 
 struct thread_arg {
   Server* server;
-  Player* client;
+  player_t client;
 };
 
 void* client_thread(void* arg) {
   thread_arg* info = (thread_arg*) arg;
   Server* server = info->server;
-  Player* client = info->client;
+  player_t client = info->client;
 
   if (!server->handshake(client)) {
     server->lock();
@@ -220,7 +220,7 @@ int main() {
     struct sockaddr_in cli_addr;
     socklen_t cli_len = sizeof(cli_addr);
     int clientfd = accept(sockfd, (struct sockaddr*) &cli_addr, &cli_len);
-    Player* p = new Player(clientfd, cli_addr);
+    player_t p = new Player(clientfd, cli_addr);
     thread_arg args = {server, p};
     pthread_t thread;
     pthread_create(&thread, 0, client_thread, &args);

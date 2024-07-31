@@ -52,7 +52,7 @@ void Config::setDebugMode(bool debugMode)
   save();
 }
 
-bool Config::isBanned(Player *p)
+bool Config::isBanned(player_t p)
 {
   for (std::string steamId : this->banned) {
     if (steamId == (std::string) *p) return true;
@@ -60,14 +60,14 @@ bool Config::isBanned(Player *p)
   return false;
 }
 
-void Config::ban(Player *p)
+void Config::ban(player_t p)
 {
   if (this->isBanned(p)) return;
   this->banned.push_back((std::string) *p);
   save();
 }
 
-void Config::unban(Player *p)
+void Config::unban(player_t p)
 {
   for (int i = 0; i < this->banned.size(); i++) {
     std::string steamId = this->banned.at(i);

@@ -1,6 +1,7 @@
 #ifndef BALATROGETHER_PLAYER_H
 #define BALATROGETHER_PLAYER_H
 
+#include <memory>
 #include <iostream>
 #include <vector>
 #include <arpa/inet.h>
@@ -29,8 +30,9 @@ class Player {
     SSL *ssl = nullptr;
 };
 
-typedef std::vector<Player*> player_list_t;
-typedef std::pair<Player*, double> player_score_t;
+typedef Player* player_t;
+typedef std::vector<player_t> player_list_t;
+typedef std::pair<player_t, double> player_score_t;
 typedef std::vector<player_score_t> leaderboard_t;
 
 #endif

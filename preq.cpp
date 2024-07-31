@@ -2,7 +2,7 @@
 
 typedef std::unordered_map<std::string, PersistentRequest*>::iterator preq_iter_t;
 
-PersistentRequest::PersistentRequest(Player *creator)
+PersistentRequest::PersistentRequest(player_t creator)
 {
   this->id = std::to_string(rand());
   this->original = creator;
@@ -15,7 +15,7 @@ std::string PersistentRequest::getId()
   return this->id;
 }
 
-Player *PersistentRequest::getCreator()
+player_t PersistentRequest::getCreator()
 {
   return this->original;
 }
@@ -37,7 +37,7 @@ PersistentRequestManager::~PersistentRequestManager()
   }
 }
 
-PersistentRequest *PersistentRequestManager::create(Player *creator)
+PersistentRequest *PersistentRequestManager::create(player_t creator)
 {
   PersistentRequest* preq = new PersistentRequest(creator);
   this->requests.insert(std::make_pair(preq->id, preq));
