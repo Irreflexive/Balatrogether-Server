@@ -225,4 +225,6 @@ int main() {
     pthread_t thread;
     pthread_create(&thread, 0, client_thread, &args);
   }
+
+  closesocket(sockfd);
 }
