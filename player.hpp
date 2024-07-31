@@ -8,31 +8,32 @@
 #include <openssl/ssl.h>
 #include <unistd.h>
 
+typedef std::string steamid_t;
+
 class Player {
   public:
     Player(int fd, sockaddr_in addr);
     ~Player();
 
     int getFd();
-    uint64_t getSteamId();
-    void setSteamId(uint64_t steamId);
+    steamid_t getSteamId();
+    void setSteamId(steamid_t steamId);
     std::string getUnlocks();
     void setUnlocks(std::string unlockHash);
     SSL *getSSL();
     void setSSL(SSL *ssl);
-
-    operator std::string() const;
   private:
     int fd;
     struct sockaddr_in addr;
-    uint64_t steamId = 0;
+    steamid_t steamId = "Unknown";
     std::string unlockHash;
     SSL *ssl = nullptr;
 };
 
 typedef Player* player_t;
 typedef std::vector<player_t> player_list_t;
-typedef std::pair<player_t, double> player_score_t;
+typedef std::vector<steamid_t> steamid_list_t;
+typedef std::pair<steamid_t, double> player_score_t;
 typedef std::vector<player_score_t> leaderboard_t;
 
 #endif

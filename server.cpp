@@ -42,6 +42,9 @@ Server::Server()
 Server::~Server()
 {
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
+  for (player_t p : this->players) {
+    delete p;
+  }
 }
 
 // Completes the SSL handshake, returning true if it was successful
@@ -83,6 +86,7 @@ void Server::disconnect(player_t p) {
       }
     }
   }
+  delete p;
 }
 
 // Returns true if a player has already joined the server
@@ -208,8 +212,8 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.bossPhase = false;
-  this->game.eliminated = player_list_t();
-  this->game.ready = player_list_t();
+  this->game.eliminated = steamid_list_t();
+  this->game.ready = steamid_list_t();
   this->game.scores = leaderboard_t();
   json data;
   data["seed"] = seed;
@@ -253,8 +257,8 @@ player_list_t Server::getRemainingPlayers() {
   player_list_t remaining;
   for (player_t player : this->players) {
     bool eliminated = false;
-    for (player_t eliminatedPlayer : this->game.eliminated) {
-      if (player == eliminatedPlayer) {
+    for (steamid_t eliminatedPlayer : this->game.eliminated) {
+      if (player->getSteamId() == eliminatedPlayer) {
         eliminated = true;
         break;
       }
@@ -264,8 +268,8 @@ player_list_t Server::getRemainingPlayers() {
   return remaining;
 }
 
-// Returns a list of eliminated players
-player_list_t Server::getEliminatedPlayers() {
+// Returns a list of eliminated players by their steam ID
+steamid_list_t Server::getEliminatedPlayers() {
   return this->game.eliminated;
 }
 
@@ -478,7 +482,7 @@ void Server::getCardsAndJokers(player_t sender)
   PersistentRequest* preq = this->persistentRequests.create(sender);
   json preqData;
   preqData["contributed"] = json::object();
-  preqData["contributed"][(string) *sender] = true;
+  preqData["contributed"][sender->getSteamId()] = true;
   preqData["results"] = json::object();
   preqData["results"]["jokers"] = json::array();
   preqData["results"]["cards"] = json::array();
@@ -487,7 +491,7 @@ void Server::getCardsAndJokers(player_t sender)
   data["request_id"] = preq->getId();
   this->sendToOthers(sender, success("GET_CARDS_AND_JOKERS", data), true);
   for (player_t p : this->getRemainingPlayers()) {
-    if (!preqData["contributed"][(string) *p].get<bool>()) return;
+    if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
   }
   this->sendToPlayer(preq->getCreator(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
   this->persistentRequests.complete(preq->getId());
@@ -500,8 +504,8 @@ void Server::getCardsAndJokers(player_t sender, json jokers, json cards, string 
   PersistentRequest* preq = this->persistentRequests.getById(requestId);
   if (!preq) return;
   json preqData = preq->getData();
-  if (preqData["contributed"][(string) *sender].get<bool>()) return;
-  preqData["contributed"][(string) *sender] = true;
+  if (preqData["contributed"][sender->getSteamId()].get<bool>()) return;
+  preqData["contributed"][sender->getSteamId()] = true;
   for (json joker : jokers) {
     preqData["results"]["jokers"].push_back(joker);
   }
@@ -510,7 +514,7 @@ void Server::getCardsAndJokers(player_t sender, json jokers, json cards, string 
   }
   preq->setData(preqData);
   for (player_t p : this->getRemainingPlayers()) {
-    if (!preqData["contributed"][(string) *p].get<bool>()) return;
+    if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
   }
   this->sendToPlayer(preq->getCreator(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
   this->persistentRequests.complete(preq->getId());
@@ -521,14 +525,14 @@ void Server::readyForBoss(player_t sender)
 {
   if (!this->isVersus()) return;
   if (this->game.bossPhase) return;
-  for (player_t player : this->game.ready) {
-    if (player->getSteamId() == sender->getSteamId()) return;
+  for (steamid_t steamid : this->game.ready) {
+    if (steamid == sender->getSteamId()) return;
   }
-  this->game.ready.push_back(sender);
+  this->game.ready.push_back(sender->getSteamId());
   for (player_t player : this->getRemainingPlayers()) {
     bool isReady = false;
-    for (player_t readyPlayer : this->game.ready) {
-      if (player->getSteamId() == readyPlayer->getSteamId()) {
+    for (steamid_t readyId : this->game.ready) {
+      if (player->getSteamId() == readyId) {
         isReady = true;
         break;
       }
@@ -536,7 +540,7 @@ void Server::readyForBoss(player_t sender)
     if (!isReady) return;
   }
   this->game.bossPhase = true;
-  this->game.ready = player_list_t();
+  this->game.ready = steamid_list_t();
   this->game.scores = leaderboard_t();
   this->broadcast(success("START_BOSS"), true);
 }
@@ -545,13 +549,13 @@ void Server::readyForBoss(player_t sender)
 void Server::eliminate(player_t p)
 {
   if (!this->isVersus()) return;
-  for (player_t player : this->game.eliminated) {
-    if (player->getSteamId() == p->getSteamId()) return;
+  for (steamid_t steamid : this->game.eliminated) {
+    if (steamid == p->getSteamId()) return;
   }
-  this->game.eliminated.push_back(p);
+  this->game.eliminated.push_back(p->getSteamId());
   for (int i = 0; i < this->game.scores.size(); i++) {
     player_score_t pair = this->game.scores[i];
-    if (pair.first == p) {
+    if (pair.first == p->getSteamId()) {
       this->game.scores.erase(this->game.scores.begin() + i);
       break;
     }
@@ -570,9 +574,9 @@ void Server::defeatedBoss(player_t p, double score)
   if (!this->isVersus()) return;
   if (!this->game.bossPhase) return;
   for (player_score_t pair : this->game.scores) {
-    if (pair.first == p) return;
+    if (pair.first == p->getSteamId()) return;
   }
-  this->game.scores.push_back(player_score_t(p, score));
+  this->game.scores.push_back(player_score_t(p->getSteamId(), score));
   if (this->game.scores.size() == this->getRemainingPlayers().size()) {
     std::sort(this->game.scores.begin(), this->game.scores.end(), [](player_score_t a, player_score_t b) {
       return a.second > b.second;
@@ -581,15 +585,15 @@ void Server::defeatedBoss(player_t p, double score)
     data["leaderboard"] = json::array();
     for (player_score_t pair : this->game.scores) {
       json row;
-      row["player"] = (string) *(pair.first);
+      row["player"] = pair.first;
       row["score"] = pair.second;
       data["leaderboard"].push_back(row);
     }
-    player_list_t eliminatedPlayers = this->getEliminatedPlayers();
+    steamid_list_t eliminatedPlayers = this->getEliminatedPlayers();
     std::reverse(eliminatedPlayers.begin(), eliminatedPlayers.end());
-    for (player_t player : eliminatedPlayers) {
+    for (steamid_t steamId : eliminatedPlayers) {
       json row;
-      row["player"] = (string) *player;
+      row["player"] = steamId;
       data["leaderboard"].push_back(row);
     }
     this->game.bossPhase = false;
@@ -610,7 +614,7 @@ json Server::toJSON() {
 
   json playerIds = json::array();
   for (player_t player : this->players) {
-    playerIds.push_back((string) *player);
+    playerIds.push_back(player->getSteamId());
   }
   server["players"] = playerIds;
 

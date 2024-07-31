@@ -7,8 +7,8 @@ struct Game {
   bool inGame;
   bool versus;
   bool bossPhase;
-  player_list_t ready;
-  player_list_t eliminated;
+  steamid_list_t ready;
+  steamid_list_t eliminated;
   leaderboard_t scores;
 };
 

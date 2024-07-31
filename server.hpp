@@ -55,7 +55,7 @@ class Server {
     bool isVersus();
     bool isCoop();
     player_list_t getRemainingPlayers();
-    player_list_t getEliminatedPlayers();
+    steamid_list_t getEliminatedPlayers();
 
     // Co-op network events
     void endless();

@@ -24,7 +24,7 @@ class Config {
     void save();
     int maxPlayers = 8;
     bool tlsEnabled = true;
-    std::vector<std::string> banned;
+    steamid_list_t banned;
     bool debugMode = false;
 };
 
