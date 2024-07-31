@@ -1,5 +1,6 @@
 #include "server.hpp"
 
+// Constructs a JSON object that is interpreted as valid by the client
 json success(string cmd, json data)
 {
   json res;
@@ -9,11 +10,13 @@ json success(string cmd, json data)
   return res;
 }
 
+// Constructs a JSON object for a successful operation with no data
 json success(string cmd)
 {
   return success(cmd, json::object());
 }
 
+// Constructs a JSON object that will make the client disconnect
 json error(string msg)
 {
   json res;
@@ -22,6 +25,7 @@ json error(string msg)
   return res;
 }
 
+// Construct a server object, initializating the mutex, SSL context, and config
 Server::Server() 
 {
   pthread_mutex_init(&this->mutex, nullptr);
@@ -34,6 +38,7 @@ Server::Server()
   }
 }
 
+// Cleans up the SSL context and remaining players
 Server::~Server()
 {
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
@@ -42,6 +47,7 @@ Server::~Server()
   }
 }
 
+// Completes the SSL handshake, returning true if it was successful
 bool Server::handshake(Player* p)
 {
   if (!this->config.isTLSEnabled()) return true;
@@ -53,6 +59,7 @@ bool Server::handshake(Player* p)
   return SSL_accept(ssl) == 1;
 }
 
+// Connects a player to the server if they are able
 void Server::join(Player* p)
 {
   if (this->canJoin(p)) {
@@ -65,6 +72,7 @@ void Server::join(Player* p)
   }
 }
 
+// Disconnects a player from the server
 void Server::disconnect(Player* p) {
   if (this->hasAlreadyJoined(p)) {
     std::cout << "Player " << p->getSteamId() << " disconnecting" << std::endl;
@@ -74,13 +82,14 @@ void Server::disconnect(Player* p) {
         this->players.erase(this->players.begin() + i);
         if (this->players.size() == 0) this->stop();
         this->broadcast(success("LEAVE", this->toJSON()));
+        delete p;
         return;
       }
     }
   }
-  delete p;
 }
 
+// Returns true if a player has already joined the server
 bool Server::hasAlreadyJoined(Player* p)
 {
   for (Player* player : this->players) {
@@ -89,6 +98,7 @@ bool Server::hasAlreadyJoined(Player* p)
   return false;
 }
 
+// Returns false if the server is in progress, is full, or the player has been banned
 bool Server::canJoin(Player* p)
 {
   if (this->isRunning()) return false;
@@ -98,6 +108,7 @@ bool Server::canJoin(Player* p)
   return true;
 }
 
+// Sends a JSON object to the player
 void Server::sendToPlayer(Player* receiver, json payload)
 {
   char buffer[BUFFER_SIZE];
@@ -114,6 +125,7 @@ void Server::sendToPlayer(Player* receiver, json payload)
   if (this->config.isDebugMode()) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
 }
 
+// Sends a JSON object to a random player, excluding the sender from consideration
 void Server::sendToRandom(Player* sender, json payload)
 {
   player_list_t remainingPlayers = this->getRemainingPlayers();
@@ -129,6 +141,7 @@ void Server::sendToRandom(Player* sender, json payload)
   this->sendToPlayer(randomPlayer, payload);
 }
 
+// Sends a JSON object to all players besides the sender. If ignoreEliminated is true, will not send to eliminated players
 void Server::sendToOthers(Player* sender, json payload, bool ignoreEliminated)
 {
   player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
@@ -137,6 +150,7 @@ void Server::sendToOthers(Player* sender, json payload, bool ignoreEliminated)
   }
 }
 
+// Sends a JSON object to all players. If ignoreEliminated is true, will not send to eliminated players
 void Server::broadcast(json payload, bool ignoreEliminated)
 {
   player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
@@ -145,6 +159,7 @@ void Server::broadcast(json payload, bool ignoreEliminated)
   }
 }
 
+// Receive JSON from a player. Returns a null json object if parsing fails or the client has disconnected
 json Server::receive(Player* sender) {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
@@ -166,14 +181,17 @@ json Server::receive(Player* sender) {
   }
 }
 
+// Returns true if the player is designated the host of the server. Errors if the server is empty
 bool Server::isHost(Player* p) {
   return p == this->getHost();
 }
 
+// Returns the host player. Errors if the server is empty
 Player* Server::getHost() {
   return players.at(0);
 }
 
+// Starts a run given a seed, deck, stake, and versus configuration
 void Server::start(Player* sender, string seed, string deck, int stake, bool versus)
 {
   if (this->isRunning() || !this->isHost(sender)) return;
@@ -207,6 +225,7 @@ void Server::start(Player* sender, string seed, string deck, int stake, bool ver
   if (versus) this->broadcast(success("STATE_INFO", this->getState()));
 }
 
+// Stops an in-progress run. Doesn't send any packets, just allows start() to be called again
 void Server::stop()
 {
   if (!this->isRunning()) return;
@@ -214,21 +233,25 @@ void Server::stop()
   this->game.inGame = false;
 }
 
+// Returns true if there is a run in progress
 bool Server::isRunning()
 {
   return this->game.inGame;
 }
 
+// Returns true if there is a versus mode run in progress
 bool Server::isVersus()
 {
   return this->isRunning() && this->game.versus;
 }
 
+// Returns true if there is a co-op mode run in progress
 bool Server::isCoop()
 {
   return this->isRunning() && !this->game.versus;
 }
 
+// Returns a list of remaining players. This is all connected players in co-op
 player_list_t Server::getRemainingPlayers() {
   if (!this->isVersus()) return this->players;
   player_list_t remaining;
@@ -245,16 +268,19 @@ player_list_t Server::getRemainingPlayers() {
   return remaining;
 }
 
+// Returns a list of eliminated players
 player_list_t Server::getEliminatedPlayers() {
   return this->game.eliminated;
 }
 
+// Tells all players to commence endless mode
 void Server::endless()
 {
   if (!this->isCoop()) return;
   this->broadcast(success("ENDLESS"));
 }
 
+// Highlights a card in a certain card area based on its Multiplayer ID
 void Server::highlight(Player* sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
@@ -264,6 +290,7 @@ void Server::highlight(Player* sender, string selectType, int index)
   this->sendToOthers(sender, success("HIGHLIGHT", data));
 }
 
+// Unhighlights a card in a certain card area based on its Multiplayer ID
 void Server::unhighlight(Player* sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
@@ -273,24 +300,28 @@ void Server::unhighlight(Player* sender, string selectType, int index)
   this->sendToOthers(sender, success("UNHIGHLIGHT", data));
 }
 
+// Unhighlights all cards in hand. Triggered by right click in co-op
 void Server::unhighlightAll(Player* sender)
 {
   if (!this->isCoop()) return;
   this->sendToOthers(sender, success("UNHIGHLIGHT_ALL"));
 }
 
+// Triggers when play hand button is selected. Plays highlighted cards in hand
 void Server::playHand(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("PLAY_HAND"));
 }
 
+// Triggers when discard hand button is selected. Discards highlighted cards in hand
 void Server::discardHand(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("DISCARD_HAND"));
 }
 
+// Sorts the cards in hand by rank or suit
 void Server::sortHand(Player* sender, string sortType)
 {
   if (!this->isCoop()) return;
@@ -299,6 +330,7 @@ void Server::sortHand(Player* sender, string sortType)
   this->broadcast(success("SORT_HAND", data));
 }
 
+// Moves card at position `from` to position `to` in a certain card area
 void Server::reorder(Player* sender, string selectType, int from, int to)
 {
   if (!this->isCoop()) return;
@@ -309,18 +341,21 @@ void Server::reorder(Player* sender, string selectType, int from, int to)
   this->sendToOthers(sender, success("REORDER", data));
 }
 
+// Triggered when the select blind button is clicked
 void Server::selectBlind(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("SELECT_BLIND"));
 }
 
+// Triggered when the skip blind button is clicked
 void Server::skipBlind(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("SKIP_BLIND"));
 }
 
+// Sells a card in a certain card area based on its Multiplayer ID
 void Server::sell(Player* sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
@@ -330,6 +365,7 @@ void Server::sell(Player* sender, string selectType, int index)
   this->broadcast(success("SELL", data));
 }
 
+// Uses a card in a certain card area based on its Multiplayer ID
 void Server::use(Player* sender, int index)
 {
   if (!this->isCoop()) return;
@@ -338,6 +374,7 @@ void Server::use(Player* sender, int index)
   this->broadcast(success("USE", data));
 }
 
+// Buys a card in a certain card area based on its Multiplayer ID
 void Server::buy(Player* sender, string selectType, int index)
 {
   if (!this->isCoop()) return;
@@ -347,6 +384,7 @@ void Server::buy(Player* sender, string selectType, int index)
   this->broadcast(success("BUY", data));
 }
 
+// Buys and uses a card from the shop based on its Multiplayer ID
 void Server::buyAndUse(Player* sender, int index)
 {
   if (!this->isCoop()) return;
@@ -355,30 +393,35 @@ void Server::buyAndUse(Player* sender, int index)
   this->broadcast(success("BUY_AND_USE", data));
 }
 
+// Triggers when the skip button is clicked in a booster pack
 void Server::skipBooster(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("SKIP_BOOSTER"));
 }
 
+// Triggers when the reroll button is clicked in the shop
 void Server::reroll(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("REROLL"));
 }
 
+// Triggers when the next round button is clicked in the shop
 void Server::nextRound(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("NEXT_ROUND"));
 }
 
+// Triggers when the cash out button is clicked at the end of round
 void Server::goToShop(Player* sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("GO_TO_SHOP"));
 }
 
+// Initiate an exchange with a random opponent to swap jokers
 void Server::swapJokers(Player* sender, json jokers)
 {
   if (!this->isVersus()) return;
@@ -389,6 +432,7 @@ void Server::swapJokers(Player* sender, json jokers)
   this->sendToRandom(sender, success("SWAP_JOKERS", data));
 }
 
+// Complete a previously initiated request to swap jokers, sending the opponents's jokers to the original player
 void Server::swapJokers(Player* sender, json jokers, string requestId)
 {
   if (!this->isVersus()) return;
@@ -400,6 +444,7 @@ void Server::swapJokers(Player* sender, json jokers, string requestId)
   this->persistentRequests.complete(requestId);
 }
 
+// Changes a player's money by `change` amount
 void Server::changeMoney(Player* sender, int change)
 {
   if (!this->isVersus()) return;
@@ -408,6 +453,7 @@ void Server::changeMoney(Player* sender, int change)
   this->sendToPlayer(sender, success("MONEY", data));
 }
 
+// Changes opponents' money by `change` amount
 void Server::changeOthersMoney(Player* sender, int change)
 {
   if (!this->isVersus()) return;
@@ -416,6 +462,7 @@ void Server::changeOthersMoney(Player* sender, int change)
   this->sendToOthers(sender, success("MONEY", data), true);
 }
 
+// Changes opponents (or a random player's) hand size by `change`
 void Server::changeHandSize(Player* sender, int change, bool chooseRandom)
 {
   if (!this->isVersus()) return;
@@ -428,6 +475,7 @@ void Server::changeHandSize(Player* sender, int change, bool chooseRandom)
   }
 }
 
+// Initiates a request to determine all opponents' playing cards and jokers
 void Server::getCardsAndJokers(Player* sender)
 {
   if (!this->isVersus()) return;
@@ -449,6 +497,7 @@ void Server::getCardsAndJokers(Player* sender)
   this->persistentRequests.complete(preq->getId());
 }
 
+// An opponents' response to a request to retrieve playing cards and jokers
 void Server::getCardsAndJokers(Player* sender, json jokers, json cards, string requestId)
 {
   if (!this->isVersus()) return;
@@ -471,6 +520,7 @@ void Server::getCardsAndJokers(Player* sender, json jokers, json cards, string r
   this->persistentRequests.complete(preq->getId());
 }
 
+// Triggers when the player has selected a versus boss blind. Starts the boss when all remaining players are ready
 void Server::readyForBoss(Player* sender)
 {
   if (!this->isVersus()) return;
@@ -495,6 +545,7 @@ void Server::readyForBoss(Player* sender)
   this->broadcast(success("START_BOSS"), true);
 }
 
+// Eliminates a player from the run. If only one remains after, they are declared the winner
 void Server::eliminate(Player* p)
 {
   if (!this->isVersus()) return;
