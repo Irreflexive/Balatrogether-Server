@@ -9,14 +9,14 @@ using json = nlohmann::json;
 class PersistentRequest {
   public:
     std::string getId();
-    Player* getCreator();
+    player_t getCreator();
     json getData();
     void setData(json data);
   private:
     friend class PersistentRequestManager;
-    PersistentRequest(Player* creator);
+    PersistentRequest(player_t creator);
     std::string id;
-    Player* original;
+    player_t original;
     json data;
     clock_t created;
 };
@@ -24,7 +24,7 @@ class PersistentRequest {
 class PersistentRequestManager {
   public:
     ~PersistentRequestManager();
-    PersistentRequest* create(Player* creator);
+    PersistentRequest* create(player_t creator);
     PersistentRequest* getById(std::string requestId);
     void complete(std::string requestId);
   private:

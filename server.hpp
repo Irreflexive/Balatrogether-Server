@@ -33,23 +33,23 @@ class Server {
     Server();
     ~Server();
 
-    bool handshake(Player* p);
-    void join(Player* p);
-    void disconnect(Player* p);
-    bool hasAlreadyJoined(Player* p);
-    bool canJoin(Player* p);
+    bool handshake(player_t p);
+    void join(player_t p);
+    void disconnect(player_t p);
+    bool hasAlreadyJoined(player_t p);
+    bool canJoin(player_t p);
 
-    void sendToPlayer(Player* receiver, json payload);
-    void sendToRandom(Player* sender, json payload);
-    void sendToOthers(Player* sender, json payload, bool ignoreEliminated = false);
+    void sendToPlayer(player_t receiver, json payload);
+    void sendToRandom(player_t sender, json payload);
+    void sendToOthers(player_t sender, json payload, bool ignoreEliminated = false);
     void broadcast(json payload, bool ignoreEliminated = false);
-    json receive(Player* sender);
+    json receive(player_t sender);
 
-    bool isHost(Player* p);
-    Player* getHost();
+    bool isHost(player_t p);
+    player_t getHost();
 
     // Game state methods
-    void start(Player* sender, string seed, string deck, int stake, bool versus);
+    void start(player_t sender, string seed, string deck, int stake, bool versus);
     void stop();
     bool isRunning();
     bool isVersus();
@@ -60,38 +60,38 @@ class Server {
     // Co-op network events
     void endless();
 
-    void highlight(Player* sender, string selectType, int index);
-    void unhighlight(Player* sender, string selectType, int index);
-    void unhighlightAll(Player* sender);
-    void playHand(Player* sender);
-    void discardHand(Player* sender);
-    void sortHand(Player* sender, string sortType);
-    void reorder(Player* sender, string selectType, int from, int to);
+    void highlight(player_t sender, string selectType, int index);
+    void unhighlight(player_t sender, string selectType, int index);
+    void unhighlightAll(player_t sender);
+    void playHand(player_t sender);
+    void discardHand(player_t sender);
+    void sortHand(player_t sender, string sortType);
+    void reorder(player_t sender, string selectType, int from, int to);
 
-    void selectBlind(Player* sender);
-    void skipBlind(Player* sender);
+    void selectBlind(player_t sender);
+    void skipBlind(player_t sender);
 
-    void sell(Player* sender, string selectType, int index);
-    void use(Player* sender, int index);
-    void buy(Player* sender, string selectType, int index);
-    void buyAndUse(Player* sender, int index);
-    void skipBooster(Player* sender);
+    void sell(player_t sender, string selectType, int index);
+    void use(player_t sender, int index);
+    void buy(player_t sender, string selectType, int index);
+    void buyAndUse(player_t sender, int index);
+    void skipBooster(player_t sender);
 
-    void reroll(Player* sender);
-    void nextRound(Player* sender);
-    void goToShop(Player* sender);
+    void reroll(player_t sender);
+    void nextRound(player_t sender);
+    void goToShop(player_t sender);
 
     // Versus network events
-    void swapJokers(Player* sender, json jokers);
-    void swapJokers(Player* sender, json jokers, string requestId);
-    void changeMoney(Player* sender, int change);
-    void changeOthersMoney(Player* sender, int change);
-    void changeHandSize(Player* sender, int change, bool chooseRandom);
-    void getCardsAndJokers(Player* sender);
-    void getCardsAndJokers(Player* sender, json jokers, json cards, string requestId);
-    void readyForBoss(Player* sender);
-    void eliminate(Player* p);
-    void defeatedBoss(Player* p, double score);
+    void swapJokers(player_t sender, json jokers);
+    void swapJokers(player_t sender, json jokers, string requestId);
+    void changeMoney(player_t sender, int change);
+    void changeOthersMoney(player_t sender, int change);
+    void changeHandSize(player_t sender, int change, bool chooseRandom);
+    void getCardsAndJokers(player_t sender);
+    void getCardsAndJokers(player_t sender, json jokers, json cards, string requestId);
+    void readyForBoss(player_t sender);
+    void eliminate(player_t p);
+    void defeatedBoss(player_t p, double score);
 
     // State management
     json getState();
