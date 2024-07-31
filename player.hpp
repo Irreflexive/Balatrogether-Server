@@ -1,7 +1,6 @@
 #ifndef BALATROGETHER_PLAYER_H
 #define BALATROGETHER_PLAYER_H
 
-#include <memory>
 #include <iostream>
 #include <vector>
 #include <arpa/inet.h>
@@ -9,6 +8,7 @@
 #include <unistd.h>
 
 typedef std::string steamid_t;
+typedef std::vector<steamid_t> steamid_list_t;
 
 class Player {
   public:
@@ -32,8 +32,5 @@ class Player {
 
 typedef Player* player_t;
 typedef std::vector<player_t> player_list_t;
-typedef std::vector<steamid_t> steamid_list_t;
-typedef std::pair<steamid_t, double> score_t;
-typedef std::vector<score_t> leaderboard_t;
 
 #endif
