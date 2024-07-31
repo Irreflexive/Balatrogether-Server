@@ -1,16 +1,23 @@
 #ifndef BALATROGETHER_SERVER_H
 #define BALATROGETHER_SERVER_H
 
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
 #include <thread>
 #include <iostream>
 #include <unistd.h>
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+  #include <winsock2.h>
+  #define closesocket closesocket
+#else
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+  #define closesocket close
+#endif
 
 #include "json.hpp"
 #include "encrypt.hpp"

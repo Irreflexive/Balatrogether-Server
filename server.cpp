@@ -43,7 +43,7 @@ Server::~Server()
 {
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
   for (player_t p : this->players) {
-    delete p;
+    this->disconnect(p);
   }
 }
 
