@@ -554,7 +554,7 @@ void Server::eliminate(player_t p)
   }
   this->game.eliminated.push_back(p->getSteamId());
   for (int i = 0; i < this->game.scores.size(); i++) {
-    player_score_t pair = this->game.scores[i];
+    score_t pair = this->game.scores[i];
     if (pair.first == p->getSteamId()) {
       this->game.scores.erase(this->game.scores.begin() + i);
       break;
@@ -573,17 +573,17 @@ void Server::defeatedBoss(player_t p, double score)
 {
   if (!this->isVersus()) return;
   if (!this->game.bossPhase) return;
-  for (player_score_t pair : this->game.scores) {
+  for (score_t pair : this->game.scores) {
     if (pair.first == p->getSteamId()) return;
   }
-  this->game.scores.push_back(player_score_t(p->getSteamId(), score));
+  this->game.scores.push_back(score_t(p->getSteamId(), score));
   if (this->game.scores.size() == this->getRemainingPlayers().size()) {
-    std::sort(this->game.scores.begin(), this->game.scores.end(), [](player_score_t a, player_score_t b) {
+    std::sort(this->game.scores.begin(), this->game.scores.end(), [](score_t a, score_t b) {
       return a.second > b.second;
     });
     json data;
     data["leaderboard"] = json::array();
-    for (player_score_t pair : this->game.scores) {
+    for (score_t pair : this->game.scores) {
       json row;
       row["player"] = pair.first;
       row["score"] = pair.second;
