@@ -7,7 +7,7 @@ Config::Config()
     json config = json::parse(config_file);
     if (config["max_players"].is_number_integer()) this->maxPlayers = config["max_players"].get<int>();
     if (config["tls_enabled"].is_boolean()) this->tlsEnabled = config["tls_enabled"].get<bool>();
-    if (config["banned_users"].is_array()) this->banned = config["banned_users"].get<std::vector<std::string>>();
+    if (config["banned_users"].is_array()) this->banned = config["banned_users"].get<steamid_list_t>();
     if (config["debug_mode"].is_boolean()) this->debugMode = config["debug_mode"].get<bool>();
     fclose(config_file);
   }
@@ -54,8 +54,8 @@ void Config::setDebugMode(bool debugMode)
 
 bool Config::isBanned(player_t p)
 {
-  for (std::string steamId : this->banned) {
-    if (steamId == (std::string) *p) return true;
+  for (steamid_t steamId : this->banned) {
+    if (steamId == p->getSteamId()) return true;
   }
   return false;
 }
@@ -63,15 +63,15 @@ bool Config::isBanned(player_t p)
 void Config::ban(player_t p)
 {
   if (this->isBanned(p)) return;
-  this->banned.push_back((std::string) *p);
+  this->banned.push_back(p->getSteamId());
   save();
 }
 
 void Config::unban(player_t p)
 {
   for (int i = 0; i < this->banned.size(); i++) {
-    std::string steamId = this->banned.at(i);
-    if (steamId == (std::string) *p) {
+    steamid_t steamId = this->banned.at(i);
+    if (steamId == p->getSteamId()) {
       this->banned.erase(this->banned.begin() + i);
       save();
       return;

@@ -21,12 +21,12 @@ int Player::getFd()
   return this->fd;
 }
 
-uint64_t Player::getSteamId()
+steamid_t Player::getSteamId()
 {
   return this->steamId;
 }
 
-void Player::setSteamId(uint64_t steamId)
+void Player::setSteamId(steamid_t steamId)
 {
   this->steamId = steamId;
 }
@@ -50,7 +50,3 @@ void Player::setSSL(SSL *ssl)
 {
   this->ssl = ssl;
 }
-
-Player::operator std::string() const { 
-  return std::to_string(this->steamId); 
-};

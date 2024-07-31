@@ -31,7 +31,7 @@ void* client_thread(void* arg) {
         if (command == "JOIN" && req["steam_id"].is_string() && req["unlock_hash"].is_string()) {
           string steamId = req["steam_id"].get<string>();
           string unlockHash = req["unlock_hash"].get<string>();
-          client->setSteamId(strtoull(steamId.c_str(), NULL, 10));
+          client->setSteamId(steamId);
           client->setUnlocks(unlockHash);
           if (server->canJoin(client)) {
             server->join(client);
