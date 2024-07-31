@@ -4,7 +4,7 @@ typedef std::unordered_map<std::string, PersistentRequest*>::iterator preq_iter_
 
 PersistentRequest::PersistentRequest(Player *creator)
 {
-  this->id = rand();
+  this->id = std::to_string(rand());
   this->original = creator;
   this->data = json();
   this->created = clock();
