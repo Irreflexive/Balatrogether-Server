@@ -4,9 +4,9 @@
 void collectRequests(Server *server)
 {
   while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(60));
     server->lock();
-    if (server->config.isDebugMode()) std::cout << "[GARBAGE COLLECTING PREQS]" << std::endl;
+    server->debugLog("Collecting PersistentRequest garbage");
     server->persistentRequests.clearUnresolved(10);
     server->unlock();
   }
@@ -76,9 +76,8 @@ bool Server::handshake(player_t p)
 void Server::join(player_t p)
 {
   if (this->canJoin(p)) {
-    std::cout << "Player " << p->getSteamId() << " joining" << std::endl;
+    this->infoLog("Client from %s joined server with Steam ID %s", p->getIP().c_str(), p->getSteamId().c_str());
     this->players.push_back(p);
-
     this->broadcast(success("JOIN", this->toJSON()));
   } else {
     this->sendToPlayer(p, error("Cannot join this server"));
@@ -88,7 +87,7 @@ void Server::join(player_t p)
 // Disconnects a player from the server
 void Server::disconnect(player_t p) {
   if (this->hasAlreadyJoined(p)) {
-    std::cout << "Player " << p->getSteamId() << " disconnecting" << std::endl;
+    this->infoLog("Player with Steam ID %s leaving server", p->getSteamId().c_str());
     this->eliminate(p);
     for (int i = 0; i < this->players.size(); i++) {
       if (this->players[i] == p) {
@@ -131,11 +130,11 @@ void Server::sendToPlayer(player_t receiver, json payload)
   buffer[jsonString.size()] = '\n';
   if (this->config.isTLSEnabled() && receiver->getSSL()) {
     int s = SSL_write(receiver->getSSL(), buffer, strlen(buffer));
-    if (this->config.isDebugMode() && s <= 0) std::cout << "[SSL] Send error " << SSL_get_error(receiver->getSSL(), s) << std::endl;
+    if (s <= 0) this->debugLog("SSL send error %d", SSL_get_error(receiver->getSSL(), s));
   } else {
     send(receiver->getFd(), buffer, strlen(buffer), 0);
   }
-  if (this->config.isDebugMode()) std::cout << "[SENT - " << receiver->getSteamId() << "] " << payload.dump() << std::endl;
+  this->debugLog("Server -> %s: %s", receiver->getSteamId().c_str(), payload.dump().c_str());
 }
 
 // Sends a JSON object to a random player, excluding the sender from consideration
@@ -179,14 +178,14 @@ json Server::receive(player_t sender) {
   size_t n;
   if (this->config.isTLSEnabled() && sender->getSSL()) {
     int s = SSL_read_ex(sender->getSSL(), buffer, BUFFER_SIZE, &n);
-    if (this->config.isDebugMode() && s <= 0) std::cout << "[SSL] Receive error " << SSL_get_error(sender->getSSL(), s) << std::endl;
+    if (s <= 0) this->debugLog("SSL receive error %d", SSL_get_error(sender->getSSL(), s));
     if (s <= 0 || n == 0) return json();
   } else {
     n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
     if (n <= 0) return json();
   }
   try {
-    if (this->config.isDebugMode()) std::cout << "[RECEIVED - " << sender->getSteamId() << "] " << buffer << std::endl;
+    this->debugLog("%s -> Server: %s", sender->getSteamId().c_str(), buffer);
     json req = json::parse(buffer);
     return req;
   } catch (...) {
@@ -221,13 +220,20 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
     }
   }
 
-  std::cout << "Starting multiplayer run" << std::endl;
+  const char* stakes[] = {"White", "Red", "Green", "Black", "Blue", "Purple", "Orange", "Gold"};
+  this->infoLog("=====START RUN=====");
+  this->infoLog("Mode: %s", versus ? "Versus" : "Co-op");
+  this->infoLog("Seed: %s", seed.c_str());
+  this->infoLog("Deck: %s", deck.c_str());
+  this->infoLog("Stake: %s Stake", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "Unknown");
+
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.bossPhase = false;
   this->game.eliminated = steamid_list_t();
   this->game.ready = steamid_list_t();
   this->game.scores = leaderboard_t();
+
   json data;
   data["seed"] = seed;
   data["deck"] = deck;
@@ -242,7 +248,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
 void Server::stop()
 {
   if (!this->isRunning()) return;
-  std::cout << "Stopping multiplayer run" << std::endl;
+  this->infoLog("======END RUN======");
   this->game.inGame = false;
 }
 
@@ -663,4 +669,45 @@ void Server::lock()
 void Server::unlock()
 {
   this->mutex.unlock();
+}
+
+int Server::infoLog(std::string format, ...)
+{
+  std::string fmt = "[INFO] " + format;
+  va_list args;
+  va_start(args, format);
+  int n = this->log(fmt.c_str(), args);
+  va_end(args);
+  return n;
+}
+
+int Server::debugLog(std::string format, ...)
+{
+  if (!this->config.isDebugMode()) return 0;
+  std::string fmt = "[DEBUG] " + format;
+  va_list args;
+  va_start(args, format);
+  int n = this->log(fmt.c_str(), args, "33");
+  va_end(args);
+  return n;
+}
+
+int Server::errorLog(std::string format, ...)
+{
+  if (!this->config.isDebugMode()) return 0;
+  std::string fmt = "[ERROR] " + format;
+  va_list args;
+  va_start(args, format);
+  int n = this->log(fmt.c_str(), args, "31", stderr);
+  va_end(args);
+  return n;
+}
+
+int Server::log(std::string format, va_list args, std::string color, FILE *fd)
+{
+  std::stringstream modifiedFormat;
+  std::time_t currentTime = std::time(nullptr);
+  modifiedFormat << "\033[" << color << "m[" << std::put_time(std::gmtime(&currentTime), "%FT%TZ") << "] " << format << "\033[0m" << std::endl;
+  int n = vfprintf(fd, modifiedFormat.str().c_str(), args);
+  return n;
 }

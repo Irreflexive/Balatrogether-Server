@@ -8,6 +8,7 @@
 #include <mutex>
 #include <thread>
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -106,8 +107,14 @@ class Server {
     json toJSON();
     void lock();
     void unlock();
+
+    // Logging functions
+    int infoLog(std::string format, ...);
+    int debugLog(std::string format, ...);
+    int errorLog(std::string format, ...);
   private:
     friend void collectRequests(Server* server);
+    int log(std::string format, va_list args, std::string color = "0", FILE *fd = stdout);
     SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
     std::mutex mutex;
