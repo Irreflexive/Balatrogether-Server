@@ -54,6 +54,7 @@ Server::Server()
 // Cleans up the SSL context and other state
 Server::~Server()
 {
+  this->infoLog("Shutting down server");
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
   for (player_t p : this->players) {
     this->disconnect(p);
@@ -280,6 +281,12 @@ bool Server::isVersus()
 bool Server::isCoop()
 {
   return this->isRunning() && !this->game.versus;
+}
+
+// Returns a list of all players connected to the server
+player_list_t Server::getPlayers()
+{
+  return this->players;
 }
 
 // Returns a list of remaining players. This is all connected players in co-op

@@ -63,6 +63,7 @@ class Server {
     bool isRunning();
     bool isVersus();
     bool isCoop();
+    player_list_t getPlayers();
     player_list_t getRemainingPlayers();
     steamid_list_t getEliminatedPlayers();
 
@@ -112,13 +113,14 @@ class Server {
     int infoLog(std::string format, ...);
     int debugLog(std::string format, ...);
     int errorLog(std::string format, ...);
+    
+    Config config;
   private:
     friend void collectRequests(Server* server);
     int log(std::string format, va_list args, std::string color = "0", FILE *fd = stdout);
     SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
     std::mutex mutex;
-    Config config;
     Game game;
     PersistentRequestManager persistentRequests;
     std::thread requestCollector;

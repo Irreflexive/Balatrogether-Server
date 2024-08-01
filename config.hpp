@@ -18,8 +18,11 @@ class Config {
     bool isDebugMode();
     void setDebugMode(bool debugMode);
     bool isBanned(player_t p);
+    bool isBanned(steamid_t steamId);
     void ban(player_t p);
+    void ban(steamid_t steamId);
     void unban(player_t p);
+    void unban(steamid_t steamId);
   private:
     void save();
     int maxPlayers = 8;
