@@ -428,6 +428,9 @@ void Server::swapJokers(player_t sender, json jokers)
   PersistentRequest* preq = this->persistentRequests.create(sender);
   json data;
   data["jokers"] = jokers;
+  for (json joker : jokers) {
+    if (joker["k"].is_null()) throw "No joker key";
+  }
   data["request_id"] = preq->getId();
   this->sendToRandom(sender, success("SWAP_JOKERS", data));
 }
@@ -438,6 +441,9 @@ void Server::swapJokers(player_t sender, json jokers, string requestId)
   if (!this->isVersus()) return;
   json data;
   data["jokers"] = jokers;
+  for (json joker : jokers) {
+    if (joker["k"].is_null()) throw "No joker key";
+  }
   PersistentRequest* preq = this->persistentRequests.getById(requestId);
   if (!preq) return;
   this->sendToPlayer(preq->getCreator(), success("SWAP_JOKERS", data));
@@ -507,9 +513,11 @@ void Server::getCardsAndJokers(player_t sender, json jokers, json cards, string 
   if (preqData["contributed"][sender->getSteamId()].get<bool>()) return;
   preqData["contributed"][sender->getSteamId()] = true;
   for (json joker : jokers) {
+    if (joker["k"].is_null()) throw "No joker key";
     preqData["results"]["jokers"].push_back(joker);
   }
   for (json card : cards) {
+    if (card["k"].is_null()) throw "No card key";
     preqData["results"]["cards"].push_back(card);
   }
   preq->setData(preqData);
