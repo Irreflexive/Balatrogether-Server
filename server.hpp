@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mutex>
 #include <thread>
 #include <iostream>
 #include <unistd.h>
@@ -106,12 +107,14 @@ class Server {
     void lock();
     void unlock();
   private:
+    friend void collectRequests(Server* server);
     SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
-    pthread_mutex_t mutex;
+    std::mutex mutex;
     Config config;
     Game game;
     PersistentRequestManager persistentRequests;
+    std::thread requestCollector;
 };
 
 #endif

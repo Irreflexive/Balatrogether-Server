@@ -58,3 +58,12 @@ void PersistentRequestManager::complete(std::string requestId)
   this->requests.erase(requestId);
   delete result->second;
 }
+
+void PersistentRequestManager::clearUnresolved(int maxLifetimeSec)
+{
+  for (preq_iter_t it = this->requests.begin(); it != this->requests.end(); it++) {
+    if ((clock() - it->second->created) / CLOCKS_PER_SEC > maxLifetimeSec) {
+      this->complete(it->second->getId());
+    }
+  }
+}

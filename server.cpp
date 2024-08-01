@@ -1,5 +1,17 @@
 #include "server.hpp"
 
+// Garbage collects persistent requests that have been alive for more than 10 seconds. Call in a separate thread
+void collectRequests(Server *server)
+{
+  while (true) {
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+    server->lock();
+    if (server->config.isDebugMode()) std::cout << "[GARBAGE COLLECTING PREQS]" << std::endl;
+    server->persistentRequests.clearUnresolved(10);
+    server->unlock();
+  }
+}
+
 // Constructs a JSON object that is interpreted as valid by the client
 json success(string cmd, json data)
 {
@@ -28,7 +40,6 @@ json error(string msg)
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server() 
 {
-  pthread_mutex_init(&this->mutex, nullptr);
   this->game.inGame = false;
   this->game.versus = false;
   srand(time(NULL));
@@ -36,9 +47,11 @@ Server::Server()
     this->ssl_ctx = create_context();
     configure_context(this->ssl_ctx, this->config.isDebugMode());
   }
+  this->requestCollector = std::thread(collectRequests, this);
+  this->requestCollector.detach();
 }
 
-// Cleans up the SSL context
+// Cleans up the SSL context and other state
 Server::~Server()
 {
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
@@ -643,11 +656,11 @@ json Server::toJSON() {
 // Locks the mutex
 void Server::lock()
 {
-  pthread_mutex_lock(&this->mutex);
+  this->mutex.lock();
 }
 
 // Unlocks the mutex
 void Server::unlock()
 {
-  pthread_mutex_unlock(&this->mutex);
+  this->mutex.unlock();
 }
