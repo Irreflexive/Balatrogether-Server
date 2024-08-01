@@ -54,24 +54,39 @@ void Config::setDebugMode(bool debugMode)
 
 bool Config::isBanned(player_t p)
 {
-  for (steamid_t steamId : this->banned) {
-    if (steamId == p->getSteamId()) return true;
+  return this->isBanned(p->getSteamId());
+}
+
+bool Config::isBanned(steamid_t steamId)
+{
+  for (steamid_t id : this->banned) {
+    if (id == steamId) return true;
   }
   return false;
 }
 
 void Config::ban(player_t p)
 {
-  if (this->isBanned(p)) return;
-  this->banned.push_back(p->getSteamId());
+  this->ban(p->getSteamId());
+}
+
+void Config::ban(steamid_t steamId)
+{
+  if (this->isBanned(steamId)) return;
+  this->banned.push_back(steamId);
   save();
 }
 
 void Config::unban(player_t p)
 {
+  this->unban(p->getSteamId());
+}
+
+void Config::unban(steamid_t steamId)
+{
   for (int i = 0; i < this->banned.size(); i++) {
-    steamid_t steamId = this->banned.at(i);
-    if (steamId == p->getSteamId()) {
+    steamid_t id = this->banned.at(i);
+    if (id == steamId) {
       this->banned.erase(this->banned.begin() + i);
       save();
       return;
