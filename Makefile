@@ -1,12 +1,31 @@
-BINARIES=balatro_server test
-CXXFLAGS=-std=c++11
-LIBS=-pthread -lcrypto -lssl
+BIN_NAME := balatro_server
 
-balatro_server: main.o server.o encrypt.o player.o preq.o config.o
-	$(CXX) $(CXXFLAGS) $(LIBS) $^ -o $@
+CXXFLAGS := -std=c++11
+INCLUDES := -I include/
+LIBS := -pthread -lcrypto -lssl
 
-test: test_client.o encrypt.o
-	$(CXX) $(CXXFLAGS) $(LIBS) $^ -o $@
+SRC_PATH := src
+BUILD_PATH := build
+BIN_PATH := $(BUILD_PATH)/bin
+
+SOURCES := $(shell find $(SRC_PATH) -name '*.cpp' | sort -k 1nr | cut -f2-)
+OBJECTS := $(SOURCES:$(SRC_PATH)/%.cpp=$(BUILD_PATH)/%.o)
+DEPENDENCIES := $(OBJECTS:.o=.d)
+
+all: dirs $(BIN_PATH)/$(BIN_NAME)
+
+$(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(LIBS) $(INCLUDES) $^ -o $@
+
+$(BUILD_PATH)/%.o: $(SRC_PATH)/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -MMD -o $@
+
+-include $(DEPENDENCIES)
+
+dirs:
+	@mkdir -p $(BUILD_PATH)
+	@mkdir -p $(BIN_PATH)
 
 clean:
-	rm -f $(BINARIES) *.o
+	rm -rf $(BIN_PATH)
+	rm -rf $(BUILD_PATH)
