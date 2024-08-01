@@ -220,12 +220,24 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
     }
   }
 
-  const char* stakes[] = {"White", "Red", "Green", "Black", "Blue", "Purple", "Orange", "Gold"};
-  this->infoLog("=====START RUN=====");
-  this->infoLog("Mode: %s", versus ? "Versus" : "Co-op");
-  this->infoLog("Seed: %s", seed.c_str());
-  this->infoLog("Deck: %s", deck.c_str());
-  this->infoLog("Stake: %s Stake", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "Unknown");
+  const char* stakes[] = {
+    "WHITE", 
+    "RED", 
+    "GREEN", 
+    "BLACK", 
+    "BLUE", 
+    "PURPLE", 
+    "ORANGE", 
+    "GOLD"
+  };
+
+  this->infoLog("===========START RUN===========");
+  this->infoLog("%-10s %20s", "MODE", versus ? "VERSUS" : "CO-OP");
+  this->infoLog("%-10s %20s", "SEED", seed.c_str());
+  std::string upperDeck = deck;
+  std::transform(upperDeck.begin(), upperDeck.end(), upperDeck.begin(), [](unsigned char c){ return std::toupper(c); });
+  this->infoLog("%-10s %20s", "DECK", upperDeck.c_str());
+  this->infoLog("%-10s %20s", "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
 
   this->game.inGame = true;
   this->game.versus = versus;
@@ -248,7 +260,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
 void Server::stop()
 {
   if (!this->isRunning()) return;
-  this->infoLog("======END RUN======");
+  this->infoLog("============END RUN============");
   this->game.inGame = false;
 }
 
