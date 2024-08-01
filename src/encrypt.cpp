@@ -1,4 +1,5 @@
 #include "encrypt.hpp"
+#include "util.hpp"
 
 // From https://wiki.openssl.org/index.php/Simple_TLS_Server
 // and https://gist.github.com/nathan-osman/5041136
@@ -45,10 +46,12 @@ EVP_PKEY *generate_key(bool debugMode)
     return NULL;
   }
 
-  FILE* fp = fopen("key.pem", "w");
-  PEM_write_RSAPrivateKey(fp, rsa, NULL, 0, 0, NULL, NULL);
-  fflush(fp);
-  fclose(fp);
+  if (debugMode) {
+    FILE* fp = fopen((getpath() + "/key.pem").c_str(), "w");
+    PEM_write_RSAPrivateKey(fp, rsa, NULL, 0, 0, NULL, NULL);
+    fflush(fp);
+    fclose(fp);
+  }
   
   /* The key has been generated, return it. */
   BN_free(bne);

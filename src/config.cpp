@@ -1,8 +1,9 @@
 #include "config.hpp"
+#include "util.hpp"
 
 Config::Config()
 {
-  FILE* config_file = fopen("./config.json", "r");
+  FILE* config_file = fopen((getpath() + "/config.json").c_str(), "r");
   if (config_file) {
     json config = json::parse(config_file);
     if (config["max_players"].is_number_integer()) this->maxPlayers = config["max_players"].get<int>();
@@ -96,7 +97,7 @@ void Config::unban(steamid_t steamId)
 
 void Config::save()
 {
-  FILE* config_file = fopen("./config.json", "w");
+  FILE* config_file = fopen((getpath() + "/config.json").c_str(), "w");
   json config;
   config["max_players"] = this->maxPlayers;
   config["tls_enabled"] = this->tlsEnabled;
