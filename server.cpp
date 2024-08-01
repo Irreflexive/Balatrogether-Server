@@ -516,6 +516,14 @@ void Server::getCardsAndJokers(player_t sender, json jokers, json cards, string 
   for (player_t p : this->getRemainingPlayers()) {
     if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
   }
+  json randomCards = json::array();
+  for (int i = 0; i < 20; i++) {
+    if (preqData["results"]["cards"].size() == 0) break;
+    size_t cardIndex = rand() % preqData["results"]["cards"].size();
+    randomCards.push_back(preqData["results"]["cards"].at(cardIndex));
+    preqData["results"]["cards"].erase(cardIndex);
+  }
+  preqData["results"]["cards"] = randomCards;
   this->sendToPlayer(preq->getCreator(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
   this->persistentRequests.complete(preq->getId());
 }
@@ -569,6 +577,7 @@ void Server::eliminate(player_t p)
   }
 }
 
+// Triggered when a player has defeated a versus boss blind. Sends the leaderboard once all players are done
 void Server::defeatedBoss(player_t p, double score)
 {
   if (!this->isVersus()) return;
@@ -601,12 +610,14 @@ void Server::defeatedBoss(player_t p, double score)
   }
 }
 
+// Returns state information about the current run
 json Server::getState() {
   json state;
   state["remaining"] = this->getRemainingPlayers().size();
   return state;
 }
 
+// Returns a JSON object containing server info
 json Server::toJSON() {
   json server;
   server["maxPlayers"] = this->config.getMaxPlayers();
@@ -621,11 +632,13 @@ json Server::toJSON() {
   return server;
 }
 
+// Locks the mutex
 void Server::lock()
 {
   pthread_mutex_lock(&this->mutex);
 }
 
+// Unlocks the mutex
 void Server::unlock()
 {
   pthread_mutex_unlock(&this->mutex);
