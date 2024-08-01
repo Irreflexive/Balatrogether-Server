@@ -27,6 +27,7 @@ class PersistentRequestManager {
     PersistentRequest* create(player_t creator);
     PersistentRequest* getById(std::string requestId);
     void complete(std::string requestId);
+    void clearUnresolved(int maxLifetimeSec);
   private:
     std::unordered_map<std::string, PersistentRequest*> requests;
 };

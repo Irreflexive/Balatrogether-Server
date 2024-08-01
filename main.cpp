@@ -2,21 +2,12 @@
 
 #define PORT 7063
 
-struct thread_arg {
-  Server* server;
-  player_t client;
-};
-
-void* client_thread(void* arg) {
-  thread_arg* info = (thread_arg*) arg;
-  Server* server = info->server;
-  player_t client = info->client;
-
+void client_thread(Server* server, player_t client) {
   if (!server->handshake(client)) {
     server->lock();
     server->disconnect(client);
     server->unlock();
-    pthread_exit(0);
+    return;
   }
 
   while (true) {
@@ -168,7 +159,6 @@ void* client_thread(void* arg) {
   server->lock();
   server->disconnect(client);
   server->unlock();
-  pthread_exit(0);
 }
 
 int main() {
@@ -221,9 +211,7 @@ int main() {
     socklen_t cli_len = sizeof(cli_addr);
     int clientfd = accept(sockfd, (struct sockaddr*) &cli_addr, &cli_len);
     player_t p = new Player(clientfd, cli_addr);
-    thread_arg args = {server, p};
-    pthread_t thread;
-    pthread_create(&thread, 0, client_thread, &args);
+    std::thread(client_thread, server, p).detach();
   }
 
   closesocket(sockfd);
