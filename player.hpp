@@ -16,6 +16,7 @@ class Player {
     ~Player();
 
     int getFd();
+    std::string getIP();
     steamid_t getSteamId();
     void setSteamId(steamid_t steamId);
     std::string getUnlocks();
