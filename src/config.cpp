@@ -55,6 +55,12 @@ void Config::setDebugMode(bool debugMode)
   save();
 }
 
+void Config::setWhitelistEnabled(bool whitelistEnabled)
+{
+  this->whitelistEnabled = whitelistEnabled;
+  save();
+}
+
 bool Config::isBanned(player_t p)
 {
   return this->isBanned(p->getSteamId());
@@ -104,6 +110,7 @@ bool Config::isWhitelisted(player_t p)
 
 bool Config::isWhitelisted(steamid_t steamId)
 {
+  if (!this->whitelistEnabled) return true;
   for (steamid_t id : this->whitelisted) {
     if (id == steamId) return true;
   }
