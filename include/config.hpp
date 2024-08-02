@@ -17,6 +17,7 @@ class Config {
     void setTLSEnabled(bool tlsEnabled);
     bool isDebugMode();
     void setDebugMode(bool debugMode);
+    void setWhitelistEnabled(bool whitelistEnabled);
 
     bool isBanned(player_t p);
     bool isBanned(steamid_t steamId);

@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "console.hpp"
 
 #define PORT 7063
 
@@ -164,54 +165,6 @@ void client_thread(Server* server, player_t client) {
   server->unlock();
 }
 
-void command_thread(Server *server) {
-  while (true) {
-    std::string cmd;
-    std::cin >> cmd;
-    server->lock();
-    if (cmd == "list") {
-      server->infoLog("%d player(s) connected", server->getPlayers().size());
-      for (player_t p : server->getPlayers()) {
-        server->infoLog(p->getSteamId());
-      }
-    } else if (cmd == "stop") {
-      server->stop();
-      delete server;
-      exit(0);
-    } else if (cmd == "ban" || cmd == "kick") {
-      std::string steamId;
-      std::cin >> steamId;
-      for (player_t p : server->getPlayers()) {
-        if (steamId == p->getSteamId()) {
-          server->disconnect(p);
-        }
-      }
-      if (cmd == "ban") {
-        server->config.ban(steamId);
-        server->infoLog("Player %s banned", steamId.c_str());
-      } else {
-        server->infoLog("Player %s kicked", steamId.c_str());
-      }
-    } else if (cmd == "unban") {
-      std::string steamId;
-      std::cin >> steamId;
-      server->config.unban(steamId);
-      server->infoLog("Player %s unbanned", steamId.c_str());
-    } else if (cmd == "help") {
-      server->infoLog("Command list:");
-      server->infoLog("help - Displays this list of commands");
-      server->infoLog("list - Display a list of all connected players");
-      server->infoLog("stop - Immediately shutdown the server");
-      server->infoLog("kick <id> - Disconnects a player from the server by their Steam ID");
-      server->infoLog("ban <id> - Disconnects a player and bans by their Steam ID");
-      server->infoLog("unban <id> - Remove a Steam ID from the ban list");
-    } else {
-      server->infoLog("Unknown command, type \"help\" for a list of commands");
-    }
-    server->unlock();
-  }
-}
-
 int main() {
   Server* server = new Server();
   server->infoLog("Starting server");
@@ -265,7 +218,8 @@ int main() {
   }
 
   server->infoLog("Balatrogether is listening on port %i", PORT);
-  std::thread(command_thread, server).detach();
+  Console* console = new Console(server);
+  std::thread(console_thread, console).detach();
 
   while (true) {
     struct sockaddr_in cli_addr;
