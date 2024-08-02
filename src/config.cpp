@@ -10,6 +10,8 @@ Config::Config()
     if (config["tls_enabled"].is_boolean()) this->tlsEnabled = config["tls_enabled"].get<bool>();
     if (config["banned_users"].is_array()) this->banned = config["banned_users"].get<steamid_list_t>();
     if (config["debug_mode"].is_boolean()) this->debugMode = config["debug_mode"].get<bool>();
+    if (config["whitelist_enabled"].is_boolean()) this->whitelistEnabled = config["whitelist_enabled"].get<bool>();
+    if (config["whitelist"].is_array()) this->whitelisted = config["whitelist"].get<steamid_list_t>();
     fclose(config_file);
   }
   save();
@@ -95,14 +97,59 @@ void Config::unban(steamid_t steamId)
   }
 }
 
+bool Config::isWhitelisted(player_t p)
+{
+  return this->isWhitelisted(p->getSteamId());
+}
+
+bool Config::isWhitelisted(steamid_t steamId)
+{
+  for (steamid_t id : this->whitelisted) {
+    if (id == steamId) return true;
+  }
+  return false;
+}
+
+void Config::whitelist(player_t p)
+{
+  this->whitelist(p->getSteamId());
+}
+
+void Config::whitelist(steamid_t steamId)
+{
+  if (this->isWhitelisted(steamId)) return;
+  this->whitelisted.push_back(steamId);
+  save();
+}
+
+void Config::unwhitelist(player_t p)
+{
+  this->unwhitelist(p->getSteamId());
+}
+
+void Config::unwhitelist(steamid_t steamId)
+{
+  for (int i = 0; i < this->whitelisted.size(); i++) {
+    steamid_t id = this->whitelisted.at(i);
+    if (id == steamId) {
+      this->whitelisted.erase(this->whitelisted.begin() + i);
+      save();
+      return;
+    }
+  }
+}
+
 void Config::save()
 {
   FILE* config_file = fopen((getpath() + "/config.json").c_str(), "w");
-  json config;
-  config["max_players"] = this->maxPlayers;
-  config["tls_enabled"] = this->tlsEnabled;
-  config["banned_users"] = this->banned;
-  config["debug_mode"] = this->debugMode;
+  json config = {
+    {"max_players", this->maxPlayers},
+    {"tls_enabled", this->tlsEnabled},
+    {"banned_users", this->banned},
+    {"debug_mode", this->debugMode},
+    {"whitelist_enabled", this->whitelistEnabled},
+    {"whitelist", this->whitelisted}
+  };
   fprintf(config_file, config.dump(2).c_str());
   fclose(config_file);
 }
