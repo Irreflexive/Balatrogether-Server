@@ -1,6 +1,10 @@
 BIN_NAME := balatro_server
 
+ifeq ($(OS),Windows_NT)
+CXXFLAGS := -std=gnu++11
+else
 CXXFLAGS := -std=c++11
+endif
 INCLUDES := -I include/
 LIBS := -pthread -lcrypto -lssl
 
@@ -15,7 +19,7 @@ DEPENDENCIES := $(OBJECTS:.o=.d)
 all: dirs $(BIN_PATH)/$(BIN_NAME)
 
 $(BIN_PATH)/$(BIN_NAME): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(LIBS) $(INCLUDES) $^ -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $^ $(LIBS) -o $@
 
 $(BUILD_PATH)/%.o: $(SRC_PATH)/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -MMD -o $@
