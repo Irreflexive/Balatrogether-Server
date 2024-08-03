@@ -24,8 +24,8 @@ string Command::getUsage()
 
 class HelpCommand : public Command {
   public:
-    HelpCommand() : Command("help", std::vector<string>(), "Displays this list of commands") {};
-    void execute(Console *console, std::vector<string> args) {
+    HelpCommand() : Command("help", {}, "Displays this list of commands") {};
+    void execute(Console *console, std::unordered_map<string, string> args) {
       console->server->infoLog("Command list:");
       for (Command *command : console->commands) {
         console->server->infoLog(command->getUsage());
@@ -35,8 +35,8 @@ class HelpCommand : public Command {
 
 class PlayerListCommand : public Command {
   public:
-    PlayerListCommand() : Command("list", std::vector<string>(), "Display a list of all connected players") {};
-    void execute(Console *console, std::vector<string> args) {
+    PlayerListCommand() : Command("list", {}, "Display a list of all connected players") {};
+    void execute(Console *console, std::unordered_map<string, string> args) {
       console->server->infoLog("%d player(s) connected", console->server->getPlayers().size());
       for (player_t p : console->server->getPlayers()) {
         console->server->infoLog(p->getSteamId());
@@ -46,8 +46,8 @@ class PlayerListCommand : public Command {
 
 class StopCommand : public Command {
   public:
-    StopCommand() : Command("stop", std::vector<string>(), "Immediately shutdown the server") {};
-    void execute(Console *console, std::vector<string> args) {
+    StopCommand() : Command("stop", {}, "Immediately shutdown the server") {};
+    void execute(Console *console, std::unordered_map<string, string> args) {
       console->server->stop();
       delete console;
       exit(0);
@@ -57,12 +57,11 @@ class StopCommand : public Command {
 class KickCommand : public Command {
   public:
     KickCommand() : Command("kick", {"id"}, "Disconnects a player from the server by their Steam ID") {};
-    void execute(Console *console, std::vector<string> args) {
-      steamid_t steamId = args.at(0);
+    void execute(Console *console, std::unordered_map<string, string> args) {
       for (player_t p : console->server->getPlayers()) {
-        if (steamId == p->getSteamId()) {
+        if (args["id"] == p->getSteamId()) {
           console->server->disconnect(p);
-          console->server->infoLog("Player %s kicked", steamId.c_str());
+          console->server->infoLog("Player %s kicked", args["id"].c_str());
         }
       }
     };
@@ -71,29 +70,27 @@ class KickCommand : public Command {
 class BanCommand : public Command {
   public:
     BanCommand() : Command("ban", {"id"}, "Disconnects a player and bans by their Steam ID") {};
-    void execute(Console *console, std::vector<string> args) {
+    void execute(Console *console, std::unordered_map<string, string> args) {
       console->execute("kick", args);
-      steamid_t steamId = args.at(0);
-      console->server->config.ban(steamId);
-      console->server->infoLog("Player %s banned", steamId.c_str());
+      console->server->config.ban(args["id"]);
+      console->server->infoLog("Player %s banned", args["id"].c_str());
     };
 };
 
 class UnbanCommand : public Command {
   public:
     UnbanCommand() : Command("unban", {"id"}, "Remove a Steam ID from the ban list") {};
-    void execute(Console *console, std::vector<string> args) {
-      steamid_t steamId = args.at(0);
-      console->server->config.unban(steamId);
-      console->server->infoLog("Player %s unbanned", steamId.c_str());
+    void execute(Console *console, std::unordered_map<string, string> args) {
+      console->server->config.unban(args["id"]);
+      console->server->infoLog("Player %s unbanned", args["id"].c_str());
     };
 };
 
 class WhitelistCommand : public Command {
   public:
     WhitelistCommand() : Command("whitelist", {"on/off/add/remove", "id"}, "Manages the server whitelist", 1) {};
-    void execute(Console *console, std::vector<string> args) {
-      string subcommand = args.at(0);
+    void execute(Console *console, std::unordered_map<string, string> args) {
+      string subcommand = args["on/off/add/remove"];
       if (subcommand == "on") {
         console->server->config.setWhitelistEnabled(true);
         console->server->infoLog("Whitelist enabled");
@@ -101,11 +98,11 @@ class WhitelistCommand : public Command {
         console->server->config.setWhitelistEnabled(false);
         console->server->infoLog("Whitelist disabled");
       } else if (subcommand == "add" && args.size() >= 2) {
-        steamid_t steamId = args.at(1);
+        steamid_t steamId = args["id"];
         console->server->config.whitelist(steamId);
         console->server->infoLog("Added player %s to whitelist", steamId.c_str());
       } else if (subcommand == "remove" && args.size() >= 2) {
-        steamid_t steamId = args.at(1);
+        steamid_t steamId = args["id"];
         console->server->config.unwhitelist(steamId);
         console->server->infoLog("Removed player %s from whitelist", steamId.c_str());
       } else {
@@ -153,11 +150,22 @@ bool Console::process(Command *command, string input)
     this->server->infoLog("Usage: %s", command->getUsage().c_str());
     return true;
   }
-  this->execute(command->name, args);
+  if (args.size() > command->params.size() && command->params.size() > 0) {
+    for (int i = args.size() - 1; i >= command->params.size(); i--) {
+      string arg = args.back();
+      args.pop_back();
+      args[args.size() - 1] += " " + arg;
+    }
+  }
+  std::unordered_map<string, string> argMap;
+  for (int i = 0; i < args.size() && i < command->params.size(); i++) {
+    argMap[command->params.at(i)] = args.at(i);
+  }
+  this->execute(command->name, argMap);
   return true;
 }
 
-void Console::execute(string cmd, std::vector<string> args)
+void Console::execute(string cmd, std::unordered_map<string, string> args)
 {
   for (Command *command : this->commands) {
     if (command->name == cmd) {
@@ -174,6 +182,7 @@ void console_thread(Console *console)
     std::getline(std::cin, line);
     console->server->lock();
     bool matchedCommand = false;
+    console->server->infoLog("Console executed command \"%s\"", line.c_str());
     for (Command *command : console->commands) {
       if (console->process(command, line)) {
         matchedCommand = true;
