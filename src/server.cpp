@@ -208,7 +208,7 @@ player_t Server::getHost() {
 // Starts a run given a seed, deck, stake, and versus configuration
 void Server::start(player_t sender, string seed, string deck, int stake, bool versus)
 {
-  if (this->isRunning() || !this->isHost(sender) || this->players.size() <= 1) return;
+  if (this->isRunning() || !this->isHost(sender) || (this->players.size() <= 1 && !this->config.isDebugMode())) return;
   if (!versus) {
     bool initialized = false;
     std::string unlockHash;
