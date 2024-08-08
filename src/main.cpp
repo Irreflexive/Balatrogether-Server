@@ -1,7 +1,10 @@
+#include <csignal>
 #include "server.hpp"
 #include "console.hpp"
 
 #define PORT 7063
+
+Console* console;
 
 void client_thread(Server* server, player_t client) {
   if (!server->handshake(client)) {
@@ -218,8 +221,12 @@ int main() {
   }
 
   server->infoLog("Balatrogether is listening on port %i", PORT);
-  Console* console = new Console(server);
+  console = new Console(server);
   std::thread(console_thread, console).detach();
+
+  auto stopFunc = [](int s) { console->execute("stop", {}); };
+  signal(SIGTERM, stopFunc);
+  signal(SIGINT, stopFunc);
 
   while (true) {
     struct sockaddr_in cli_addr;

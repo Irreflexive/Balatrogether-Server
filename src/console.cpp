@@ -49,6 +49,7 @@ class StopCommand : public Command {
     StopCommand() : Command("stop", {}, "Immediately shutdown the server") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
       console->server->stop();
+      delete console->server;
       delete console;
       exit(0);
     };
