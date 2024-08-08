@@ -26,6 +26,7 @@ class Client {
     ~Client();
 
     int getFd();
+    std::string getIdentity();
     std::string getIP();
     SSL *getSSL();
     void setSSL(SSL *ssl);

@@ -82,6 +82,9 @@ Server::~Server()
 {
   this->infoLog("Shutting down server");
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
+  this->game.eliminated.clear();
+  this->game.ready.clear();
+  this->game.scores.clear();
   for (client_t c : this->clients) {
     this->disconnect(c);
   }
@@ -133,6 +136,7 @@ void Server::disconnect(client_t c) {
         this->clients.erase(this->clients.begin() + i);
         if (this->clients.size() == 0) this->stop();
         this->broadcast(success("LEAVE", this->toJSON()));
+        delete c;
         return;
       }
     }
@@ -174,12 +178,7 @@ void Server::sendToPlayer(client_t receiver, json payload)
   } else {
     send(receiver->getFd(), buffer, strlen(buffer), 0);
   }
-  player_t player = receiver->getPlayer();
-  if (player) {
-    this->debugLog("Server -> %s: %s", receiver->getPlayer()->getSteamId().c_str(), payload.dump().c_str());
-  } else {
-    this->debugLog("Server -> %s: %s", receiver->getIP().c_str(), payload.dump().c_str());
-  }
+  this->debugLog("Server -> %s: %s", receiver->getIdentity().c_str(), payload.dump().c_str());
 }
 
 // Sends a JSON object to a random player, excluding the sender from consideration
@@ -230,27 +229,12 @@ json Server::receive(client_t sender) {
     if (n <= 0) return json();
   }
   try {
-    player_t player = sender->getPlayer();
-    if (player) {
-      this->debugLog("%s -> Server: %s", sender->getPlayer()->getSteamId().c_str(), buffer);
-    } else {
-      this->debugLog("%s -> Server: %s", sender->getIP().c_str(), buffer);
-    }
+    this->debugLog("%s -> Server: %s", sender->getIdentity().c_str(), buffer);
     json req = json::parse(buffer);
     return req;
   } catch (...) {
     return json();
   }
-}
-
-// Returns true if the player is designated the host of the server. Errors if the server is empty
-bool Server::isHost(player_t p) {
-  return p == this->getHost();
-}
-
-// Returns the host player. Errors if the server is empty
-player_t Server::getHost() {
-  return clients.at(0)->getPlayer();
 }
 
 // Starts a run given a seed, deck, stake, and versus configuration
@@ -292,9 +276,9 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.bossPhase = false;
-  this->game.eliminated = player_list_t();
-  this->game.ready = player_list_t();
-  this->game.scores = leaderboard_t();
+  this->game.eliminated.clear();
+  this->game.ready.clear();
+  this->game.scores.clear();
 
   json data;
   data["seed"] = seed;
@@ -330,6 +314,16 @@ bool Server::isVersus()
 bool Server::isCoop()
 {
   return this->isRunning() && !this->game.versus;
+}
+
+// Returns true if the player is designated the host of the server. Errors if the server is empty
+bool Server::isHost(player_t p) {
+  return p == this->getHost();
+}
+
+// Returns the host player. Errors if the server is empty
+player_t Server::getHost() {
+  return clients.at(0)->getPlayer();
 }
 
 // Returns a list of all players connected to the server

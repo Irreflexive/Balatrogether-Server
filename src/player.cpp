@@ -14,12 +14,17 @@ Client::~Client()
     SSL_free(this->ssl);
     this->ssl = nullptr;
   }
-  this->setPlayer(nullptr);
 }
 
 int Client::getFd()
 {
   return this->fd;
+}
+
+std::string Client::getIdentity()
+{
+  if (this->getPlayer()) return this->getPlayer()->getSteamId();
+  return this->getIP();
 }
 
 std::string Client::getIP()
