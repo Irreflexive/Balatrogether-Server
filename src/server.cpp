@@ -14,7 +14,7 @@ void collectRequests(Server *server)
 }
 
 // Construct a server object, initializating the mutex, SSL context, and config
-Server::Server() 
+Server::Server(int port) 
 {
   this->game.inGame = false;
   this->game.versus = false;
@@ -25,6 +25,56 @@ Server::Server()
   }
   this->requestCollector = std::thread(collectRequests, this);
   this->requestCollector.detach();
+
+  this->infoLog("Starting server");
+
+  this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  struct sockaddr_in serv_addr;
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(port);
+  serv_addr.sin_addr.s_addr = INADDR_ANY;
+
+  this->infoLog("Configuring socket options");
+
+  int opt = 1;
+  if (setsockopt(this->sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    this->errorLog("Failed to set reuse address");
+    exit(EXIT_FAILURE);
+  }
+  this->infoLog("Allowed address reuse");
+
+  int send_size = BUFFER_SIZE;
+  if (setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &send_size, sizeof(send_size)) < 0) {
+    this->errorLog("Failed to set send buffer size");
+    exit(EXIT_FAILURE);
+  }
+  this->infoLog("Set send buffer size");
+
+  int recv_size = BUFFER_SIZE;
+  if (setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &recv_size, sizeof(recv_size)) < 0) {
+    this->errorLog("Failed to set receive buffer size");
+    exit(EXIT_FAILURE);
+  }
+  this->infoLog("Set receive buffer size");
+
+  int keepalive = 1;
+  if (setsockopt(this->sockfd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
+    this->errorLog("Failed to set keepalive");
+    exit(EXIT_FAILURE);
+  }
+  this->infoLog("Enabled keepalive timer");
+
+  int bindStatus = bind(this->sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
+  if (bindStatus < 0) {
+    this->errorLog("Failed to bind");
+    exit(EXIT_FAILURE);
+  }
+  this->infoLog("Bound to address");
+  
+  if (listen(this->sockfd, 3) < 0) {
+    this->errorLog("Failed to listen");
+    exit(EXIT_FAILURE);
+  }
 }
 
 // Cleans up the SSL context and other state
@@ -35,6 +85,17 @@ Server::~Server()
   for (player_t p : this->players) {
     this->disconnect(p);
   }
+  closesocket(this->sockfd);
+}
+
+void Server::acceptClient()
+{
+  struct sockaddr_in cli_addr;
+  socklen_t cli_len = sizeof(cli_addr);
+  int clientfd = accept(this->sockfd, (struct sockaddr*) &cli_addr, &cli_len);
+  player_t p = new Player(clientfd, cli_addr);
+  this->infoLog("Client from %s attempting to connect", p->getIP().c_str());
+  std::thread(client_thread, this, p).detach();
 }
 
 // Completes the SSL handshake, returning true if it was successful
