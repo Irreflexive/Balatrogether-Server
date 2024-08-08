@@ -3,15 +3,15 @@
 
 #include "player.hpp"
 
-typedef std::pair<steamid_t, double> score_t;
+typedef std::pair<player_t, double> score_t;
 typedef std::vector<score_t> leaderboard_t;
 
 struct Game {
   bool inGame;
   bool versus;
   bool bossPhase;
-  steamid_list_t ready;
-  steamid_list_t eliminated;
+  player_list_t ready;
+  player_list_t eliminated;
   leaderboard_t scores;
 };
 

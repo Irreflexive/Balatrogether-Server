@@ -61,7 +61,7 @@ class KickCommand : public Command {
     void execute(Console *console, std::unordered_map<string, string> args) {
       for (player_t p : console->server->getPlayers()) {
         if (args["id"] == p->getSteamId()) {
-          console->server->disconnect(p);
+          console->server->disconnect(p->getClient());
           console->server->infoLog("Player %s kicked", args["id"].c_str());
         }
       }

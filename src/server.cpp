@@ -82,8 +82,8 @@ Server::~Server()
 {
   this->infoLog("Shutting down server");
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
-  for (player_t p : this->players) {
-    this->disconnect(p);
+  for (client_t c : this->clients) {
+    this->disconnect(c);
   }
   closesocket(this->sockfd);
 }
@@ -94,74 +94,74 @@ void Server::acceptClient()
   struct sockaddr_in cli_addr;
   socklen_t cli_len = sizeof(cli_addr);
   int clientfd = accept(this->sockfd, (struct sockaddr*) &cli_addr, &cli_len);
-  player_t p = new Player(clientfd, cli_addr);
-  this->infoLog("Client from %s attempting to connect", p->getIP().c_str());
-  std::thread(client_thread, this, p).detach();
+  client_t client = new Client(clientfd, cli_addr);
+  this->infoLog("Client from %s attempting to connect", client->getIP().c_str());
+  std::thread(client_thread, this, client).detach();
 }
 
 // Completes the SSL handshake, returning true if it was successful
-bool Server::handshake(player_t p)
+bool Server::handshake(client_t c)
 {
   if (!this->config.isTLSEnabled()) return true;
   SSL *ssl = SSL_new(this->ssl_ctx);
-  if (SSL_set_fd(ssl, p->getFd()) != 1) {
+  if (SSL_set_fd(ssl, c->getFd()) != 1) {
     return false;
   }
-  p->setSSL(ssl);
+  c->setSSL(ssl);
   return SSL_accept(ssl) == 1;
 }
 
 // Connects a player to the server if they are able
-void Server::join(player_t p)
+void Server::join(client_t c)
 {
-  if (this->canJoin(p)) {
-    this->infoLog("Client from %s joined server with Steam ID %s", p->getIP().c_str(), p->getSteamId().c_str());
-    this->players.push_back(p);
+  if (this->canJoin(c)) {
+    this->infoLog("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
+    this->clients.push_back(c);
     this->broadcast(success("JOIN", this->toJSON()));
   } else {
-    this->sendToPlayer(p, error("Cannot join this server"));
+    this->sendToPlayer(c, error("Cannot join this server"));
   }
 }
 
 // Disconnects a player from the server
-void Server::disconnect(player_t p) {
-  if (this->hasAlreadyJoined(p)) {
-    this->infoLog("Player with Steam ID %s leaving server", p->getSteamId().c_str());
-    this->eliminate(p);
-    for (int i = 0; i < this->players.size(); i++) {
-      if (this->players[i] == p) {
-        this->players.erase(this->players.begin() + i);
-        if (this->players.size() == 0) this->stop();
+void Server::disconnect(client_t c) {
+  if (this->hasAlreadyJoined(c)) {
+    this->infoLog("Player with Steam ID %s leaving server", c->getPlayer()->getSteamId().c_str());
+    this->eliminate(c->getPlayer());
+    for (int i = 0; i < this->clients.size(); i++) {
+      if (this->clients[i] == c) {
+        this->clients.erase(this->clients.begin() + i);
+        if (this->clients.size() == 0) this->stop();
         this->broadcast(success("LEAVE", this->toJSON()));
         return;
       }
     }
   }
-  delete p;
+  delete c;
 }
 
 // Returns true if a player has already joined the server
-bool Server::hasAlreadyJoined(player_t p)
+bool Server::hasAlreadyJoined(client_t c)
 {
-  for (player_t player : this->players) {
-    if (player->getSteamId() == p->getSteamId()) return true;
+  for (client_t client : this->clients) {
+    if (client->getPlayer()->getSteamId() == c->getPlayer()->getSteamId()) return true;
   }
   return false;
 }
 
 // Returns false if the server is in progress, is full, or the player has been banned
-bool Server::canJoin(player_t p)
+bool Server::canJoin(client_t c)
 {
   if (this->isRunning()) return false;
-  if (this->config.getMaxPlayers() <= this->players.size()) return false;
-  if (!this->config.isWhitelisted(p)) return false;
-  if (this->config.isBanned(p)) return false;
-  if (this->hasAlreadyJoined(p)) return false;
+  if (this->config.getMaxPlayers() <= this->clients.size()) return false;
+  if (!this->config.isWhitelisted(c->getPlayer())) return false;
+  if (this->config.isBanned(c->getPlayer())) return false;
+  if (this->hasAlreadyJoined(c)) return false;
   return true;
 }
 
 // Sends a JSON object to the player
-void Server::sendToPlayer(player_t receiver, json payload)
+void Server::sendToPlayer(client_t receiver, json payload)
 {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
@@ -174,45 +174,50 @@ void Server::sendToPlayer(player_t receiver, json payload)
   } else {
     send(receiver->getFd(), buffer, strlen(buffer), 0);
   }
-  this->debugLog("Server -> %s: %s", receiver->getSteamId().c_str(), payload.dump().c_str());
+  player_t player = receiver->getPlayer();
+  if (player) {
+    this->debugLog("Server -> %s: %s", receiver->getPlayer()->getSteamId().c_str(), payload.dump().c_str());
+  } else {
+    this->debugLog("Server -> %s: %s", receiver->getIP().c_str(), payload.dump().c_str());
+  }
 }
 
 // Sends a JSON object to a random player, excluding the sender from consideration
-void Server::sendToRandom(player_t sender, json payload)
+void Server::sendToRandom(client_t sender, json payload)
 {
   player_list_t remainingPlayers = this->getRemainingPlayers();
   for (int i = 0; i < remainingPlayers.size(); i++) {
-    if (remainingPlayers[i] == sender) {
+    if (remainingPlayers[i] == sender->getPlayer()) {
       remainingPlayers.erase(remainingPlayers.begin() + i);
       break;
     }
   }
   if (remainingPlayers.size() == 0) return;
   int randomIndex = rand() % remainingPlayers.size();
-  player_t randomPlayer = remainingPlayers[randomIndex];
+  client_t randomPlayer = remainingPlayers[randomIndex]->getClient();
   this->sendToPlayer(randomPlayer, payload);
 }
 
 // Sends a JSON object to all players besides the sender. If ignoreEliminated is true, will not send to eliminated players
-void Server::sendToOthers(player_t sender, json payload, bool ignoreEliminated)
+void Server::sendToOthers(client_t sender, json payload, bool ignoreEliminated)
 {
-  player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
+  player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->getPlayers();
   for (player_t player : playerList) {
-    if (player->getSteamId() != sender->getSteamId()) this->sendToPlayer(player, payload);
+    if (player->getSteamId() != sender->getPlayer()->getSteamId()) this->sendToPlayer(player->getClient(), payload);
   }
 }
 
 // Sends a JSON object to all players. If ignoreEliminated is true, will not send to eliminated players
 void Server::broadcast(json payload, bool ignoreEliminated)
 {
-  player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->players;
+  player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->getPlayers();
   for (player_t player : playerList) {
-    this->sendToPlayer(player, payload);
+    this->sendToPlayer(player->getClient(), payload);
   }
 }
 
 // Receive JSON from a player. Returns a null json object if parsing fails or the client has disconnected
-json Server::receive(player_t sender) {
+json Server::receive(client_t sender) {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
   size_t n;
@@ -225,7 +230,12 @@ json Server::receive(player_t sender) {
     if (n <= 0) return json();
   }
   try {
-    this->debugLog("%s -> Server: %s", sender->getSteamId().c_str(), buffer);
+    player_t player = sender->getPlayer();
+    if (player) {
+      this->debugLog("%s -> Server: %s", sender->getPlayer()->getSteamId().c_str(), buffer);
+    } else {
+      this->debugLog("%s -> Server: %s", sender->getIP().c_str(), buffer);
+    }
     json req = json::parse(buffer);
     return req;
   } catch (...) {
@@ -240,17 +250,17 @@ bool Server::isHost(player_t p) {
 
 // Returns the host player. Errors if the server is empty
 player_t Server::getHost() {
-  return players.at(0);
+  return clients.at(0)->getPlayer();
 }
 
 // Starts a run given a seed, deck, stake, and versus configuration
 void Server::start(player_t sender, string seed, string deck, int stake, bool versus)
 {
-  if (this->isRunning() || !this->isHost(sender) || (this->players.size() <= 1 && !this->config.isDebugMode())) return;
+  if (this->isRunning() || !this->isHost(sender) || (this->clients.size() <= 1 && !this->config.isDebugMode())) return;
   if (!versus) {
     bool initialized = false;
     string unlockHash;
-    for (player_t p : this->players) {
+    for (player_t p : this->getPlayers()) {
       if (!initialized) {
         initialized = true;
         unlockHash = p->getUnlocks();
@@ -282,8 +292,8 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
   this->game.inGame = true;
   this->game.versus = versus;
   this->game.bossPhase = false;
-  this->game.eliminated = steamid_list_t();
-  this->game.ready = steamid_list_t();
+  this->game.eliminated = player_list_t();
+  this->game.ready = player_list_t();
   this->game.scores = leaderboard_t();
 
   json data;
@@ -325,17 +335,21 @@ bool Server::isCoop()
 // Returns a list of all players connected to the server
 player_list_t Server::getPlayers()
 {
-  return this->players;
+  player_list_t list;
+  for (client_t client : this->clients) {
+    list.push_back(client->getPlayer());
+  }
+  return list;
 }
 
 // Returns a list of remaining players. This is all connected players in co-op
 player_list_t Server::getRemainingPlayers() {
-  if (!this->isVersus()) return this->players;
+  if (!this->isVersus()) return this->getPlayers();
   player_list_t remaining;
-  for (player_t player : this->players) {
+  for (player_t player : this->getPlayers()) {
     bool eliminated = false;
-    for (steamid_t eliminatedPlayer : this->game.eliminated) {
-      if (player->getSteamId() == eliminatedPlayer) {
+    for (player_t eliminatedPlayer : this->game.eliminated) {
+      if (player == eliminatedPlayer) {
         eliminated = true;
         break;
       }
@@ -346,7 +360,7 @@ player_list_t Server::getRemainingPlayers() {
 }
 
 // Returns a list of eliminated players by their steam ID
-steamid_list_t Server::getEliminatedPlayers() {
+player_list_t Server::getEliminatedPlayers() {
   return this->game.eliminated;
 }
 
@@ -364,7 +378,7 @@ void Server::highlight(player_t sender, string selectType, int index)
   json data;
   data["type"] = selectType;
   data["index"] = index;
-  this->sendToOthers(sender, success("HIGHLIGHT", data));
+  this->sendToOthers(sender->getClient(), success("HIGHLIGHT", data));
 }
 
 // Unhighlights a card in a certain card area based on its Multiplayer ID
@@ -374,14 +388,14 @@ void Server::unhighlight(player_t sender, string selectType, int index)
   json data;
   data["type"] = selectType;
   data["index"] = index;
-  this->sendToOthers(sender, success("UNHIGHLIGHT", data));
+  this->sendToOthers(sender->getClient(), success("UNHIGHLIGHT", data));
 }
 
 // Unhighlights all cards in hand. Triggered by right click in co-op
 void Server::unhighlightAll(player_t sender)
 {
   if (!this->isCoop()) return;
-  this->sendToOthers(sender, success("UNHIGHLIGHT_ALL"));
+  this->sendToOthers(sender->getClient(), success("UNHIGHLIGHT_ALL"));
 }
 
 // Triggers when play hand button is selected. Plays highlighted cards in hand
@@ -415,7 +429,7 @@ void Server::reorder(player_t sender, string selectType, int from, int to)
   data["type"] = selectType;
   data["from"] = from;
   data["to"] = to;
-  this->sendToOthers(sender, success("REORDER", data));
+  this->sendToOthers(sender->getClient(), success("REORDER", data));
 }
 
 // Triggered when the select blind button is clicked
@@ -509,7 +523,7 @@ void Server::swapJokers(player_t sender, json jokers)
     if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
   }
   data["request_id"] = preq->getId();
-  this->sendToRandom(sender, success("SWAP_JOKERS", data));
+  this->sendToRandom(sender->getClient(), success("SWAP_JOKERS", data));
 }
 
 // Complete a previously initiated request to swap jokers, sending the opponents's jokers to the original player
@@ -523,7 +537,7 @@ void Server::swapJokers(player_t sender, json jokers, string requestId)
   }
   PersistentRequest* preq = this->persistentRequests.getById(requestId);
   if (!preq) return;
-  this->sendToPlayer(preq->getCreator(), success("SWAP_JOKERS", data));
+  this->sendToPlayer(preq->getCreator()->getClient(), success("SWAP_JOKERS", data));
   this->persistentRequests.complete(requestId);
 }
 
@@ -533,7 +547,7 @@ void Server::changeMoney(player_t sender, int change)
   if (!this->isVersus()) return;
   json data;
   data["money"] = change;
-  this->sendToPlayer(sender, success("MONEY", data));
+  this->sendToPlayer(sender->getClient(), success("MONEY", data));
 }
 
 // Changes opponents' money by `change` amount
@@ -542,7 +556,7 @@ void Server::changeOthersMoney(player_t sender, int change)
   if (!this->isVersus()) return;
   json data;
   data["money"] = change;
-  this->sendToOthers(sender, success("MONEY", data), true);
+  this->sendToOthers(sender->getClient(), success("MONEY", data), true);
 }
 
 // Changes opponents (or a random player's) hand size by `change`
@@ -552,9 +566,9 @@ void Server::changeHandSize(player_t sender, int change, bool chooseRandom)
   json data;
   data["hand_size"] = change;
   if (chooseRandom) {
-    this->sendToRandom(sender, success("HAND_SIZE", data));
+    this->sendToRandom(sender->getClient(), success("HAND_SIZE", data));
   } else {
-    this->sendToOthers(sender, success("HAND_SIZE", data), true);
+    this->sendToOthers(sender->getClient(), success("HAND_SIZE", data), true);
   }
 }
 
@@ -572,11 +586,11 @@ void Server::getCardsAndJokers(player_t sender)
   preq->setData(preqData);
   json data;
   data["request_id"] = preq->getId();
-  this->sendToOthers(sender, success("GET_CARDS_AND_JOKERS", data), true);
+  this->sendToOthers(sender->getClient(), success("GET_CARDS_AND_JOKERS", data), true);
   for (player_t p : this->getRemainingPlayers()) {
     if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
   }
-  this->sendToPlayer(preq->getCreator(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
+  this->sendToPlayer(preq->getCreator()->getClient(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
   this->persistentRequests.complete(preq->getId());
 }
 
@@ -609,7 +623,7 @@ void Server::getCardsAndJokers(player_t sender, json jokers, json cards, string 
     preqData["results"]["cards"].erase(cardIndex);
   }
   preqData["results"]["cards"] = randomCards;
-  this->sendToPlayer(preq->getCreator(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
+  this->sendToPlayer(preq->getCreator()->getClient(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
   this->persistentRequests.complete(preq->getId());
 }
 
@@ -618,14 +632,14 @@ void Server::readyForBoss(player_t sender)
 {
   if (!this->isVersus()) return;
   if (this->game.bossPhase) return;
-  for (steamid_t steamid : this->game.ready) {
-    if (steamid == sender->getSteamId()) return;
+  for (player_t player : this->game.ready) {
+    if (player == sender) return;
   }
-  this->game.ready.push_back(sender->getSteamId());
+  this->game.ready.push_back(sender);
   for (player_t player : this->getRemainingPlayers()) {
     bool isReady = false;
-    for (steamid_t readyId : this->game.ready) {
-      if (player->getSteamId() == readyId) {
+    for (player_t ready : this->game.ready) {
+      if (player == ready) {
         isReady = true;
         break;
       }
@@ -633,8 +647,8 @@ void Server::readyForBoss(player_t sender)
     if (!isReady) return;
   }
   this->game.bossPhase = true;
-  this->game.ready = steamid_list_t();
-  this->game.scores = leaderboard_t();
+  this->game.ready.clear();
+  this->game.scores.clear();
   this->broadcast(success("START_BOSS"), true);
 }
 
@@ -642,13 +656,13 @@ void Server::readyForBoss(player_t sender)
 void Server::eliminate(player_t p)
 {
   if (!this->isVersus()) return;
-  for (steamid_t steamid : this->game.eliminated) {
-    if (steamid == p->getSteamId()) return;
+  for (player_t player : this->game.eliminated) {
+    if (player == p) return;
   }
-  this->game.eliminated.push_back(p->getSteamId());
+  this->game.eliminated.push_back(p);
   for (int i = 0; i < this->game.scores.size(); i++) {
     score_t pair = this->game.scores[i];
-    if (pair.first == p->getSteamId()) {
+    if (pair.first == p) {
       this->game.scores.erase(this->game.scores.begin() + i);
       break;
     }
@@ -656,7 +670,7 @@ void Server::eliminate(player_t p)
   player_list_t remainingPlayers = this->getRemainingPlayers();
   if (remainingPlayers.size() == 1) {
     player_t winner = remainingPlayers.at(0);
-    this->sendToPlayer(winner, success("WIN"));
+    this->sendToPlayer(winner->getClient(), success("WIN"));
   } else {
     this->broadcast(success("STATE_INFO", this->getState()));
   }
@@ -668,9 +682,9 @@ void Server::defeatedBoss(player_t p, double score)
   if (!this->isVersus()) return;
   if (!this->game.bossPhase) return;
   for (score_t pair : this->game.scores) {
-    if (pair.first == p->getSteamId()) return;
+    if (pair.first == p) return;
   }
-  this->game.scores.push_back(score_t(p->getSteamId(), score));
+  this->game.scores.push_back(score_t(p, score));
   if (this->game.scores.size() == this->getRemainingPlayers().size()) {
     std::sort(this->game.scores.begin(), this->game.scores.end(), [](score_t a, score_t b) {
       return a.second > b.second;
@@ -679,15 +693,15 @@ void Server::defeatedBoss(player_t p, double score)
     data["leaderboard"] = json::array();
     for (score_t pair : this->game.scores) {
       json row;
-      row["player"] = pair.first;
+      row["player"] = pair.first->getSteamId();
       row["score"] = pair.second;
       data["leaderboard"].push_back(row);
     }
-    steamid_list_t eliminatedPlayers = this->getEliminatedPlayers();
+    player_list_t eliminatedPlayers = this->getEliminatedPlayers();
     std::reverse(eliminatedPlayers.begin(), eliminatedPlayers.end());
-    for (steamid_t steamId : eliminatedPlayers) {
+    for (player_t eliminated : eliminatedPlayers) {
       json row;
-      row["player"] = steamId;
+      row["player"] = eliminated->getSteamId();
       data["leaderboard"].push_back(row);
     }
     this->game.bossPhase = false;
@@ -709,8 +723,8 @@ json Server::toJSON() {
   server["inGame"] = this->isRunning();
 
   json playerIds = json::array();
-  for (player_t player : this->players) {
-    playerIds.push_back(player->getSteamId());
+  for (client_t client : this->clients) {
+    playerIds.push_back(client->getPlayer()->getSteamId());
   }
   server["players"] = playerIds;
 

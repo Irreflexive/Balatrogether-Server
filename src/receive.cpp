@@ -1,6 +1,6 @@
 #include "server.hpp"
 
-void client_thread(Server* server, player_t client) {
+void client_thread(Server* server, client_t client) {
   if (!server->handshake(client)) {
     server->lock();
     server->errorLog("TLS handshake failed for %s", client->getIP().c_str());
@@ -21,8 +21,7 @@ void client_thread(Server* server, player_t client) {
         if (command == "JOIN" && req["steam_id"].is_string() && req["unlock_hash"].is_string()) {
           string steamId = req["steam_id"].get<string>();
           string unlockHash = req["unlock_hash"].get<string>();
-          client->setSteamId(steamId);
-          client->setUnlocks(unlockHash);
+          client->setPlayer(std::make_shared<Player>(steamId, unlockHash));
           if (server->canJoin(client)) {
             server->join(client);
           } else {
@@ -39,72 +38,72 @@ void client_thread(Server* server, player_t client) {
         string deck = req["deck"].get<string>();
         int stake = req["stake"].get<int>();
         bool versus = req["versus"].get<bool>();
-        server->start(client, seed, deck, stake, versus);
+        server->start(client->getPlayer(), seed, deck, stake, versus);
 
       } else if (command == "HIGHLIGHT") {
         string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
-        server->highlight(client, selectType, index);
+        server->highlight(client->getPlayer(), selectType, index);
 
       } else if (command == "UNHIGHLIGHT") {
         string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
-        server->unhighlight(client, selectType, index);
+        server->unhighlight(client->getPlayer(), selectType, index);
 
       } else if (command == "UNHIGHTLIGHT_ALL") {
-        server->unhighlightAll(client);
+        server->unhighlightAll(client->getPlayer());
 
       } else if (command == "PLAY_HAND") {
-        server->playHand(client);
+        server->playHand(client->getPlayer());
         
       } else if (command == "DISCARD_HAND") {
-        server->discardHand(client);
+        server->discardHand(client->getPlayer());
 
       } else if (command == "SORT_HAND") {
         string sortType = req["type"].get<string>();
-        server->sortHand(client, sortType);
+        server->sortHand(client->getPlayer(), sortType);
 
       } else if (command == "SELECT_BLIND") {
-        server->selectBlind(client);
+        server->selectBlind(client->getPlayer());
 
       } else if (command == "SKIP_BLIND") {
-        server->skipBlind(client);
+        server->skipBlind(client->getPlayer());
 
       } else if (command == "SELL") {
         string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
-        server->sell(client, selectType, index);
+        server->sell(client->getPlayer(), selectType, index);
 
       } else if (command == "USE") {
         int index = req["index"].get<int>();
-        server->use(client, index);
+        server->use(client->getPlayer(), index);
 
       } else if (command == "BUY") {
         string selectType = req["type"].get<string>();
         int index = req["index"].get<int>();
-        server->buy(client, selectType, index);
+        server->buy(client->getPlayer(), selectType, index);
 
       } else if (command == "BUY_AND_USE") {
         int index = req["index"].get<int>();
-        server->buyAndUse(client, index);
+        server->buyAndUse(client->getPlayer(), index);
 
       } else if (command == "SKIP_BOOSTER") {
-        server->skipBooster(client);
+        server->skipBooster(client->getPlayer());
       
       } else if (command == "REROLL") {
-        server->reroll(client);
+        server->reroll(client->getPlayer());
 
       } else if (command == "NEXT_ROUND") {
-        server->nextRound(client);
+        server->nextRound(client->getPlayer());
 
       } else if (command == "GO_TO_SHOP") {
-        server->goToShop(client);
+        server->goToShop(client->getPlayer());
 
       } else if (command == "REORDER") {
         string selectType = req["type"].get<string>();
         int from = req["from"].get<int>();
         int to = req["to"].get<int>();
-        server->reorder(client, selectType, from, to);
+        server->reorder(client->getPlayer(), selectType, from, to);
 
       } else if (command == "ENDLESS") {
         server->endless();
@@ -113,39 +112,39 @@ void client_thread(Server* server, player_t client) {
         json jokers = req["jokers"];
         if (req["request_id"].is_string()) {
           string requestId = req["request_id"].get<string>();
-          server->swapJokers(client, jokers, requestId);
+          server->swapJokers(client->getPlayer(), jokers, requestId);
         } else {
-          server->swapJokers(client, jokers);
+          server->swapJokers(client->getPlayer(), jokers);
         }
 
       } else if (command == "THE_CUP") {
-        server->changeMoney(client, server->getEliminatedPlayers().size() * 8);
+        server->changeMoney(client->getPlayer(), server->getEliminatedPlayers().size() * 8);
 
       } else if (command == "GREEN_SEAL") {
-        server->changeOthersMoney(client, -1);
+        server->changeOthersMoney(client->getPlayer(), -1);
 
       } else if (command == "ERASER" || command == "PAINT_BUCKET") {
-        server->changeHandSize(client, -1, command == "ERASER");
+        server->changeHandSize(client->getPlayer(), -1, command == "ERASER");
 
       } else if (command == "GET_CARDS_AND_JOKERS") {
         if (req["request_id"].is_string()) {
           json jokers = req["jokers"];
           json cards = req["cards"];
           string requestId = req["request_id"].get<string>();
-          server->getCardsAndJokers(client, jokers, cards, requestId);
+          server->getCardsAndJokers(client->getPlayer(), jokers, cards, requestId);
         } else {
-          server->getCardsAndJokers(client);
+          server->getCardsAndJokers(client->getPlayer());
         }
 
       } else if (command == "READY_FOR_BOSS") {
-        server->readyForBoss(client);
+        server->readyForBoss(client->getPlayer());
 
       } else if (command == "ELIMINATED") {
-        server->eliminate(client);
+        server->eliminate(client->getPlayer());
 
       } else if (command == "DEFEATED_BOSS") {
         double score = req["score"].get<double>();
-        server->defeatedBoss(client, score);
+        server->defeatedBoss(client->getPlayer(), score);
 
       }
       server->unlock();

@@ -37,17 +37,17 @@ class Server {
     ~Server();
 
     void acceptClient();
-    bool handshake(player_t p);
-    void join(player_t p);
-    void disconnect(player_t p);
-    bool hasAlreadyJoined(player_t p);
-    bool canJoin(player_t p);
+    bool handshake(client_t c);
+    void join(client_t c);
+    void disconnect(client_t c);
+    bool hasAlreadyJoined(client_t c);
+    bool canJoin(client_t c);
 
-    void sendToPlayer(player_t receiver, json payload);
-    void sendToRandom(player_t sender, json payload);
-    void sendToOthers(player_t sender, json payload, bool ignoreEliminated = false);
+    void sendToPlayer(client_t receiver, json payload);
+    void sendToRandom(client_t sender, json payload);
+    void sendToOthers(client_t sender, json payload, bool ignoreEliminated = false);
     void broadcast(json payload, bool ignoreEliminated = false);
-    json receive(player_t sender);
+    json receive(client_t sender);
 
     bool isHost(player_t p);
     player_t getHost();
@@ -60,7 +60,7 @@ class Server {
     bool isCoop();
     player_list_t getPlayers();
     player_list_t getRemainingPlayers();
-    steamid_list_t getEliminatedPlayers();
+    player_list_t getEliminatedPlayers();
 
     // Co-op network events
     void endless();
@@ -114,7 +114,7 @@ class Server {
     void collectRequests();
     int log(string format, va_list args, string color = "0", FILE *fd = stdout);
     SSL_CTX* ssl_ctx = nullptr;
-    player_list_t players;
+    client_list_t clients;
     std::mutex mutex;
     Game game;
     PersistentRequestManager persistentRequests;
@@ -122,6 +122,6 @@ class Server {
     int sockfd;
 };
 
-void client_thread(Server *server, player_t client);
+void client_thread(Server *server, client_t client);
 
 #endif
