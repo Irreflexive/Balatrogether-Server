@@ -49,15 +49,14 @@ class Server {
     void broadcast(json payload, bool ignoreEliminated = false);
     json receive(client_t sender);
 
-    bool isHost(player_t p);
-    player_t getHost();
-
     // Game state methods
     void start(player_t sender, string seed, string deck, int stake, bool versus);
     void stop();
     bool isRunning();
     bool isVersus();
     bool isCoop();
+    bool isHost(player_t p);
+    player_t getHost();
     player_list_t getPlayers();
     player_list_t getRemainingPlayers();
     player_list_t getEliminatedPlayers();
