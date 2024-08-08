@@ -35,9 +35,10 @@ using json = nlohmann::json;
 
 class Server {
   public:
-    Server();
+    Server(int port);
     ~Server();
 
+    void acceptClient();
     bool handshake(player_t p);
     void join(player_t p);
     void disconnect(player_t p);
@@ -120,6 +121,7 @@ class Server {
     Game game;
     PersistentRequestManager persistentRequests;
     std::thread requestCollector;
+    int sockfd;
 };
 
 void client_thread(Server *server, player_t client);
