@@ -3,8 +3,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdlib.h>
-#include <string.h>
 #include <mutex>
 #include <thread>
 #include <iostream>
@@ -113,7 +111,7 @@ class Server {
     
     Config config;
   private:
-    friend void collectRequests(Server* server);
+    void collectRequests();
     int log(string format, va_list args, string color = "0", FILE *fd = stdout);
     SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
