@@ -2,14 +2,14 @@
 #include "server.hpp"
 
 // Garbage collects persistent requests that have been alive for more than 10 seconds. Call in a separate thread
-void collectRequests(Server *server)
+void Server::collectRequests()
 {
   while (true) {
     std::this_thread::sleep_for(std::chrono::seconds(60));
-    server->lock();
-    server->debugLog("Collecting PersistentRequest garbage");
-    server->persistentRequests.clearUnresolved(10);
-    server->unlock();
+    this->lock();
+    this->debugLog("Collecting PersistentRequest garbage");
+    this->persistentRequests.clearUnresolved(10);
+    this->unlock();
   }
 }
 
@@ -23,7 +23,7 @@ Server::Server(int port)
     this->ssl_ctx = create_context();
     configure_context(this->ssl_ctx, this->config.isDebugMode());
   }
-  this->requestCollector = std::thread(collectRequests, this);
+  this->requestCollector = std::thread(&Server::collectRequests, this);
   this->requestCollector.detach();
 
   this->infoLog("Starting server");
@@ -88,6 +88,7 @@ Server::~Server()
   closesocket(this->sockfd);
 }
 
+// Accepts an incoming TCP connection and spawns the client's processing thread
 void Server::acceptClient()
 {
   struct sockaddr_in cli_addr;
