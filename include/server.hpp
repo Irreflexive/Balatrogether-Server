@@ -33,10 +33,6 @@
 using std::string;
 using json = nlohmann::json;
 
-json success(string cmd, json data);
-json success(string cmd);
-json error(string msg);
-
 class Server {
   public:
     Server();
@@ -110,14 +106,14 @@ class Server {
     void unlock();
 
     // Logging functions
-    int infoLog(std::string format, ...);
-    int debugLog(std::string format, ...);
-    int errorLog(std::string format, ...);
+    int infoLog(string format, ...);
+    int debugLog(string format, ...);
+    int errorLog(string format, ...);
     
     Config config;
   private:
     friend void collectRequests(Server* server);
-    int log(std::string format, va_list args, std::string color = "0", FILE *fd = stdout);
+    int log(string format, va_list args, string color = "0", FILE *fd = stdout);
     SSL_CTX* ssl_ctx = nullptr;
     player_list_t players;
     std::mutex mutex;
@@ -125,5 +121,7 @@ class Server {
     PersistentRequestManager persistentRequests;
     std::thread requestCollector;
 };
+
+void client_thread(Server *server, player_t client);
 
 #endif

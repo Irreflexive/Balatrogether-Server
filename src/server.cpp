@@ -1,3 +1,4 @@
+#include "util.hpp"
 #include "server.hpp"
 
 // Garbage collects persistent requests that have been alive for more than 10 seconds. Call in a separate thread
@@ -10,31 +11,6 @@ void collectRequests(Server *server)
     server->persistentRequests.clearUnresolved(10);
     server->unlock();
   }
-}
-
-// Constructs a JSON object that is interpreted as valid by the client
-json success(string cmd, json data)
-{
-  json res;
-  res["success"] = true;
-  res["cmd"] = cmd;
-  res["data"] = data;
-  return res;
-}
-
-// Constructs a JSON object for a successful operation with no data
-json success(string cmd)
-{
-  return success(cmd, json::object());
-}
-
-// Constructs a JSON object that will make the client disconnect
-json error(string msg)
-{
-  json res;
-  res["success"] = false;
-  res["error"] = msg;
-  return res;
 }
 
 // Construct a server object, initializating the mutex, SSL context, and config
@@ -211,7 +187,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
   if (this->isRunning() || !this->isHost(sender) || (this->players.size() <= 1 && !this->config.isDebugMode())) return;
   if (!versus) {
     bool initialized = false;
-    std::string unlockHash;
+    string unlockHash;
     for (player_t p : this->players) {
       if (!initialized) {
         initialized = true;
@@ -236,7 +212,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
   this->infoLog("===========START RUN===========");
   this->infoLog("%-10s %20s", "MODE", versus ? "VERSUS" : "CO-OP");
   this->infoLog("%-10s %20s", "SEED", seed.c_str());
-  std::string upperDeck = deck;
+  string upperDeck = deck;
   std::transform(upperDeck.begin(), upperDeck.end(), upperDeck.begin(), [](unsigned char c){ return std::toupper(c); });
   this->infoLog("%-10s %20s", "DECK", upperDeck.c_str());
   this->infoLog("%-10s %20s", "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
@@ -691,39 +667,42 @@ void Server::unlock()
   this->mutex.unlock();
 }
 
-int Server::infoLog(std::string format, ...)
+// Prints a new line with timestamp and [INFO] prefix
+int Server::infoLog(string format, ...)
 {
-  std::string fmt = "[INFO] " + format;
+  string fmt = "[INFO] " + format;
   va_list args;
   va_start(args, format);
-  int n = this->log(fmt.c_str(), args);
+  int n = this->log(fmt, args);
   va_end(args);
   return n;
 }
 
-int Server::debugLog(std::string format, ...)
-{
-  if (!this->config.isDebugMode()) return 0;
-  std::string fmt = "[DEBUG] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = this->log(fmt.c_str(), args, "33");
-  va_end(args);
-  return n;
-}
-
-int Server::errorLog(std::string format, ...)
+// Prints a new line with timestamp and [DEBUG] prefix, only if debug mode is enabled
+int Server::debugLog(string format, ...)
 {
   if (!this->config.isDebugMode()) return 0;
-  std::string fmt = "[ERROR] " + format;
+  string fmt = "[DEBUG] " + format;
   va_list args;
   va_start(args, format);
-  int n = this->log(fmt.c_str(), args, "31", stderr);
+  int n = this->log(fmt, args, "33");
   va_end(args);
   return n;
 }
 
-int Server::log(std::string format, va_list args, std::string color, FILE *fd)
+// Prints an error message with timestamp
+int Server::errorLog(string format, ...)
+{
+  if (!this->config.isDebugMode()) return 0;
+  string fmt = "[ERROR] " + format;
+  va_list args;
+  va_start(args, format);
+  int n = this->log(fmt, args, "31", stderr);
+  va_end(args);
+  return n;
+}
+
+int Server::log(string format, va_list args, string color, FILE *fd)
 {
   std::stringstream modifiedFormat;
   std::time_t currentTime = std::time(nullptr);
