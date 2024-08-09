@@ -1,4 +1,3 @@
-#include "logs.hpp"
 #include "encrypt.hpp"
 #include "network.hpp"
 

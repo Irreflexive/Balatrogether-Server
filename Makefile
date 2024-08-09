@@ -28,6 +28,7 @@ $(BUILD_PATH)/%.o: $(SRC_PATH)/%.cpp
 
 dirs:
 	@mkdir -p $(BUILD_PATH)
+	@mkdir -p $(BUILD_PATH)/events
 	@mkdir -p $(BIN_PATH)
 
 clean:
