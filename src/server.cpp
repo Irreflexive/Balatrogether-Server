@@ -1,17 +1,6 @@
 #include "util.hpp"
+#include "logs.hpp"
 #include "server.hpp"
-
-// Garbage collects persistent requests that have been alive for more than 10 seconds. Call in a separate thread
-void Server::collectRequests()
-{
-  while (true) {
-    std::this_thread::sleep_for(std::chrono::seconds(60));
-    this->lock();
-    this->debugLog("Collecting PersistentRequest garbage");
-    this->persistentRequests.clearUnresolved(10);
-    this->unlock();
-  }
-}
 
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
@@ -23,10 +12,9 @@ Server::Server(int port)
     this->ssl_ctx = create_context();
     configure_context(this->ssl_ctx, this->config.isDebugMode());
   }
-  this->requestCollector = std::thread(&Server::collectRequests, this);
-  this->requestCollector.detach();
 
-  this->infoLog("Starting server");
+  logger::setDebugOutputEnabled(this->config.isDebugMode());
+  logger::infoLog("Starting server");
 
   this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in serv_addr;
@@ -34,45 +22,45 @@ Server::Server(int port)
   serv_addr.sin_port = htons(port);
   serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-  this->infoLog("Configuring socket options");
+  logger::infoLog("Configuring socket options");
 
   int opt = 1;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-    this->errorLog("Failed to set reuse address");
+    logger::errorLog("Failed to set reuse address");
     exit(EXIT_FAILURE);
   }
-  this->infoLog("Allowed address reuse");
+  logger::infoLog("Allowed address reuse");
 
   int send_size = BUFFER_SIZE;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &send_size, sizeof(send_size)) < 0) {
-    this->errorLog("Failed to set send buffer size");
+    logger::errorLog("Failed to set send buffer size");
     exit(EXIT_FAILURE);
   }
-  this->infoLog("Set send buffer size");
+  logger::infoLog("Set send buffer size");
 
   int recv_size = BUFFER_SIZE;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &recv_size, sizeof(recv_size)) < 0) {
-    this->errorLog("Failed to set receive buffer size");
+    logger::errorLog("Failed to set receive buffer size");
     exit(EXIT_FAILURE);
   }
-  this->infoLog("Set receive buffer size");
+  logger::infoLog("Set receive buffer size");
 
   int keepalive = 1;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
-    this->errorLog("Failed to set keepalive");
+    logger::errorLog("Failed to set keepalive");
     exit(EXIT_FAILURE);
   }
-  this->infoLog("Enabled keepalive timer");
+  logger::infoLog("Enabled keepalive timer");
 
   int bindStatus = bind(this->sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
   if (bindStatus < 0) {
-    this->errorLog("Failed to bind");
+    logger::errorLog("Failed to bind");
     exit(EXIT_FAILURE);
   }
-  this->infoLog("Bound to address");
+  logger::infoLog("Bound to address");
   
   if (listen(this->sockfd, 3) < 0) {
-    this->errorLog("Failed to listen");
+    logger::errorLog("Failed to listen");
     exit(EXIT_FAILURE);
   }
 }
@@ -80,7 +68,7 @@ Server::Server(int port)
 // Cleans up the SSL context and other state
 Server::~Server()
 {
-  this->infoLog("Shutting down server");
+  logger::infoLog("Shutting down server");
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
   this->game.eliminated.clear();
   this->game.ready.clear();
@@ -98,7 +86,7 @@ void Server::acceptClient()
   socklen_t cli_len = sizeof(cli_addr);
   int clientfd = accept(this->sockfd, (struct sockaddr*) &cli_addr, &cli_len);
   client_t client = new Client(clientfd, cli_addr);
-  this->infoLog("Client from %s attempting to connect", client->getIP().c_str());
+  logger::infoLog("Client from %s attempting to connect", client->getIP().c_str());
   std::thread(client_thread, this, client).detach();
 }
 
@@ -118,7 +106,7 @@ bool Server::handshake(client_t c)
 void Server::join(client_t c)
 {
   if (this->canJoin(c)) {
-    this->infoLog("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
+    logger::infoLog("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
     this->clients.push_back(c);
     this->broadcast(success("JOIN", this->toJSON()));
   } else {
@@ -129,7 +117,7 @@ void Server::join(client_t c)
 // Disconnects a player from the server
 void Server::disconnect(client_t c) {
   if (this->hasAlreadyJoined(c)) {
-    this->infoLog("Player with Steam ID %s leaving server", c->getPlayer()->getSteamId().c_str());
+    logger::infoLog("Player with Steam ID %s leaving server", c->getPlayer()->getSteamId().c_str());
     this->eliminate(c->getPlayer());
     for (int i = 0; i < this->clients.size(); i++) {
       if (this->clients[i] == c) {
@@ -167,18 +155,7 @@ bool Server::canJoin(client_t c)
 // Sends a JSON object to the player
 void Server::sendToPlayer(client_t receiver, json payload)
 {
-  char buffer[BUFFER_SIZE];
-  memset(buffer, 0, BUFFER_SIZE);
-  string jsonString = payload.dump();
-  strncpy(buffer, jsonString.c_str(), BUFFER_SIZE - 2);
-  buffer[jsonString.size()] = '\n';
-  if (this->config.isTLSEnabled() && receiver->getSSL()) {
-    int s = SSL_write(receiver->getSSL(), buffer, strlen(buffer));
-    if (s <= 0) this->debugLog("SSL send error %d", SSL_get_error(receiver->getSSL(), s));
-  } else {
-    send(receiver->getFd(), buffer, strlen(buffer), 0);
-  }
-  this->debugLog("Server -> %s: %s", receiver->getIdentity().c_str(), payload.dump().c_str());
+  this->sendTo({receiver}, payload);
 }
 
 // Sends a JSON object to a random player, excluding the sender from consideration
@@ -194,47 +171,29 @@ void Server::sendToRandom(client_t sender, json payload)
   if (remainingPlayers.size() == 0) return;
   int randomIndex = rand() % remainingPlayers.size();
   client_t randomPlayer = remainingPlayers[randomIndex]->getClient();
-  this->sendToPlayer(randomPlayer, payload);
+  this->sendTo({randomPlayer}, payload);
 }
 
 // Sends a JSON object to all players besides the sender. If ignoreEliminated is true, will not send to eliminated players
 void Server::sendToOthers(client_t sender, json payload, bool ignoreEliminated)
 {
   player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->getPlayers();
+  client_list_t clients;
   for (player_t player : playerList) {
-    if (player->getSteamId() != sender->getPlayer()->getSteamId()) this->sendToPlayer(player->getClient(), payload);
+    if (player->getSteamId() != sender->getPlayer()->getSteamId()) clients.push_back(player->getClient());
   }
+  this->sendTo(clients, payload);
 }
 
 // Sends a JSON object to all players. If ignoreEliminated is true, will not send to eliminated players
 void Server::broadcast(json payload, bool ignoreEliminated)
 {
   player_list_t playerList = ignoreEliminated ? this->getRemainingPlayers() : this->getPlayers();
+  client_list_t clients;
   for (player_t player : playerList) {
-    this->sendToPlayer(player->getClient(), payload);
+    clients.push_back(player->getClient());
   }
-}
-
-// Receive JSON from a player. Returns a null json object if parsing fails or the client has disconnected
-json Server::receive(client_t sender) {
-  char buffer[BUFFER_SIZE];
-  memset(buffer, 0, BUFFER_SIZE);
-  size_t n;
-  if (this->config.isTLSEnabled() && sender->getSSL()) {
-    int s = SSL_read_ex(sender->getSSL(), buffer, BUFFER_SIZE, &n);
-    if (s <= 0) this->debugLog("SSL receive error %d", SSL_get_error(sender->getSSL(), s));
-    if (s <= 0 || n == 0) return json();
-  } else {
-    n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
-    if (n <= 0) return json();
-  }
-  try {
-    this->debugLog("%s -> Server: %s", sender->getIdentity().c_str(), buffer);
-    json req = json::parse(buffer);
-    return req;
-  } catch (...) {
-    return json();
-  }
+  this->sendTo(clients, payload);
 }
 
 // Starts a run given a seed, deck, stake, and versus configuration
@@ -265,13 +224,13 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
     "GOLD"
   };
 
-  this->infoLog("===========START RUN===========");
-  this->infoLog("%-10s %20s", "MODE", versus ? "VERSUS" : "CO-OP");
-  this->infoLog("%-10s %20s", "SEED", seed.c_str());
+  logger::infoLog("===========START RUN===========");
+  logger::infoLog("%-10s %20s", "MODE", versus ? "VERSUS" : "CO-OP");
+  logger::infoLog("%-10s %20s", "SEED", seed.c_str());
   string upperDeck = deck;
   std::transform(upperDeck.begin(), upperDeck.end(), upperDeck.begin(), [](unsigned char c){ return std::toupper(c); });
-  this->infoLog("%-10s %20s", "DECK", upperDeck.c_str());
-  this->infoLog("%-10s %20s", "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
+  logger::infoLog("%-10s %20s", "DECK", upperDeck.c_str());
+  logger::infoLog("%-10s %20s", "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
 
   this->game.inGame = true;
   this->game.versus = versus;
@@ -294,7 +253,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
 void Server::stop()
 {
   if (!this->isRunning()) return;
-  this->infoLog("============END RUN============");
+  logger::infoLog("============END RUN============");
   this->game.inGame = false;
 }
 
@@ -735,48 +694,4 @@ void Server::lock()
 void Server::unlock()
 {
   this->mutex.unlock();
-}
-
-// Prints a new line with timestamp and [INFO] prefix
-int Server::infoLog(string format, ...)
-{
-  string fmt = "[INFO] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = this->log(fmt, args);
-  va_end(args);
-  return n;
-}
-
-// Prints a new line with timestamp and [DEBUG] prefix, only if debug mode is enabled
-int Server::debugLog(string format, ...)
-{
-  if (!this->config.isDebugMode()) return 0;
-  string fmt = "[DEBUG] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = this->log(fmt, args, "33");
-  va_end(args);
-  return n;
-}
-
-// Prints an error message with timestamp
-int Server::errorLog(string format, ...)
-{
-  if (!this->config.isDebugMode()) return 0;
-  string fmt = "[ERROR] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = this->log(fmt, args, "31", stderr);
-  va_end(args);
-  return n;
-}
-
-int Server::log(string format, va_list args, string color, FILE *fd)
-{
-  std::stringstream modifiedFormat;
-  std::time_t currentTime = std::time(nullptr);
-  modifiedFormat << "\033[" << color << "m[" << std::put_time(std::gmtime(&currentTime), "%FT%TZ") << "] " << format << "\033[0m" << std::endl;
-  int n = vfprintf(fd, modifiedFormat.str().c_str(), args);
-  return n;
 }

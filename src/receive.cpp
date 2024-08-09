@@ -1,16 +1,17 @@
+#include "logs.hpp"
 #include "server.hpp"
 
 void client_thread(Server* server, client_t client) {
   if (!server->handshake(client)) {
     server->lock();
-    server->errorLog("TLS handshake failed for %s", client->getIP().c_str());
+    logger::errorLog("TLS handshake failed for %s", client->getIP().c_str());
     server->disconnect(client);
     server->unlock();
     return;
   }
 
   while (true) {
-    json req = server->receive(client);
+    json req = server->receiveFrom(client);
     if (req == json() || !req["cmd"].is_string()) break;
 
     try {
@@ -157,6 +158,6 @@ void client_thread(Server* server, client_t client) {
   server->lock();
   string ip = client->getIP();
   server->disconnect(client);
-  server->infoLog("Client from %s disconnected", ip.c_str());
+  logger::infoLog("Client from %s disconnected", ip.c_str());
   server->unlock();
 }
