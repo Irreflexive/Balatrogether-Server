@@ -326,7 +326,7 @@ player_list_t Server::getEliminatedPlayers() {
 }
 
 // Tells all players to commence endless mode
-void Server::endless()
+void Server::endless(player_t sender)
 {
   if (!this->isCoop()) return;
   this->broadcast(success("ENDLESS"));

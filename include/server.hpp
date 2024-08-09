@@ -64,7 +64,7 @@ class Server {
     player_list_t getEliminatedPlayers();
 
     // Co-op network events
-    void endless();
+    void endless(player_t sender);
 
     void highlight(player_t sender, string selectType, int index);
     void unhighlight(player_t sender, string selectType, int index);
