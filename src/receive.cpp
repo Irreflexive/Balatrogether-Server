@@ -4,14 +4,14 @@
 void client_thread(Server* server, client_t client) {
   if (!server->handshake(client)) {
     server->lock();
-    logger::errorLog("TLS handshake failed for %s", client->getIP().c_str());
+    logger::error("TLS handshake failed for %s", client->getIP().c_str());
     server->disconnect(client);
     server->unlock();
     return;
   }
 
   while (true) {
-    json req = server->receiveFrom(client);
+    json req = server->receive(client);
     if (req == json() || !req["cmd"].is_string()) break;
 
     try {
@@ -158,6 +158,6 @@ void client_thread(Server* server, client_t client) {
   server->lock();
   string ip = client->getIP();
   server->disconnect(client);
-  logger::infoLog("Client from %s disconnected", ip.c_str());
+  logger::info("Client from %s disconnected", ip.c_str());
   server->unlock();
 }

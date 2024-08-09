@@ -11,8 +11,8 @@ using json = nlohmann::json;
 
 class NetworkManager {
   public:
-    void sendTo(client_list_t receivers, json payload);
-    json receiveFrom(client_t sender);
+    void send(client_list_t receivers, json payload);
+    json receive(client_t sender);
   protected:
     SSL_CTX* ssl_ctx = nullptr;
 };

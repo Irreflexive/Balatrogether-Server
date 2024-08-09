@@ -14,7 +14,7 @@ Server::Server(int port)
   }
 
   logger::setDebugOutputEnabled(this->config.isDebugMode());
-  logger::infoLog("Starting server");
+  logger::info("Starting server");
 
   this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in serv_addr;
@@ -22,45 +22,45 @@ Server::Server(int port)
   serv_addr.sin_port = htons(port);
   serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-  logger::infoLog("Configuring socket options");
+  logger::info("Configuring socket options");
 
   int opt = 1;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-    logger::errorLog("Failed to set reuse address");
+    logger::error("Failed to set reuse address");
     exit(EXIT_FAILURE);
   }
-  logger::infoLog("Allowed address reuse");
+  logger::info("Allowed address reuse");
 
   int send_size = BUFFER_SIZE;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &send_size, sizeof(send_size)) < 0) {
-    logger::errorLog("Failed to set send buffer size");
+    logger::error("Failed to set send buffer size");
     exit(EXIT_FAILURE);
   }
-  logger::infoLog("Set send buffer size");
+  logger::info("Set send buffer size");
 
   int recv_size = BUFFER_SIZE;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &recv_size, sizeof(recv_size)) < 0) {
-    logger::errorLog("Failed to set receive buffer size");
+    logger::error("Failed to set receive buffer size");
     exit(EXIT_FAILURE);
   }
-  logger::infoLog("Set receive buffer size");
+  logger::info("Set receive buffer size");
 
   int keepalive = 1;
   if (setsockopt(this->sockfd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
-    logger::errorLog("Failed to set keepalive");
+    logger::error("Failed to set keepalive");
     exit(EXIT_FAILURE);
   }
-  logger::infoLog("Enabled keepalive timer");
+  logger::info("Enabled keepalive timer");
 
   int bindStatus = bind(this->sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
   if (bindStatus < 0) {
-    logger::errorLog("Failed to bind");
+    logger::error("Failed to bind");
     exit(EXIT_FAILURE);
   }
-  logger::infoLog("Bound to address");
+  logger::info("Bound to address");
   
   if (listen(this->sockfd, 3) < 0) {
-    logger::errorLog("Failed to listen");
+    logger::error("Failed to listen");
     exit(EXIT_FAILURE);
   }
 }
@@ -68,7 +68,7 @@ Server::Server(int port)
 // Cleans up the SSL context and other state
 Server::~Server()
 {
-  logger::infoLog("Shutting down server");
+  logger::info("Shutting down server");
   if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
   this->game.eliminated.clear();
   this->game.ready.clear();
@@ -86,7 +86,7 @@ void Server::acceptClient()
   socklen_t cli_len = sizeof(cli_addr);
   int clientfd = accept(this->sockfd, (struct sockaddr*) &cli_addr, &cli_len);
   client_t client = new Client(clientfd, cli_addr);
-  logger::infoLog("Client from %s attempting to connect", client->getIP().c_str());
+  logger::info("Client from %s attempting to connect", client->getIP().c_str());
   std::thread(client_thread, this, client).detach();
 }
 
@@ -106,7 +106,7 @@ bool Server::handshake(client_t c)
 void Server::join(client_t c)
 {
   if (this->canJoin(c)) {
-    logger::infoLog("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
+    logger::info("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
     this->clients.push_back(c);
     this->broadcast(success("JOIN", this->toJSON()));
   } else {
@@ -117,7 +117,7 @@ void Server::join(client_t c)
 // Disconnects a player from the server
 void Server::disconnect(client_t c) {
   if (this->hasAlreadyJoined(c)) {
-    logger::infoLog("Player with Steam ID %s leaving server", c->getPlayer()->getSteamId().c_str());
+    logger::info("Player with Steam ID %s leaving server", c->getPlayer()->getSteamId().c_str());
     this->eliminate(c->getPlayer());
     for (int i = 0; i < this->clients.size(); i++) {
       if (this->clients[i] == c) {
@@ -155,7 +155,7 @@ bool Server::canJoin(client_t c)
 // Sends a JSON object to the player
 void Server::sendToPlayer(client_t receiver, json payload)
 {
-  this->sendTo({receiver}, payload);
+  this->send({receiver}, payload);
 }
 
 // Sends a JSON object to a random player, excluding the sender from consideration
@@ -171,7 +171,7 @@ void Server::sendToRandom(client_t sender, json payload)
   if (remainingPlayers.size() == 0) return;
   int randomIndex = rand() % remainingPlayers.size();
   client_t randomPlayer = remainingPlayers[randomIndex]->getClient();
-  this->sendTo({randomPlayer}, payload);
+  this->send({randomPlayer}, payload);
 }
 
 // Sends a JSON object to all players besides the sender. If ignoreEliminated is true, will not send to eliminated players
@@ -182,7 +182,7 @@ void Server::sendToOthers(client_t sender, json payload, bool ignoreEliminated)
   for (player_t player : playerList) {
     if (player->getSteamId() != sender->getPlayer()->getSteamId()) clients.push_back(player->getClient());
   }
-  this->sendTo(clients, payload);
+  this->send(clients, payload);
 }
 
 // Sends a JSON object to all players. If ignoreEliminated is true, will not send to eliminated players
@@ -193,7 +193,7 @@ void Server::broadcast(json payload, bool ignoreEliminated)
   for (player_t player : playerList) {
     clients.push_back(player->getClient());
   }
-  this->sendTo(clients, payload);
+  this->send(clients, payload);
 }
 
 // Starts a run given a seed, deck, stake, and versus configuration
@@ -224,13 +224,13 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
     "GOLD"
   };
 
-  logger::infoLog("===========START RUN===========");
-  logger::infoLog("%-10s %20s", "MODE", versus ? "VERSUS" : "CO-OP");
-  logger::infoLog("%-10s %20s", "SEED", seed.c_str());
+  logger::info("===========START RUN===========");
+  logger::info("%-10s %20s", "MODE", versus ? "VERSUS" : "CO-OP");
+  logger::info("%-10s %20s", "SEED", seed.c_str());
   string upperDeck = deck;
   std::transform(upperDeck.begin(), upperDeck.end(), upperDeck.begin(), [](unsigned char c){ return std::toupper(c); });
-  logger::infoLog("%-10s %20s", "DECK", upperDeck.c_str());
-  logger::infoLog("%-10s %20s", "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
+  logger::info("%-10s %20s", "DECK", upperDeck.c_str());
+  logger::info("%-10s %20s", "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
 
   this->game.inGame = true;
   this->game.versus = versus;
@@ -253,7 +253,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
 void Server::stop()
 {
   if (!this->isRunning()) return;
-  logger::infoLog("============END RUN============");
+  logger::info("============END RUN============");
   this->game.inGame = false;
 }
 

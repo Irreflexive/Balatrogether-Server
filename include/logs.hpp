@@ -8,9 +8,9 @@ using std::string;
 namespace logger {
   void setDebugOutputEnabled(bool enabled);
 
-  int infoLog(string format, ...);
-  int debugLog(string format, ...);
-  int errorLog(string format, ...);
+  int info(string format, ...);
+  int debug(string format, ...);
+  int error(string format, ...);
 }
 
 #endif

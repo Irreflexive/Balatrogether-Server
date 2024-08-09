@@ -27,9 +27,9 @@ class HelpCommand : public Command {
   public:
     HelpCommand() : Command("help", {}, "Displays this list of commands") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
-      logger::infoLog("Command list:");
+      logger::info("Command list:");
       for (Command *command : console->commands) {
-        logger::infoLog(command->getUsage());
+        logger::info(command->getUsage());
       }
     };
 };
@@ -38,9 +38,9 @@ class PlayerListCommand : public Command {
   public:
     PlayerListCommand() : Command("list", {}, "Display a list of all connected players") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
-      logger::infoLog("%d player(s) connected", console->server->getPlayers().size());
+      logger::info("%d player(s) connected", console->server->getPlayers().size());
       for (player_t p : console->server->getPlayers()) {
-        logger::infoLog(p->getSteamId());
+        logger::info(p->getSteamId());
       }
     };
 };
@@ -63,7 +63,7 @@ class KickCommand : public Command {
       for (player_t p : console->server->getPlayers()) {
         if (args["id"] == p->getSteamId()) {
           console->server->disconnect(p->getClient());
-          logger::infoLog("Player %s kicked", args["id"].c_str());
+          logger::info("Player %s kicked", args["id"].c_str());
         }
       }
     };
@@ -75,7 +75,7 @@ class BanCommand : public Command {
     void execute(Console *console, std::unordered_map<string, string> args) {
       console->execute("kick", args);
       console->server->config.ban(args["id"]);
-      logger::infoLog("Player %s banned", args["id"].c_str());
+      logger::info("Player %s banned", args["id"].c_str());
     };
 };
 
@@ -84,7 +84,7 @@ class UnbanCommand : public Command {
     UnbanCommand() : Command("unban", {"id"}, "Remove a Steam ID from the ban list") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
       console->server->config.unban(args["id"]);
-      logger::infoLog("Player %s unbanned", args["id"].c_str());
+      logger::info("Player %s unbanned", args["id"].c_str());
     };
 };
 
@@ -95,20 +95,20 @@ class WhitelistCommand : public Command {
       string subcommand = args["on/off/add/remove"];
       if (subcommand == "on") {
         console->server->config.setWhitelistEnabled(true);
-        logger::infoLog("Whitelist enabled");
+        logger::info("Whitelist enabled");
       } else if (subcommand == "off") {
         console->server->config.setWhitelistEnabled(false);
-        logger::infoLog("Whitelist disabled");
+        logger::info("Whitelist disabled");
       } else if (subcommand == "add" && args.size() >= 2) {
         steamid_t steamId = args["id"];
         console->server->config.whitelist(steamId);
-        logger::infoLog("Added player %s to whitelist", steamId.c_str());
+        logger::info("Added player %s to whitelist", steamId.c_str());
       } else if (subcommand == "remove" && args.size() >= 2) {
         steamid_t steamId = args["id"];
         console->server->config.unwhitelist(steamId);
-        logger::infoLog("Removed player %s from whitelist", steamId.c_str());
+        logger::info("Removed player %s from whitelist", steamId.c_str());
       } else {
-        logger::infoLog("Usage: %s", this->getUsage().c_str());
+        logger::info("Usage: %s", this->getUsage().c_str());
       }
     };
 };
@@ -149,7 +149,7 @@ bool Console::process(Command *command, string input)
   if (cmd != command->name) return false;
   args.erase(args.begin());
   if (args.size() < command->params.size() - command->num_optional) {
-    logger::infoLog("Usage: %s", command->getUsage().c_str());
+    logger::info("Usage: %s", command->getUsage().c_str());
     return true;
   }
   if (args.size() > command->params.size() && command->params.size() > 0) {
@@ -184,7 +184,7 @@ void console_thread(Console *console)
     std::getline(std::cin, line);
     console->server->lock();
     bool matchedCommand = false;
-    logger::infoLog("Console executed command \"%s\"", line.c_str());
+    logger::info("Console executed command \"%s\"", line.c_str());
     for (Command *command : console->commands) {
       if (console->process(command, line)) {
         matchedCommand = true;
@@ -192,7 +192,7 @@ void console_thread(Console *console)
       }
     }
     if (!matchedCommand) {
-      logger::infoLog("Unknown command, type \"help\" for a list of commands");
+      logger::info("Unknown command, type \"help\" for a list of commands");
     }
     console->server->unlock();
   }

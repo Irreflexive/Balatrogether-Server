@@ -22,7 +22,7 @@ int log(string format, va_list args, string color = "0", FILE *fd = stdout)
 }
 
 // Prints a new line with timestamp and [INFO] prefix
-int logger::infoLog(string format, ...)
+int logger::info(string format, ...)
 {
   string fmt = "[INFO] " + format;
   va_list args;
@@ -33,7 +33,7 @@ int logger::infoLog(string format, ...)
 }
 
 // Prints a new line with timestamp and [DEBUG] prefix, only if debug mode is enabled
-int logger::debugLog(string format, ...)
+int logger::debug(string format, ...)
 {
   if (!debugOutput) return 0;
   string fmt = "[DEBUG] " + format;
@@ -45,7 +45,7 @@ int logger::debugLog(string format, ...)
 }
 
 // Prints an error message with timestamp
-int logger::errorLog(string format, ...)
+int logger::error(string format, ...)
 {
   string fmt = "[ERROR] " + format;
   va_list args;
