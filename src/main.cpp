@@ -1,4 +1,5 @@
 #include <csignal>
+#include "logs.hpp"
 #include "server.hpp"
 #include "console.hpp"
 
@@ -8,7 +9,7 @@ Console* console;
 
 int main() {
   Server* server = new Server(PORT);
-  server->infoLog("Balatrogether is listening on port %i", PORT);
+  logger::infoLog("Balatrogether is listening on port %i", PORT);
 
   console = new Console(server);
   std::thread(console_thread, console).detach();

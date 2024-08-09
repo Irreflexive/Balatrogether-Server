@@ -25,13 +25,12 @@
 #include "game.hpp"
 #include "preq.hpp"
 #include "config.hpp"
-
-#define BUFFER_SIZE 65536
+#include "network.hpp"
 
 using std::string;
 using json = nlohmann::json;
 
-class Server {
+class Server : public NetworkManager {
   public:
     Server(int port);
     ~Server();
@@ -47,7 +46,6 @@ class Server {
     void sendToRandom(client_t sender, json payload);
     void sendToOthers(client_t sender, json payload, bool ignoreEliminated = false);
     void broadcast(json payload, bool ignoreEliminated = false);
-    json receive(client_t sender);
 
     // Game state methods
     void start(player_t sender, string seed, string deck, int stake, bool versus);
@@ -102,22 +100,13 @@ class Server {
     json toJSON();
     void lock();
     void unlock();
-
-    // Logging functions
-    int infoLog(string format, ...);
-    int debugLog(string format, ...);
-    int errorLog(string format, ...);
     
     Config config;
   private:
-    void collectRequests();
-    int log(string format, va_list args, string color = "0", FILE *fd = stdout);
-    SSL_CTX* ssl_ctx = nullptr;
     client_list_t clients;
     std::mutex mutex;
     Game game;
     PersistentRequestManager persistentRequests;
-    std::thread requestCollector;
     int sockfd;
 };
 

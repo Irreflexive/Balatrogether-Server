@@ -30,6 +30,13 @@ void PersistentRequest::setData(json data)
   this->data = data;
 }
 
+PersistentRequestManager::PersistentRequestManager(int requestLifetime, int collectionInterval)
+{
+  this->requestLifetime = requestLifetime;
+  this->collectionInterval = collectionInterval;
+  std::thread(&PersistentRequestManager::clearUnresolved, this).detach();
+}
+
 PersistentRequestManager::~PersistentRequestManager()
 {
   for (std::pair<std::string, PersistentRequest*> it : this->requests) {
@@ -59,11 +66,14 @@ void PersistentRequestManager::complete(std::string requestId)
   delete result->second;
 }
 
-void PersistentRequestManager::clearUnresolved(int maxLifetimeSec)
+void PersistentRequestManager::clearUnresolved()
 {
-  for (preq_iter_t it = this->requests.begin(); it != this->requests.end(); it++) {
-    if ((clock() - it->second->created) / CLOCKS_PER_SEC > maxLifetimeSec) {
-      this->complete(it->second->getId());
+  while (true) {
+    std::this_thread::sleep_for(std::chrono::seconds(this->collectionInterval));
+    for (preq_iter_t it = this->requests.begin(); it != this->requests.end(); it++) {
+      if ((clock() - it->second->created) / CLOCKS_PER_SEC > this->requestLifetime) {
+        this->complete(it->second->getId());
+      }
     }
   }
 }

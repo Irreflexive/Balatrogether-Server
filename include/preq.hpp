@@ -1,6 +1,7 @@
 #ifndef BALATROGETHER_PREQ_H
 #define BALATROGETHER_PREQ_H
 
+#include <thread>
 #include "json.hpp"
 #include "player.hpp"
 
@@ -23,13 +24,16 @@ class PersistentRequest {
 
 class PersistentRequestManager {
   public:
+    PersistentRequestManager(int requestLifetime = 10, int collectionInterval = 60);
     ~PersistentRequestManager();
     PersistentRequest* create(player_t creator);
     PersistentRequest* getById(std::string requestId);
     void complete(std::string requestId);
-    void clearUnresolved(int maxLifetimeSec);
+    void clearUnresolved();
   private:
     std::unordered_map<std::string, PersistentRequest*> requests;
+    int requestLifetime;
+    int collectionInterval;
 };
 
 #endif
