@@ -30,6 +30,11 @@
 using std::string;
 using json = nlohmann::json;
 
+class Server;
+
+typedef Server* server_t;
+typedef EventListener<server_t>* server_listener_t;
+
 class Server {
   public:
     Server(int port);
@@ -103,8 +108,11 @@ class Server {
     // Getters
     network_t getNetworkManager();
     config_t getConfig();
+    server_listener_t getEventListener();
   private:
+    friend class NetworkEvent<server_t>;
     network_t net;
+    server_listener_t listener;
     client_list_t clients;
     std::mutex mutex;
     config_t config;

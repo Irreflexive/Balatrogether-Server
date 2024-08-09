@@ -1,6 +1,7 @@
 #include "util.hpp"
 #include "logs.hpp"
 #include "server.hpp"
+#include "events/server.hpp"
 
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
@@ -10,6 +11,7 @@ Server::Server(int port)
   this->game.versus = false;
   this->config = new Config;
   this->net = std::make_shared<NetworkManager>(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
+  this->listener = new EventListener<server_t>(this);
 
   logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
   logger::info("Starting server");
@@ -61,16 +63,21 @@ Server::Server(int port)
     logger::error("Failed to listen");
     exit(EXIT_FAILURE);
   }
+
+  this->listener->add(new JoinEvent);
+  this->listener->add(new StartRunEvent);
+  logger::info("Registered events");
 }
 
 // Cleans up the SSL context and other state
 Server::~Server()
 {
   logger::info("Shutting down server");
-  delete this->config;
   for (client_t c : this->clients) {
     this->disconnect(c);
   }
+  delete this->config;
+  delete this->listener;
   closesocket(this->sockfd);
 }
 
@@ -689,4 +696,9 @@ network_t Server::getNetworkManager()
 config_t Server::getConfig()
 {
   return this->config;
+}
+
+server_listener_t Server::getEventListener()
+{
+  return this->listener;
 }
