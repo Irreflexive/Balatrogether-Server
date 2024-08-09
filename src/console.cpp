@@ -74,7 +74,7 @@ class BanCommand : public Command {
     BanCommand() : Command("ban", {"id"}, "Disconnects a player and bans by their Steam ID") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
       console->execute("kick", args);
-      console->server->config.ban(args["id"]);
+      console->server->getConfig()->ban(args["id"]);
       logger::info("Player %s banned", args["id"].c_str());
     };
 };
@@ -83,7 +83,7 @@ class UnbanCommand : public Command {
   public:
     UnbanCommand() : Command("unban", {"id"}, "Remove a Steam ID from the ban list") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
-      console->server->config.unban(args["id"]);
+      console->server->getConfig()->unban(args["id"]);
       logger::info("Player %s unbanned", args["id"].c_str());
     };
 };
@@ -94,18 +94,18 @@ class WhitelistCommand : public Command {
     void execute(Console *console, std::unordered_map<string, string> args) {
       string subcommand = args["on/off/add/remove"];
       if (subcommand == "on") {
-        console->server->config.setWhitelistEnabled(true);
+        console->server->getConfig()->setWhitelistEnabled(true);
         logger::info("Whitelist enabled");
       } else if (subcommand == "off") {
-        console->server->config.setWhitelistEnabled(false);
+        console->server->getConfig()->setWhitelistEnabled(false);
         logger::info("Whitelist disabled");
       } else if (subcommand == "add" && args.size() >= 2) {
         steamid_t steamId = args["id"];
-        console->server->config.whitelist(steamId);
+        console->server->getConfig()->whitelist(steamId);
         logger::info("Added player %s to whitelist", steamId.c_str());
       } else if (subcommand == "remove" && args.size() >= 2) {
         steamid_t steamId = args["id"];
-        console->server->config.unwhitelist(steamId);
+        console->server->getConfig()->unwhitelist(steamId);
         logger::info("Removed player %s from whitelist", steamId.c_str());
       } else {
         logger::info("Usage: %s", this->getUsage().c_str());

@@ -1,5 +1,32 @@
 #include "logs.hpp"
+#include "encrypt.hpp"
 #include "network.hpp"
+
+NetworkManager::NetworkManager(bool ssl, bool outputKey)
+{
+  if (ssl) {
+    this->ssl_ctx = create_context();
+    configure_context(this->ssl_ctx, outputKey);
+  } else {
+    this->ssl_ctx = nullptr;
+  }
+}
+
+NetworkManager::~NetworkManager()
+{
+  if (this->ssl_ctx) SSL_CTX_free(this->ssl_ctx);
+}
+
+bool NetworkManager::handshake(client_t c)
+{
+  if (!this->ssl_ctx) return true;
+  SSL *ssl = SSL_new(this->ssl_ctx);
+  if (SSL_set_fd(ssl, c->getFd()) != 1) {
+    return false;
+  }
+  c->setSSL(ssl);
+  return SSL_accept(ssl) == 1;
+}
 
 // Sends a JSON object to the player
 void NetworkManager::send(client_list_t receivers, json payload)

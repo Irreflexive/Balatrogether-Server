@@ -11,10 +11,15 @@ using json = nlohmann::json;
 
 class NetworkManager {
   public:
+    NetworkManager(bool ssl, bool outputKey);
+    ~NetworkManager();
+    bool handshake(client_t c);
     void send(client_list_t receivers, json payload);
     json receive(client_t sender);
-  protected:
+  private:
     SSL_CTX* ssl_ctx = nullptr;
 };
+
+typedef std::shared_ptr<NetworkManager> network_t;
 
 #endif

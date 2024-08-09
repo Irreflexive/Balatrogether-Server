@@ -42,4 +42,6 @@ class Config {
     steamid_list_t whitelisted;
 };
 
+typedef Config* config_t;
+
 #endif
