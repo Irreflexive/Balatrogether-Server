@@ -30,90 +30,126 @@ void StartRunEvent::execute(server_t server, client_t client, json req)
 
 void HighlightCardEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
+  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+
+  string selectType = req["type"].get<string>();
+  int index = req["index"].get<int>();
+  server->highlight(client->getPlayer(), selectType, index);
 }
 
 void UnhighlightCardEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
+  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+
+  string selectType = req["type"].get<string>();
+  int index = req["index"].get<int>();
+  server->unhighlight(client->getPlayer(), selectType, index);
 }
 
 void UnhighlightAllEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->unhighlightAll(client->getPlayer());
 }
 
 void PlayHandEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->playHand(client->getPlayer());
 }
 
 void DiscardHandEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->discardHand(client->getPlayer());
 }
 
 void SortHandEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["type"].is_string()) throw std::invalid_argument("No sort type provided");
+
+  string sortType = req["type"].get<string>();
+  server->sortHand(client->getPlayer(), sortType);
 }
 
 void ReorderCardsEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
+  if (!req["from"].is_number_integer()) throw std::invalid_argument("No from index provided");
+  if (!req["to"].is_number_integer()) throw std::invalid_argument("No to index provided");
+
+  string selectType = req["type"].get<string>();
+  int from = req["from"].get<int>();
+  int to = req["to"].get<int>();
+  server->reorder(client->getPlayer(), selectType, from, to);
 }
 
 void SelectBlindEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->selectBlind(client->getPlayer());
 }
 
 void SkipBlindEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->skipBlind(client->getPlayer());
 }
 
 void SellCardEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
+  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+
+  string selectType = req["type"].get<string>();
+  int index = req["index"].get<int>();
+  server->sell(client->getPlayer(), selectType, index);
 }
 
 void BuyCardEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
+  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+
+  string selectType = req["type"].get<string>();
+  int index = req["index"].get<int>();
+  server->buy(client->getPlayer(), selectType, index);
 }
 
 void UseCardEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+
+  int index = req["index"].get<int>();
+  server->use(client->getPlayer(), index);
 }
 
 void BuyAndUseCardEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+
+  int index = req["index"].get<int>();
+  server->buyAndUse(client->getPlayer(), index);
 }
 
 void SkipBoosterEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->skipBooster(client->getPlayer());
 }
 
 void RerollEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->reroll(client->getPlayer());
 }
 
 void NextRoundEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->nextRound(client->getPlayer());
 }
 
 void GoToShopEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->goToShop(client->getPlayer());
 }
 
 void EndlessEvent::execute(server_t server, client_t client, json req)
 {
-  // TODO: implement
+  server->endless(client->getPlayer());
 }
