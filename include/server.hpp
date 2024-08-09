@@ -63,30 +63,6 @@ class Server {
     player_list_t getRemainingPlayers();
     player_list_t getEliminatedPlayers();
 
-    // Co-op network events
-    void endless(player_t sender);
-
-    void highlight(player_t sender, string selectType, int index);
-    void unhighlight(player_t sender, string selectType, int index);
-    void unhighlightAll(player_t sender);
-    void playHand(player_t sender);
-    void discardHand(player_t sender);
-    void sortHand(player_t sender, string sortType);
-    void reorder(player_t sender, string selectType, int from, int to);
-
-    void selectBlind(player_t sender);
-    void skipBlind(player_t sender);
-
-    void sell(player_t sender, string selectType, int index);
-    void use(player_t sender, int index);
-    void buy(player_t sender, string selectType, int index);
-    void buyAndUse(player_t sender, int index);
-    void skipBooster(player_t sender);
-
-    void reroll(player_t sender);
-    void nextRound(player_t sender);
-    void goToShop(player_t sender);
-
     // Versus network events
     void swapJokers(player_t sender, json jokers);
     void swapJokers(player_t sender, json jokers, string requestId);
