@@ -2,7 +2,7 @@
 #include "server.hpp"
 
 void client_thread(Server* server, client_t client) {
-  if (!server->handshake(client)) {
+  if (!server->getNetworkManager()->handshake(client)) {
     server->lock();
     logger::error("TLS handshake failed for %s", client->getIP().c_str());
     server->disconnect(client);
@@ -11,7 +11,7 @@ void client_thread(Server* server, client_t client) {
   }
 
   while (true) {
-    json req = server->receive(client);
+    json req = server->getNetworkManager()->receive(client);
     if (req == json() || !req["cmd"].is_string()) break;
 
     try {

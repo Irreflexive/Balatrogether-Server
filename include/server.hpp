@@ -30,13 +30,12 @@
 using std::string;
 using json = nlohmann::json;
 
-class Server : public NetworkManager {
+class Server {
   public:
     Server(int port);
     ~Server();
 
     void acceptClient();
-    bool handshake(client_t c);
     void join(client_t c);
     void disconnect(client_t c);
     bool hasAlreadyJoined(client_t c);
@@ -100,11 +99,15 @@ class Server : public NetworkManager {
     json toJSON();
     void lock();
     void unlock();
-    
-    Config config;
+
+    // Getters
+    network_t getNetworkManager();
+    config_t getConfig();
   private:
+    network_t net;
     client_list_t clients;
     std::mutex mutex;
+    config_t config;
     Game game;
     PersistentRequestManager persistentRequests;
     int sockfd;

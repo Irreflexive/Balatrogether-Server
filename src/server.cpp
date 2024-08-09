@@ -5,15 +5,13 @@
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
 {
+  srand(time(NULL));
   this->game.inGame = false;
   this->game.versus = false;
-  srand(time(NULL));
-  if (this->config.isTLSEnabled()) {
-    this->ssl_ctx = create_context();
-    configure_context(this->ssl_ctx, this->config.isDebugMode());
-  }
+  this->config = new Config;
+  this->net = std::make_shared<NetworkManager>(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
 
-  logger::setDebugOutputEnabled(this->config.isDebugMode());
+  logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
   logger::info("Starting server");
 
   this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -69,10 +67,7 @@ Server::Server(int port)
 Server::~Server()
 {
   logger::info("Shutting down server");
-  if (this->config.isTLSEnabled()) SSL_CTX_free(this->ssl_ctx);
-  this->game.eliminated.clear();
-  this->game.ready.clear();
-  this->game.scores.clear();
+  delete this->config;
   for (client_t c : this->clients) {
     this->disconnect(c);
   }
@@ -88,18 +83,6 @@ void Server::acceptClient()
   client_t client = new Client(clientfd, cli_addr);
   logger::info("Client from %s attempting to connect", client->getIP().c_str());
   std::thread(client_thread, this, client).detach();
-}
-
-// Completes the SSL handshake, returning true if it was successful
-bool Server::handshake(client_t c)
-{
-  if (!this->config.isTLSEnabled()) return true;
-  SSL *ssl = SSL_new(this->ssl_ctx);
-  if (SSL_set_fd(ssl, c->getFd()) != 1) {
-    return false;
-  }
-  c->setSSL(ssl);
-  return SSL_accept(ssl) == 1;
 }
 
 // Connects a player to the server if they are able
@@ -145,9 +128,9 @@ bool Server::hasAlreadyJoined(client_t c)
 bool Server::canJoin(client_t c)
 {
   if (this->isRunning()) return false;
-  if (this->config.getMaxPlayers() <= this->clients.size()) return false;
-  if (!this->config.isWhitelisted(c->getPlayer())) return false;
-  if (this->config.isBanned(c->getPlayer())) return false;
+  if (this->getConfig()->getMaxPlayers() <= this->clients.size()) return false;
+  if (!this->getConfig()->isWhitelisted(c->getPlayer())) return false;
+  if (this->getConfig()->isBanned(c->getPlayer())) return false;
   if (this->hasAlreadyJoined(c)) return false;
   return true;
 }
@@ -155,7 +138,7 @@ bool Server::canJoin(client_t c)
 // Sends a JSON object to the player
 void Server::sendToPlayer(client_t receiver, json payload)
 {
-  this->send({receiver}, payload);
+  this->net->send({receiver}, payload);
 }
 
 // Sends a JSON object to a random player, excluding the sender from consideration
@@ -171,7 +154,7 @@ void Server::sendToRandom(client_t sender, json payload)
   if (remainingPlayers.size() == 0) return;
   int randomIndex = rand() % remainingPlayers.size();
   client_t randomPlayer = remainingPlayers[randomIndex]->getClient();
-  this->send({randomPlayer}, payload);
+  this->net->send({randomPlayer}, payload);
 }
 
 // Sends a JSON object to all players besides the sender. If ignoreEliminated is true, will not send to eliminated players
@@ -182,7 +165,7 @@ void Server::sendToOthers(client_t sender, json payload, bool ignoreEliminated)
   for (player_t player : playerList) {
     if (player->getSteamId() != sender->getPlayer()->getSteamId()) clients.push_back(player->getClient());
   }
-  this->send(clients, payload);
+  this->net->send(clients, payload);
 }
 
 // Sends a JSON object to all players. If ignoreEliminated is true, will not send to eliminated players
@@ -193,13 +176,13 @@ void Server::broadcast(json payload, bool ignoreEliminated)
   for (player_t player : playerList) {
     clients.push_back(player->getClient());
   }
-  this->send(clients, payload);
+  this->net->send(clients, payload);
 }
 
 // Starts a run given a seed, deck, stake, and versus configuration
 void Server::start(player_t sender, string seed, string deck, int stake, bool versus)
 {
-  if (this->isRunning() || !this->isHost(sender) || (this->clients.size() <= 1 && !this->config.isDebugMode())) return;
+  if (this->isRunning() || !this->isHost(sender) || (this->clients.size() <= 1 && !this->getConfig()->isDebugMode())) return;
   if (!versus) {
     bool initialized = false;
     string unlockHash;
@@ -244,7 +227,7 @@ void Server::start(player_t sender, string seed, string deck, int stake, bool ve
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
-  if (this->config.isDebugMode()) data["debug"] = true;
+  if (this->getConfig()->isDebugMode()) data["debug"] = true;
   this->broadcast(success("START", data));
   if (versus) this->broadcast(success("STATE_INFO", this->getState()));
 }
@@ -672,7 +655,7 @@ json Server::getState() {
 // Returns a JSON object containing server info
 json Server::toJSON() {
   json server;
-  server["maxPlayers"] = this->config.getMaxPlayers();
+  server["maxPlayers"] = this->getConfig()->getMaxPlayers();
   server["inGame"] = this->isRunning();
 
   json playerIds = json::array();
@@ -694,4 +677,16 @@ void Server::lock()
 void Server::unlock()
 {
   this->mutex.unlock();
+}
+
+// Returns the internal network manager for the server
+network_t Server::getNetworkManager()
+{
+  return this->net;
+}
+
+// Returns the server config
+config_t Server::getConfig()
+{
+  return this->config;
 }
