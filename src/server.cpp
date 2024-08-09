@@ -2,6 +2,7 @@
 #include "logs.hpp"
 #include "server.hpp"
 #include "events/server.hpp"
+#include "events/coop.hpp"
 
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
