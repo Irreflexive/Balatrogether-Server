@@ -66,6 +66,24 @@ Server::Server(int port)
 
   this->listener->add(new JoinEvent);
   this->listener->add(new StartRunEvent);
+  this->listener->add(new HighlightCardEvent);
+  this->listener->add(new UnhighlightCardEvent);
+  this->listener->add(new UnhighlightAllEvent);
+  this->listener->add(new PlayHandEvent);
+  this->listener->add(new DiscardHandEvent);
+  this->listener->add(new SortHandEvent);
+  this->listener->add(new ReorderCardsEvent);
+  this->listener->add(new SelectBlindEvent);
+  this->listener->add(new SkipBlindEvent);
+  this->listener->add(new SellCardEvent);
+  this->listener->add(new BuyCardEvent);
+  this->listener->add(new UseCardEvent);
+  this->listener->add(new BuyAndUseCardEvent);
+  this->listener->add(new SkipBoosterEvent);
+  this->listener->add(new RerollEvent);
+  this->listener->add(new NextRoundEvent);
+  this->listener->add(new GoToShopEvent);
+  this->listener->add(new EndlessEvent);
   logger::info("Registered events");
 }
 
