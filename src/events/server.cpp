@@ -27,3 +27,93 @@ void StartRunEvent::execute(server_t server, client_t client, json req)
   bool versus = req["versus"].get<bool>();
   server->start(client->getPlayer(), seed, deck, stake, versus);
 }
+
+void HighlightCardEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void UnhighlightCardEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void UnhighlightAllEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void PlayHandEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void DiscardHandEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void SortHandEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void ReorderCardsEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void SelectBlindEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void SkipBlindEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void SellCardEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void BuyCardEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void UseCardEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void BuyAndUseCardEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void SkipBoosterEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void RerollEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void NextRoundEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void GoToShopEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
+
+void EndlessEvent::execute(server_t server, client_t client, json req)
+{
+  // TODO: implement
+}
