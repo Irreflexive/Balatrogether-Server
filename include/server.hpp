@@ -20,7 +20,6 @@
 #endif
 
 #include "json.hpp"
-#include "encrypt.hpp"
 #include "player.hpp"
 #include "game.hpp"
 #include "preq.hpp"
