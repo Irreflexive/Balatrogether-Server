@@ -13,6 +13,8 @@ class Config {
 
     int getMaxPlayers();
     void setMaxPlayers(int maxPlayers);
+    int getMaxLobbies();
+    void setMaxLobbies(int maxLobbies);
     bool isTLSEnabled();
     void setTLSEnabled(bool tlsEnabled);
     bool isDebugMode();
@@ -35,6 +37,7 @@ class Config {
   private:
     void save();
     int maxPlayers = 8;
+    int maxLobbies = 1;
     bool tlsEnabled = true;
     steamid_list_t banned;
     bool debugMode = false;

@@ -7,6 +7,7 @@ Config::Config()
   if (config_file) {
     json config = json::parse(config_file);
     if (config["max_players"].is_number_integer()) this->maxPlayers = config["max_players"].get<int>();
+    if (config["max_lobbies"].is_number_integer()) this->maxLobbies = config["max_lobbies"].get<int>();
     if (config["tls_enabled"].is_boolean()) this->tlsEnabled = config["tls_enabled"].get<bool>();
     if (config["banned_users"].is_array()) this->banned = config["banned_users"].get<steamid_list_t>();
     if (config["debug_mode"].is_boolean()) this->debugMode = config["debug_mode"].get<bool>();
@@ -31,6 +32,16 @@ void Config::setMaxPlayers(int maxPlayers)
 {
   this->maxPlayers = maxPlayers;
   save();
+}
+
+int Config::getMaxLobbies()
+{
+  return this->maxLobbies;
+}
+
+void Config::setMaxLobbies(int maxLobbies)
+{
+  this->maxLobbies = maxLobbies;
 }
 
 bool Config::isTLSEnabled()
@@ -151,6 +162,7 @@ void Config::save()
   FILE* config_file = fopen((getpath() + "/config.json").c_str(), "w");
   json config = {
     {"max_players", this->maxPlayers},
+    {"max_lobbies", this->maxLobbies},
     {"tls_enabled", this->tlsEnabled},
     {"banned_users", this->banned},
     {"debug_mode", this->debugMode},
