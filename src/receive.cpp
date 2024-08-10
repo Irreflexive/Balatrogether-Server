@@ -1,4 +1,4 @@
-#include "logs.hpp"
+#include "util.hpp"
 #include "server.hpp"
 
 void client_thread(Server* server, client_t client) {

@@ -2,7 +2,7 @@
 #define BALATROGETHER_NETWORK_H
 
 #include "preq.hpp"
-#include "logs.hpp"
+#include "util.hpp"
 #include "player.hpp"
 
 #define BUFFER_SIZE 65536
