@@ -14,6 +14,7 @@ Client::~Client()
     SSL_free(this->ssl);
     this->ssl = nullptr;
   }
+  if (this->player) this->player->client = nullptr;
 }
 
 int Client::getFd()

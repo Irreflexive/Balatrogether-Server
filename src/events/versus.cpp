@@ -3,7 +3,7 @@
 
 void SwapJokersEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
   if (!req["jokers"].is_array()) throw std::invalid_argument("No jokers provided");
 
   if (req["request_id"].is_string()) {
@@ -34,16 +34,16 @@ void SwapJokersEvent::execute(server_t server, client_t client, json req)
 
 void TheCupEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 
   json data;
-  data["money"] = server->getEliminatedPlayers().size() * 8;
+  data["money"] = server->getGame()->getEliminated().size() * 8;
   server->sendToPlayer(client, success("MONEY", data));
 }
 
 void GreenSealEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 
   json data;
   data["money"] = -1;
@@ -52,7 +52,7 @@ void GreenSealEvent::execute(server_t server, client_t client, json req)
 
 void EraserEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 
   json data;
   data["hand_size"] = -1;
@@ -61,7 +61,7 @@ void EraserEvent::execute(server_t server, client_t client, json req)
 
 void PaintBucketEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 
   json data;
   data["hand_size"] = -1;
@@ -70,7 +70,7 @@ void PaintBucketEvent::execute(server_t server, client_t client, json req)
 
 void GetCardsAndJokersEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 
   if (req["request_id"].is_string()) {
     if (!req["jokers"].is_array()) throw std::invalid_argument("No jokers provided");
@@ -93,7 +93,7 @@ void GetCardsAndJokersEvent::execute(server_t server, client_t client, json req)
     preqData["contributed"][client->getPlayer()->getSteamId()] = true;
     preq->setData(preqData);
 
-    for (player_t p : server->getRemainingPlayers()) {
+    for (player_t p : server->getGame()->getRemaining()) {
       if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
     }
     json randomCards = json::array();
@@ -119,7 +119,7 @@ void GetCardsAndJokersEvent::execute(server_t server, client_t client, json req)
     json data;
     data["request_id"] = preq->getId();
     server->sendToOthers(client, success("GET_CARDS_AND_JOKERS", data), true);
-    for (player_t p : server->getRemainingPlayers()) {
+    for (player_t p : server->getGame()->getRemaining()) {
       if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
     }
     server->sendToPlayer(client, success("GET_CARDS_AND_JOKERS", preqData["results"]));
@@ -129,15 +129,15 @@ void GetCardsAndJokersEvent::execute(server_t server, client_t client, json req)
 
 void ReadyForBossEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 }
 
 void EliminatedEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 }
 
 void DefeatedBossEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 }
