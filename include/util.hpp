@@ -11,4 +11,12 @@ json success(std::string cmd, json data);
 json success(std::string cmd);
 json error(std::string msg);
 
+namespace logger {
+  void setDebugOutputEnabled(bool enabled);
+
+  int info(std::string format, ...);
+  int debug(std::string format, ...);
+  int error(std::string format, ...);
+}
+
 #endif

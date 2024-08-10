@@ -1,5 +1,4 @@
 #include "util.hpp"
-#include "logs.hpp"
 #include "server.hpp"
 #include "events/server.hpp"
 #include "events/coop.hpp"
@@ -11,8 +10,8 @@ Server::Server(int port)
   this->game.inGame = false;
   this->game.versus = false;
 
-  this->net = std::make_shared<NetworkManager>(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
   this->config = new Config;
+  this->net = std::make_shared<NetworkManager>(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
   this->listener = new EventListener<server_t>(this);
   this->persistentRequests = new PersistentRequestManager;
 
