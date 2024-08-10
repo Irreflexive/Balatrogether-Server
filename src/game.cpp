@@ -62,6 +62,23 @@ player_list_t Game::getEliminated()
   return eliminated;
 }
 
+player_t Game::getRandomPlayer()
+{
+  player_list_t options = this->getRemaining();
+  if (options.size() == 0) return nullptr;
+  return options.at(rand() % options.size());
+}
+
+player_t Game::getRandomPlayer(player_t exclude)
+{
+  player_list_t options;
+  for (player_t p : this->getRemaining()) {
+    if (p->getSteamId() != exclude->getSteamId()) options.push_back(p);
+  }
+  if (options.size() == 0) return nullptr;
+  return options.at(rand() % options.size());
+}
+
 bool Game::isEliminated(player_t p)
 {
   return this->eliminated.find(p) != this->eliminated.end();

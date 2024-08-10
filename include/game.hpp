@@ -23,6 +23,8 @@ class Game {
     player_list_t getPlayers();
     player_list_t getRemaining();
     player_list_t getEliminated();
+    player_t getRandomPlayer();
+    player_t getRandomPlayer(player_t exclude);
 
     bool isEliminated(player_t p);
     void eliminate(player_t p);
