@@ -10,9 +10,11 @@ Server::Server(int port)
   srand(time(NULL));
   this->game.inGame = false;
   this->game.versus = false;
-  this->config = new Config;
+
   this->net = std::make_shared<NetworkManager>(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
+  this->config = new Config;
   this->listener = new EventListener<server_t>(this);
+  this->persistentRequests = new PersistentRequestManager;
 
   logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
   logger::info("Starting server");
@@ -97,6 +99,7 @@ Server::~Server()
   }
   delete this->config;
   delete this->listener;
+  delete this->persistentRequests;
   closesocket(this->sockfd);
 }
 
@@ -326,121 +329,6 @@ player_list_t Server::getEliminatedPlayers() {
   return this->game.eliminated;
 }
 
-// Initiate an exchange with a random opponent to swap jokers
-void Server::swapJokers(player_t sender, json jokers)
-{
-  if (!this->isVersus()) return;
-  PersistentRequest* preq = this->persistentRequests.create(sender);
-  json data;
-  data["jokers"] = jokers;
-  for (json joker : jokers) {
-    if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
-  }
-  data["request_id"] = preq->getId();
-  this->sendToRandom(sender->getClient(), success("SWAP_JOKERS", data));
-}
-
-// Complete a previously initiated request to swap jokers, sending the opponents's jokers to the original player
-void Server::swapJokers(player_t sender, json jokers, string requestId)
-{
-  if (!this->isVersus()) return;
-  json data;
-  data["jokers"] = jokers;
-  for (json joker : jokers) {
-    if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
-  }
-  PersistentRequest* preq = this->persistentRequests.getById(requestId);
-  if (!preq) return;
-  this->sendToPlayer(preq->getCreator()->getClient(), success("SWAP_JOKERS", data));
-  this->persistentRequests.complete(requestId);
-}
-
-// Changes a player's money by `change` amount
-void Server::changeMoney(player_t sender, int change)
-{
-  if (!this->isVersus()) return;
-  json data;
-  data["money"] = change;
-  this->sendToPlayer(sender->getClient(), success("MONEY", data));
-}
-
-// Changes opponents' money by `change` amount
-void Server::changeOthersMoney(player_t sender, int change)
-{
-  if (!this->isVersus()) return;
-  json data;
-  data["money"] = change;
-  this->sendToOthers(sender->getClient(), success("MONEY", data), true);
-}
-
-// Changes opponents (or a random player's) hand size by `change`
-void Server::changeHandSize(player_t sender, int change, bool chooseRandom)
-{
-  if (!this->isVersus()) return;
-  json data;
-  data["hand_size"] = change;
-  if (chooseRandom) {
-    this->sendToRandom(sender->getClient(), success("HAND_SIZE", data));
-  } else {
-    this->sendToOthers(sender->getClient(), success("HAND_SIZE", data), true);
-  }
-}
-
-// Initiates a request to determine all opponents' playing cards and jokers
-void Server::getCardsAndJokers(player_t sender)
-{
-  if (!this->isVersus()) return;
-  PersistentRequest* preq = this->persistentRequests.create(sender);
-  json preqData;
-  preqData["contributed"] = json::object();
-  preqData["contributed"][sender->getSteamId()] = true;
-  preqData["results"] = json::object();
-  preqData["results"]["jokers"] = json::array();
-  preqData["results"]["cards"] = json::array();
-  preq->setData(preqData);
-  json data;
-  data["request_id"] = preq->getId();
-  this->sendToOthers(sender->getClient(), success("GET_CARDS_AND_JOKERS", data), true);
-  for (player_t p : this->getRemainingPlayers()) {
-    if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
-  }
-  this->sendToPlayer(preq->getCreator()->getClient(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
-  this->persistentRequests.complete(preq->getId());
-}
-
-// An opponents' response to a request to retrieve playing cards and jokers
-void Server::getCardsAndJokers(player_t sender, json jokers, json cards, string requestId)
-{
-  if (!this->isVersus()) return;
-  PersistentRequest* preq = this->persistentRequests.getById(requestId);
-  if (!preq) return;
-  json preqData = preq->getData();
-  if (preqData["contributed"][sender->getSteamId()].get<bool>()) return;
-  preqData["contributed"][sender->getSteamId()] = true;
-  for (json joker : jokers) {
-    if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
-    preqData["results"]["jokers"].push_back(joker);
-  }
-  for (json card : cards) {
-    if (card["k"].is_null()) throw std::invalid_argument("No card key");
-    preqData["results"]["cards"].push_back(card);
-  }
-  preq->setData(preqData);
-  for (player_t p : this->getRemainingPlayers()) {
-    if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
-  }
-  json randomCards = json::array();
-  for (int i = 0; i < 20; i++) {
-    if (preqData["results"]["cards"].size() == 0) break;
-    size_t cardIndex = rand() % preqData["results"]["cards"].size();
-    randomCards.push_back(preqData["results"]["cards"].at(cardIndex));
-    preqData["results"]["cards"].erase(cardIndex);
-  }
-  preqData["results"]["cards"] = randomCards;
-  this->sendToPlayer(preq->getCreator()->getClient(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
-  this->persistentRequests.complete(preq->getId());
-}
-
 // Triggers when the player has selected a versus boss blind. Starts the boss when all remaining players are ready
 void Server::readyForBoss(player_t sender)
 {
@@ -572,4 +460,9 @@ config_t Server::getConfig()
 server_listener_t Server::getEventListener()
 {
   return this->listener;
+}
+
+PersistentRequestManager *Server::getPersistentRequestManager()
+{
+  return this->persistentRequests;
 }
