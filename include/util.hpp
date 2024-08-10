@@ -6,21 +6,21 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <string>
-#include "json.hpp"
+#include "types.hpp"
 
-using json = nlohmann::json;
+using namespace Balatrogether;
 
-std::string getpath();
-json success(std::string cmd, json data);
-json success(std::string cmd);
-json error(std::string msg);
+string getpath();
+json success(string cmd, json data);
+json success(string cmd);
+json error(string msg);
 
 namespace logger {
   void setDebugOutputEnabled(bool enabled);
 
-  int info(std::string format, ...);
-  int debug(std::string format, ...);
-  int error(std::string format, ...);
+  int info(string format, ...);
+  int debug(string format, ...);
+  int error(string format, ...);
 }
 
 namespace ssl {

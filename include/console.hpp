@@ -1,11 +1,13 @@
 #ifndef BALATROGETHER_CONSOLE_H
 #define BALATROGETHER_CONSOLE_H
 
+#include "types.hpp"
+
+using namespace Balatrogether;
+
 #include "server.hpp"
 
-struct Console;
-
-class Command {
+class Balatrogether::Command {
   public:
     Command(string name, std::vector<string> params, string desc, int num_optional = 0);
     string getUsage();
@@ -18,7 +20,7 @@ class Command {
     string desc;
 };
 
-struct Console {
+struct Balatrogether::Console {
   Console(server_t server);
   ~Console();
   bool process(Command *command, string input);

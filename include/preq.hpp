@@ -1,43 +1,37 @@
 #ifndef BALATROGETHER_PREQ_H
 #define BALATROGETHER_PREQ_H
 
-#include <thread>
-#include "json.hpp"
+#include "types.hpp"
+
+using namespace Balatrogether;
+
 #include "player.hpp"
 
-using json = nlohmann::json;
-
-class PersistentRequest;
-class PersistentRequestManager;
-
-typedef PersistentRequest* preq_t;
-typedef PersistentRequestManager* preq_manager_t;
-
-class PersistentRequest {
+class Balatrogether::PersistentRequest {
   public:
-    std::string getId();
+    string getId();
     player_t getCreator();
     json getData();
     void setData(json data);
   private:
     friend class PersistentRequestManager;
     PersistentRequest(player_t creator);
-    std::string id;
+    string id;
     player_t original;
     json data;
     clock_t created;
 };
 
-class PersistentRequestManager {
+class Balatrogether::PersistentRequestManager {
   public:
     PersistentRequestManager(int requestLifetime = 10, int collectionInterval = 60);
     ~PersistentRequestManager();
     PersistentRequest* create(player_t creator);
-    PersistentRequest* getById(std::string requestId);
-    void complete(std::string requestId);
+    PersistentRequest* getById(string requestId);
+    void complete(string requestId);
     void clearUnresolved();
   private:
-    std::unordered_map<std::string, PersistentRequest*> requests;
+    std::unordered_map<string, preq_t> requests;
     int requestLifetime;
     int collectionInterval;
 };

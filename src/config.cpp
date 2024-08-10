@@ -1,5 +1,5 @@
-#include "config.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 Config::Config()
 {

@@ -1,16 +1,16 @@
 #ifndef BALATROGETHER_NETWORK_H
 #define BALATROGETHER_NETWORK_H
 
-#include "preq.hpp"
+#include "types.hpp"
 #include "util.hpp"
-#include "player.hpp"
 
 #define BUFFER_SIZE 65536
 
-using std::string;
-using json = nlohmann::json;
+using namespace Balatrogether;
 
-class NetworkManager {
+#include "player.hpp"
+
+class Balatrogether::NetworkManager {
   public:
     NetworkManager(bool ssl, bool outputKey);
     ~NetworkManager();
@@ -21,10 +21,8 @@ class NetworkManager {
     SSL_CTX* ssl_ctx = nullptr;
 };
 
-typedef NetworkManager* network_t;
-
 template <class T>
-class NetworkEvent {
+class Balatrogether::NetworkEvent {
   public:
     NetworkEvent(string command);
     string getCommand();
@@ -34,7 +32,7 @@ class NetworkEvent {
 };
 
 template <class T>
-class EventListener {
+class Balatrogether::EventListener {
   public:
     EventListener(T object);
     void add(NetworkEvent<T> *event);

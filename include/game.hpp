@@ -1,16 +1,13 @@
 #ifndef BALATROGETHER_GAME_H
 #define BALATROGETHER_GAME_H
 
-#include <unordered_map>
-#include "json.hpp"
+#include "types.hpp"
+
+using namespace Balatrogether;
+
 #include "player.hpp"
 
-using json = nlohmann::json;
-
-typedef std::pair<player_t, double> score_t;
-typedef std::vector<score_t> leaderboard_t;
-
-class Game {
+class Balatrogether::Game {
   public:
     Game();
 
