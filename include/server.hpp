@@ -64,13 +64,6 @@ class Server {
     player_list_t getEliminatedPlayers();
 
     // Versus network events
-    void swapJokers(player_t sender, json jokers);
-    void swapJokers(player_t sender, json jokers, string requestId);
-    void changeMoney(player_t sender, int change);
-    void changeOthersMoney(player_t sender, int change);
-    void changeHandSize(player_t sender, int change, bool chooseRandom);
-    void getCardsAndJokers(player_t sender);
-    void getCardsAndJokers(player_t sender, json jokers, json cards, string requestId);
     void readyForBoss(player_t sender);
     void eliminate(player_t p);
     void defeatedBoss(player_t p, double score);
@@ -85,6 +78,7 @@ class Server {
     network_t getNetworkManager();
     config_t getConfig();
     server_listener_t getEventListener();
+    PersistentRequestManager *getPersistentRequestManager();
   private:
     friend class NetworkEvent<server_t>;
     network_t net;
@@ -92,8 +86,8 @@ class Server {
     client_list_t clients;
     std::mutex mutex;
     config_t config;
+    PersistentRequestManager* persistentRequests;
     Game game;
-    PersistentRequestManager persistentRequests;
     int sockfd;
 };
 
