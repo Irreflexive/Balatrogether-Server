@@ -7,6 +7,12 @@
 
 using json = nlohmann::json;
 
+class PersistentRequest;
+class PersistentRequestManager;
+
+typedef PersistentRequest* preq_t;
+typedef PersistentRequestManager* preq_manager_t;
+
 class PersistentRequest {
   public:
     std::string getId();

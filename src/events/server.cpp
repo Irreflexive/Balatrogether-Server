@@ -26,5 +26,5 @@ void StartRunEvent::execute(server_t server, client_t client, json req)
   string deck = req["deck"].get<string>();
   int stake = req["stake"].get<int>();
   bool versus = req["versus"].get<bool>();
-  server->start(client->getPlayer(), seed, deck, stake, versus);
+  server->start(client, seed, deck, stake, versus);
 }

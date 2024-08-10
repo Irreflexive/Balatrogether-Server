@@ -52,16 +52,11 @@ class Server {
     void broadcast(json payload, bool ignoreEliminated = false);
 
     // Game state methods
-    void start(player_t sender, string seed, string deck, int stake, bool versus);
+    void start(client_t sender, string seed, string deck, int stake, bool versus);
     void stop();
-    bool isRunning();
-    bool isVersus();
-    bool isCoop();
-    bool isHost(player_t p);
-    player_t getHost();
-    player_list_t getPlayers();
-    player_list_t getRemainingPlayers();
-    player_list_t getEliminatedPlayers();
+    bool isHost(client_t c);
+    client_t getHost();
+    client_list_t getClients();
 
     // Versus network events
     void readyForBoss(player_t sender);
@@ -78,16 +73,16 @@ class Server {
     network_t getNetworkManager();
     config_t getConfig();
     server_listener_t getEventListener();
-    PersistentRequestManager *getPersistentRequestManager();
+    preq_manager_t getPersistentRequestManager();
+    game_t getGame();
   private:
-    friend class NetworkEvent<server_t>;
     network_t net;
     server_listener_t listener;
     client_list_t clients;
     std::mutex mutex;
     config_t config;
-    PersistentRequestManager* persistentRequests;
-    Game game;
+    preq_manager_t persistentRequests;
+    game_t game;
     int sockfd;
 };
 

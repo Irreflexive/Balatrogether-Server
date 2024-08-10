@@ -21,7 +21,7 @@ class NetworkManager {
     SSL_CTX* ssl_ctx = nullptr;
 };
 
-typedef std::shared_ptr<NetworkManager> network_t;
+typedef NetworkManager* network_t;
 
 template <class T>
 class NetworkEvent {

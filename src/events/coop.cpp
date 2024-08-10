@@ -3,7 +3,7 @@
 
 void HighlightCardEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
   if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
 
@@ -15,7 +15,7 @@ void HighlightCardEvent::execute(server_t server, client_t client, json req)
 
 void UnhighlightCardEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
   if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
 
@@ -27,28 +27,28 @@ void UnhighlightCardEvent::execute(server_t server, client_t client, json req)
 
 void UnhighlightAllEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->sendToOthers(client, success("UNHIGHLIGHT_ALL"));
 }
 
 void PlayHandEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("PLAY_HAND"));
 }
 
 void DiscardHandEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("DISCARD_HAND"));
 }
 
 void SortHandEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["type"].is_string()) throw std::invalid_argument("No sort type provided");
   string sortType = req["type"].get<string>();
   if (sortType != "suit" && sortType != "value") throw std::invalid_argument("Invalid sort type");
@@ -60,7 +60,7 @@ void SortHandEvent::execute(server_t server, client_t client, json req)
 
 void ReorderCardsEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
   if (!req["from"].is_number_integer()) throw std::invalid_argument("No from index provided");
   if (!req["to"].is_number_integer()) throw std::invalid_argument("No to index provided");
@@ -74,21 +74,21 @@ void ReorderCardsEvent::execute(server_t server, client_t client, json req)
 
 void SelectBlindEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("SELECT_BLIND"));
 }
 
 void SkipBlindEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("SKIP_BLIND"));
 }
 
 void SellCardEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
   if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
 
@@ -100,7 +100,7 @@ void SellCardEvent::execute(server_t server, client_t client, json req)
 
 void BuyCardEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
   if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
 
@@ -112,7 +112,7 @@ void BuyCardEvent::execute(server_t server, client_t client, json req)
 
 void UseCardEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
 
   json data;
@@ -122,7 +122,7 @@ void UseCardEvent::execute(server_t server, client_t client, json req)
 
 void BuyAndUseCardEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
   if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
 
   json data;
@@ -132,35 +132,35 @@ void BuyAndUseCardEvent::execute(server_t server, client_t client, json req)
 
 void SkipBoosterEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("SKIP_BOOSTER"));
 }
 
 void RerollEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("REROLL"));
 }
 
 void NextRoundEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("NEXT_ROUND"));
 }
 
 void GoToShopEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("GO_TO_SHOP"));
 }
 
 void EndlessEvent::execute(server_t server, client_t client, json req)
 {
-  if (!server->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!server->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
 
   server->broadcast(success("ENDLESS"));
 }
