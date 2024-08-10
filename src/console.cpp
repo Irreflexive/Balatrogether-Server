@@ -113,7 +113,7 @@ class WhitelistCommand : public Command {
     };
 };
 
-Console::Console(Server *server)
+Console::Console(server_t server)
 {
   this->server = server;
   this->commands.push_back(new HelpCommand);

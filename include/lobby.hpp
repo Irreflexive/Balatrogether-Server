@@ -8,7 +8,7 @@
 class Lobby {
   public:
   private:
-    Server* server;
+    server_t server;
     client_list_t clients;
     Game game;
     PersistentRequestManager persistentRequests;
