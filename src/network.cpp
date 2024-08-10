@@ -1,11 +1,10 @@
-#include "encrypt.hpp"
 #include "network.hpp"
 
 NetworkManager::NetworkManager(bool ssl, bool outputKey)
 {
   if (ssl) {
-    this->ssl_ctx = create_context();
-    configure_context(this->ssl_ctx, outputKey);
+    this->ssl_ctx = ssl::create_context();
+    ssl::configure_context(this->ssl_ctx, outputKey);
   } else {
     this->ssl_ctx = nullptr;
   }
