@@ -19,11 +19,11 @@ class Command {
 };
 
 struct Console {
-  Console(Server *server);
+  Console(server_t server);
   ~Console();
   bool process(Command *command, string input);
   void execute(string cmd, std::unordered_map<string, string> args);
-  Server *server;
+  server_t server;
   std::vector<Command*> commands;
 };
 

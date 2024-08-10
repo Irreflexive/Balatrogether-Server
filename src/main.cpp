@@ -8,7 +8,7 @@
 Console* console;
 
 int main() {
-  Server* server = new Server(PORT);
+  server_t server = new Server(PORT);
   logger::info("Balatrogether is listening on port %i", PORT);
 
   console = new Console(server);

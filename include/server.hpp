@@ -83,6 +83,6 @@ class Server {
     int sockfd;
 };
 
-void client_thread(Server *server, client_t client);
+void client_thread(server_t server, client_t client);
 
 #endif

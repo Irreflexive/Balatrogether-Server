@@ -392,7 +392,7 @@ game_t Server::getGame()
 }
 
 // Processes incoming client packets, executing the correct event handler
-void client_thread(Server* server, client_t client) {
+void client_thread(server_t server, client_t client) {
   if (!server->getNetworkManager()->handshake(client)) {
     server->lock();
     logger::error("TLS handshake failed for %s", client->getIP().c_str());
