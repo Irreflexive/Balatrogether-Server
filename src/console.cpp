@@ -40,6 +40,7 @@ class PlayerListCommand : public Command {
     void execute(Console *console, std::unordered_map<string, string> args) {
       logger::info("%d player(s) connected", console->server->getClients().size());
       for (client_t c : console->server->getClients()) {
+        if (!c->getPlayer()) continue;
         logger::info(c->getPlayer()->getSteamId());
       }
     };
@@ -49,7 +50,6 @@ class StopCommand : public Command {
   public:
     StopCommand() : Command("stop", {}, "Immediately shutdown the server") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
-      console->server->stop();
       delete console->server;
       delete console;
       exit(0);
@@ -61,6 +61,7 @@ class KickCommand : public Command {
     KickCommand() : Command("kick", {"id"}, "Disconnects a player from the server by their Steam ID") {};
     void execute(Console *console, std::unordered_map<string, string> args) {
       for (client_t c : console->server->getClients()) {
+        if (!c->getPlayer()) continue;
         if (args["id"] == c->getPlayer()->getSteamId()) {
           console->server->disconnect(c);
           logger::info("Player %s kicked", args["id"].c_str());

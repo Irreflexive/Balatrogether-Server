@@ -19,67 +19,51 @@
   #define closesocket close
 #endif
 
-#include "json.hpp"
+#include "types.hpp"
+
+using namespace Balatrogether;
+
+#include "network.hpp"
 #include "player.hpp"
-#include "game.hpp"
+#include "lobby.hpp"
 #include "preq.hpp"
 #include "config.hpp"
-#include "network.hpp"
 
-using std::string;
-using json = nlohmann::json;
-
-class Server;
-
-typedef Server* server_t;
-typedef EventListener<server_t>* server_listener_t;
-
-class Server {
+class Balatrogether::Server {
   public:
     Server(int port);
     ~Server();
 
     void acceptClient();
-    void join(client_t c);
+
+    bool canConnect(client_t c);
+    void connect(client_t c, steamid_t steamId, string unlockHash);
     void disconnect(client_t c);
-    bool hasAlreadyJoined(client_t c);
-    bool canJoin(client_t c);
 
-    void sendToPlayer(client_t receiver, json payload);
-    void sendToRandom(client_t sender, json payload);
-    void sendToOthers(client_t sender, json payload, bool ignoreEliminated = false);
-    void broadcast(json payload, bool ignoreEliminated = false);
-
-    // Game state methods
-    void start(client_t sender, string seed, string deck, int stake, bool versus);
-    void stop();
-    bool isHost(client_t c);
-    client_t getHost();
-    client_list_t getClients();
-
-    // Versus network events
-    void eliminate(player_t p);
+    lobby_t createLobby();
+    std::vector<string> getLobbyCodes();
+    lobby_t getLobby();
+    lobby_t getLobby(string code);
+    void deleteLobby(lobby_t lobby);
 
     // State management
-    json getState();
-    json toJSON();
     void lock();
     void unlock();
 
     // Getters
+    client_list_t getClients();
     network_t getNetworkManager();
     config_t getConfig();
     server_listener_t getEventListener();
     preq_manager_t getPersistentRequestManager();
-    game_t getGame();
   private:
     network_t net;
     server_listener_t listener;
     client_list_t clients;
+    lobby_list_t lobbies;
     std::mutex mutex;
     config_t config;
     preq_manager_t persistentRequests;
-    game_t game;
     int sockfd;
 };
 
