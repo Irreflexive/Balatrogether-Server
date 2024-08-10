@@ -373,21 +373,25 @@ config_t Server::getConfig()
   return this->config;
 }
 
+// Returns the network event listener object
 server_listener_t Server::getEventListener()
 {
   return this->listener;
 }
 
-PersistentRequestManager *Server::getPersistentRequestManager()
+// Returns the persistent request manager
+preq_manager_t Server::getPersistentRequestManager()
 {
   return this->persistentRequests;
 }
 
+// Returns the game state object
 game_t Server::getGame()
 {
   return this->game;
 }
 
+// Processes incoming client packets, executing the correct event handler
 void client_thread(Server* server, client_t client) {
   if (!server->getNetworkManager()->handshake(client)) {
     server->lock();

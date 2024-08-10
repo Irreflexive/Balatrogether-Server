@@ -16,6 +16,7 @@ NetworkManager::~NetworkManager()
   if (this->ssl_ctx) SSL_CTX_free(this->ssl_ctx);
 }
 
+// Completes the SSL handshake with a client
 bool NetworkManager::handshake(client_t c)
 {
   if (!this->ssl_ctx) return true;
@@ -27,7 +28,7 @@ bool NetworkManager::handshake(client_t c)
   return SSL_accept(ssl) == 1;
 }
 
-// Sends a JSON object to the player
+// Sends a JSON object to a list of clients
 void NetworkManager::send(client_list_t receivers, json payload)
 {
   char buffer[BUFFER_SIZE];
@@ -46,7 +47,7 @@ void NetworkManager::send(client_list_t receivers, json payload)
   }
 }
 
-// Receive JSON from a player. Returns a null json object if parsing fails or the client has disconnected
+// Receive JSON from a client. Returns a null json object if parsing fails or the client has disconnected
 json NetworkManager::receive(client_t sender)
 {
   char buffer[BUFFER_SIZE];
