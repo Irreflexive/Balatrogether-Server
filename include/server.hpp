@@ -59,9 +59,7 @@ class Server {
     client_list_t getClients();
 
     // Versus network events
-    void readyForBoss(player_t sender);
     void eliminate(player_t p);
-    void defeatedBoss(player_t p, double score);
 
     // State management
     json getState();

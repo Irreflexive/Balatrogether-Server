@@ -130,14 +130,31 @@ void GetCardsAndJokersEvent::execute(server_t server, client_t client, json req)
 void ReadyForBossEvent::execute(server_t server, client_t client, json req)
 {
   if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
+
+  server->getGame()->prepareForBoss(client->getPlayer());
+  if (server->getGame()->isBossReady()) {
+    server->getGame()->setBossPhaseEnabled(true);
+    server->broadcast(success("START_BOSS"), true);
+  }
 }
 
 void EliminatedEvent::execute(server_t server, client_t client, json req)
 {
   if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
+
+  server->eliminate(client->getPlayer());
 }
 
 void DefeatedBossEvent::execute(server_t server, client_t client, json req)
 {
   if (!server->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
+  if (!req["score"].is_number_float()) throw std::runtime_error("No score provided");
+
+  server->getGame()->addScore(client->getPlayer(), req["score"].get<double>());
+  if (server->getGame()->isScoringFinished()) {
+    json data;
+    data["leaderboard"] = server->getGame()->getLeaderboard();
+    server->getGame()->setBossPhaseEnabled(false);
+    server->broadcast(success("LEADERBOARD", data), true);
+  }
 }

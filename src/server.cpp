@@ -2,6 +2,7 @@
 #include "server.hpp"
 #include "events/server.hpp"
 #include "events/coop.hpp"
+#include "events/versus.hpp"
 
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
@@ -66,6 +67,7 @@ Server::Server(int port)
 
   this->listener->add(new JoinEvent);
   this->listener->add(new StartRunEvent);
+
   this->listener->add(new HighlightCardEvent);
   this->listener->add(new UnhighlightCardEvent);
   this->listener->add(new UnhighlightAllEvent);
@@ -84,6 +86,17 @@ Server::Server(int port)
   this->listener->add(new NextRoundEvent);
   this->listener->add(new GoToShopEvent);
   this->listener->add(new EndlessEvent);
+
+  this->listener->add(new SwapJokersEvent);
+  this->listener->add(new TheCupEvent);
+  this->listener->add(new GreenSealEvent);
+  this->listener->add(new EraserEvent);
+  this->listener->add(new PaintBucketEvent);
+  this->listener->add(new GetCardsAndJokersEvent);
+  this->listener->add(new ReadyForBossEvent);
+  this->listener->add(new EliminatedEvent);
+  this->listener->add(new DefeatedBossEvent);
+
   logger::info("Registered events");
 }
 
@@ -223,7 +236,7 @@ void Server::broadcast(json payload, bool ignoreEliminated)
 // Starts a run given a seed, deck, stake, and versus configuration
 void Server::start(client_t client, string seed, string deck, int stake, bool versus)
 {
-  if (this->getGame()->isRunning() || !this->isHost(client) || (this->clients.size() <= 1 && !this->getConfig()->isDebugMode())) return;
+  if (this->getGame()->isRunning() || !this->isHost(client) || (this->getClients().size() <= 1 && !this->getConfig()->isDebugMode())) return;
   if (!versus) {
     bool initialized = false;
     string unlockHash;
@@ -299,16 +312,6 @@ client_list_t Server::getClients()
   return clients;
 }
 
-// Triggers when the player has selected a versus boss blind. Starts the boss when all remaining players are ready
-void Server::readyForBoss(player_t sender)
-{
-  this->getGame()->prepareForBoss(sender);
-  if (this->getGame()->isBossReady()) {
-    this->getGame()->setBossPhaseEnabled(true);
-    this->broadcast(success("START_BOSS"), true);
-  }
-}
-
 // Eliminates a player from the run. If only one remains after, they are declared the winner
 void Server::eliminate(player_t p)
 {
@@ -321,19 +324,6 @@ void Server::eliminate(player_t p)
     this->getGame()->reset();
   } else {
     this->broadcast(success("STATE_INFO", this->getState()));
-  }
-}
-
-// Triggered when a player has defeated a versus boss blind. Sends the leaderboard once all players are done
-void Server::defeatedBoss(player_t p, double score)
-{
-  if (!this->getGame()->isVersus()) return;
-  this->getGame()->addScore(p, score);
-  if (this->getGame()->isScoringFinished()) {
-    json data;
-    data["leaderboard"] = this->getGame()->getLeaderboard();
-    this->getGame()->setBossPhaseEnabled(false);
-    this->broadcast(success("LEADERBOARD", data), true);
   }
 }
 
@@ -396,4 +386,31 @@ PersistentRequestManager *Server::getPersistentRequestManager()
 game_t Server::getGame()
 {
   return this->game;
+}
+
+void client_thread(Server* server, client_t client) {
+  if (!server->getNetworkManager()->handshake(client)) {
+    server->lock();
+    logger::error("TLS handshake failed for %s", client->getIP().c_str());
+    server->disconnect(client);
+    server->unlock();
+    return;
+  }
+
+  while (true) {
+    json req = server->getNetworkManager()->receive(client);
+    if (req == json() || !req["cmd"].is_string()) break;
+
+    server->lock();
+    bool success = server->getEventListener()->process(client, req);
+    server->unlock();
+
+    if (!success) break;
+  }
+
+  server->lock();
+  string ip = client->getIP();
+  server->disconnect(client);
+  logger::info("Client from %s disconnected", ip.c_str());
+  server->unlock();
 }
