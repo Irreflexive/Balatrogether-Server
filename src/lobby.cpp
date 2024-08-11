@@ -159,11 +159,10 @@ json Lobby::getJSON()
 {
   json data;
   data["players"] = json::array();
-  data["maxPlayers"] = this->getServer()->getConfig()->getMaxPlayers();
-
   for (client_t c : this->getClients()) {
     data["players"].push_back(c->getPlayer()->getSteamId());
   }
-
+  data["maxPlayers"] = this->getServer()->getConfig()->getMaxPlayers();
+  if (this != this->getServer()->getDefaultLobby()) data["code"] = this->getCode();
   return data;
 }

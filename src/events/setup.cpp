@@ -9,14 +9,32 @@ void JoinEvent::execute(server_t server, client_t client, json req)
   string steamId = req["steam_id"].get<string>();
   string unlockHash = req["unlock_hash"].get<string>();
   server->connect(client, steamId, unlockHash);
-  if (server->getConfig()->getMaxLobbies() == 1) {
-    lobby_t defaultLobby = server->getLobby();
-    if (!defaultLobby) defaultLobby = server->createLobby();
+  lobby_t defaultLobby = server->getDefaultLobby();
+  if (defaultLobby) {
     defaultLobby->add(client);
   } else {
     json data = server->getLobbyCodes();
     server->getNetworkManager()->send({client}, success("LOBBIES", data));
   }
+}
+
+void CreateLobbyEvent::execute(server_t server, client_t client, json req)
+{
+  if (server->getDefaultLobby() || server->getLobbyCodes().size() >= server->getConfig()->getMaxLobbies()) throw std::runtime_error("Cannot create lobby");
+
+  lobby_t lobby = server->createLobby();
+  lobby->add(client);
+}
+
+void JoinLobbyEvent::execute(server_t server, client_t client, json req)
+{
+  if (server->getDefaultLobby()) throw std::runtime_error("Cannot join by code");
+  if (!req["code"].is_string()) throw std::invalid_argument("No code provided");
+
+  lobby_t lobby = server->getLobby(req["code"].get<string>());
+  if (!lobby) throw std::invalid_argument("No lobby found");
+
+  lobby->add(client);
 }
 
 void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
