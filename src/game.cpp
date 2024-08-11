@@ -2,14 +2,13 @@
 
 Game::Game()
 {
-  this->inGame = false;
+  this->setState(NOT_RUNNING);
   this->versus = false;
-  this->bossPhase = false;
 }
 
 bool Game::isRunning()
 {
-  return this->inGame;
+  return this->getState() != NOT_RUNNING;
 }
 
 bool Game::isVersus()
@@ -24,8 +23,7 @@ bool Game::isCoop()
 
 void Game::reset()
 {
-  this->inGame = false;
-  this->bossPhase = false;
+  this->setState(NOT_RUNNING);
   this->players.clear();
   this->readyForBoss.clear();
   this->eliminated.clear();
@@ -34,7 +32,7 @@ void Game::reset()
 
 void Game::start(player_list_t players, bool versus)
 {
-  this->inGame = true;
+  this->setState(IN_PROGRESS);
   this->versus = versus;
   this->players = players;
 }
@@ -79,6 +77,16 @@ player_t Game::getRandomPlayer(player_t exclude)
   return options.at(rand() % options.size());
 }
 
+game_state_t Game::getState()
+{
+  return this->state;
+}
+
+void Game::setState(game_state_t state)
+{
+  this->state = state;
+}
+
 bool Game::isEliminated(player_t p)
 {
   return this->eliminated.find(p) != this->eliminated.end();
@@ -109,19 +117,15 @@ bool Game::isBossReady()
 void Game::prepareForBoss(player_t p)
 {
   if (!this->isVersus()) return;
-  if (this->bossPhase) return;
+  if (this->getState() != IN_PROGRESS && this->getState() != WAITING_FOR_BOSS) return;
   if (this->readyForBoss.find(p) != this->readyForBoss.end()) return;
+  this->setState(WAITING_FOR_BOSS);
   this->readyForBoss.insert(std::make_pair(p, true));
-}
-
-void Game::setBossPhaseEnabled(bool enabled)
-{
-  this->bossPhase = enabled;
 }
 
 bool Game::isScoringFinished()
 {
-  if (!this->bossPhase) return false;
+  if (this->getState() != WAITING_FOR_LEADERBOARD) return false;
   for (player_t p : this->getRemaining()) {
     bool hasScored = false;
     for (score_t score : this->scores) {
@@ -157,9 +161,20 @@ json Game::getLeaderboard()
 void Game::addScore(player_t p, double score)
 {
   if (!this->isVersus()) return;
-  if (!this->bossPhase) return;
+  if (this->getState() != FIGHTING_BOSS && this->getState() != WAITING_FOR_LEADERBOARD) return;
   for (score_t score : this->scores) {
     if (score.first == p) return;
   }
+  this->setState(WAITING_FOR_LEADERBOARD);
   this->scores.push_back(score_t(p, score));
+}
+
+json Game::getJSON() 
+{
+  json data = {
+    {"state", this->getState()},
+    {"remaining", this->getRemaining().size()},
+    {"eliminated", this->getEliminated().size()}
+  };
+  return data;
 }

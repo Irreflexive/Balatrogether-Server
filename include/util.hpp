@@ -10,22 +10,24 @@
 
 using namespace Balatrogether;
 
-string getpath();
-json success(string cmd, json data);
-json success(string cmd);
-json error(string msg);
+namespace Balatrogether {
+  string getpath();
+  json success(string cmd, json data);
+  json success(string cmd);
+  json error(string msg);
 
-namespace logger {
-  void setDebugOutputEnabled(bool enabled);
+  namespace logger {
+    void setDebugOutputEnabled(bool enabled);
 
-  int info(string format, ...);
-  int debug(string format, ...);
-  int error(string format, ...);
-}
+    int info(string format, ...);
+    int debug(string format, ...);
+    int error(string format, ...);
+  }
 
-namespace ssl {
-  SSL_CTX *create_context();
-  void configure_context(SSL_CTX *ctx, bool debug);
+  namespace ssl {
+    SSL_CTX *create_context();
+    void configure_context(SSL_CTX *ctx, bool debug);
+  }
 }
 
 #endif

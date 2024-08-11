@@ -7,6 +7,14 @@ using namespace Balatrogether;
 
 #include "player.hpp"
 
+enum Balatrogether::GameState : int {
+  NOT_RUNNING = 1,
+  IN_PROGRESS,
+  WAITING_FOR_BOSS,
+  FIGHTING_BOSS,
+  WAITING_FOR_LEADERBOARD,
+};
+
 class Balatrogether::Game {
   public:
     Game();
@@ -23,18 +31,20 @@ class Balatrogether::Game {
     player_t getRandomPlayer();
     player_t getRandomPlayer(player_t exclude);
 
+    game_state_t getState();
+    void setState(game_state_t state);
     bool isEliminated(player_t p);
     void eliminate(player_t p);
     bool isBossReady();
     void prepareForBoss(player_t p);
-    void setBossPhaseEnabled(bool enabled);
     bool isScoringFinished();
     json getLeaderboard();
     void addScore(player_t p, double score);
+
+    json getJSON();
   private:
-    bool inGame;
+    game_state_t state;
     bool versus;
-    bool bossPhase;
     player_list_t players;
     std::unordered_map<player_t, bool> readyForBoss;
     std::unordered_map<player_t, bool> eliminated;
