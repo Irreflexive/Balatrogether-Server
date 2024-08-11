@@ -29,7 +29,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
     data["jokers"] = req["jokers"];
     data["request_id"] = preq->getId();
     player_t randomPlayer = lobby->getGame()->getRandomPlayer(client->getPlayer());
-    lobby->sendToPlayer(randomPlayer->getClient(), success("SWAP_JOKERS", data));
+    if (randomPlayer) lobby->sendToPlayer(randomPlayer->getClient(), success("SWAP_JOKERS", data));
   }
 }
 
@@ -58,7 +58,7 @@ void EraserEvent::execute(lobby_t lobby, client_t client, json req)
   json data;
   data["hand_size"] = -1;
   player_t randomPlayer = lobby->getGame()->getRandomPlayer(client->getPlayer());
-  lobby->sendToPlayer(randomPlayer->getClient(), success("HAND_SIZE", data));
+  if (randomPlayer) lobby->sendToPlayer(randomPlayer->getClient(), success("HAND_SIZE", data));
 }
 
 void PaintBucketEvent::execute(lobby_t lobby, client_t client, json req)
