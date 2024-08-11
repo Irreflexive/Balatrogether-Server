@@ -224,9 +224,9 @@ void client_thread(server_t server, client_t client) {
     bool success = false;
     lobby_t lobby = client->getLobby();
     if (lobby) { 
-      lobby->getEventListener()->process(client, req);
+      success = lobby->getEventListener()->process(client, req);
     } else {
-      server->getEventListener()->process(client, req);
+      success = server->getEventListener()->process(client, req);
     }
     server->unlock();
 

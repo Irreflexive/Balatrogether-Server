@@ -64,13 +64,14 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
     "GOLD"
   };
 
-  logger::info("[%S] ===========START RUN===========", lobby->getCode().c_str());
-  logger::info("[%S] %-10s %20s", lobby->getCode().c_str(), "MODE", versus ? "VERSUS" : "CO-OP");
-  logger::info("[%S] %-10s %20s", lobby->getCode().c_str(), "SEED", seed.c_str());
+  logger::info("[%s] ===========START RUN===========", lobby->getCode().c_str());
+  logger::info("[%s] %-10s %20s", lobby->getCode().c_str(), "MODE", versus ? "VERSUS" : "CO-OP");
+  logger::info("[%s] %-10s %20s", lobby->getCode().c_str(), "SEED", seed.c_str());
   string upperDeck = deck;
   std::transform(upperDeck.begin(), upperDeck.end(), upperDeck.begin(), [](unsigned char c){ return std::toupper(c); });
-  logger::info("[%S] %-10s %20s", lobby->getCode().c_str(), "DECK", upperDeck.c_str());
-  logger::info("[%S] %-10s %20s", lobby->getCode().c_str(), "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
+  logger::info("[%s] %-10s %20s", lobby->getCode().c_str(), "DECK", upperDeck.c_str());
+  logger::info("[%s] %-10s %20s", lobby->getCode().c_str(), "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
+  logger::info("[%s] ===============================", lobby->getCode().c_str());
 
   lobby->getGame()->start(players, versus);
 
@@ -79,7 +80,10 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
-  data["eliminated"] = lobby->getGame()->getEliminated().size();
+  data["game"] = {
+    {"remaining", lobby->getGame()->getRemaining().size()},
+    {"eliminated", lobby->getGame()->getEliminated().size()}
+  };
   if (lobby->getServer()->getConfig()->isDebugMode()) data["debug"] = true;
   lobby->broadcast(success("START", data));
 }
