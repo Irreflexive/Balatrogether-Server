@@ -36,7 +36,6 @@ Lobby::Lobby(server_t server)
   this->listener->add(new EndlessEvent);
 
   this->listener->add(new SwapJokersEvent);
-  this->listener->add(new TheCupEvent);
   this->listener->add(new GreenSealEvent);
   this->listener->add(new EraserEvent);
   this->listener->add(new PaintBucketEvent);
