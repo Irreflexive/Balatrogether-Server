@@ -33,15 +33,6 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
   }
 }
 
-void TheCupEvent::execute(lobby_t lobby, client_t client, json req)
-{
-  if (!lobby->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
-
-  json data;
-  data["money"] = lobby->getGame()->getEliminated().size() * 8;
-  lobby->sendToPlayer(client, success("MONEY", data));
-}
-
 void GreenSealEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isVersus()) throw std::runtime_error("Not a versus game");

@@ -13,13 +13,6 @@ class SwapJokersEvent : public NetworkEvent<lobby_t> {
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
-// Triggered when a player uses The Cup
-class TheCupEvent : public NetworkEvent<lobby_t> {
-  public:
-    TheCupEvent() : NetworkEvent("THE_CUP") {};
-    virtual void execute(lobby_t lobby, client_t client, json req);
-};
-
 // Triggered when a green seal triggers
 class GreenSealEvent : public NetworkEvent<lobby_t> {
   public:
