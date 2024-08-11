@@ -8,9 +8,9 @@
 #include <string>
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
-namespace Balatrogether {
+namespace balatrogether {
   string getpath();
   json success(string cmd, json data);
   json success(string cmd);

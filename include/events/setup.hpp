@@ -4,7 +4,7 @@
 #include "../network.hpp"
 #include "../server.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 // Triggered when a player wants to join the server, exchanging their steam ID and unlock hash
 class JoinEvent : public NetworkEvent<server_t> {

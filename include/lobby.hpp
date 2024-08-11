@@ -5,14 +5,14 @@
 
 #define ROOM_CODE_LEN 6
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "player.hpp"
 #include "network.hpp"
 #include "game.hpp"
 #include "server.hpp"
 
-class Balatrogether::Lobby {
+class balatrogether::Lobby {
   public:
     Lobby(server_t server);
     ~Lobby();

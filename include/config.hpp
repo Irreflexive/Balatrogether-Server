@@ -3,11 +3,11 @@
 
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "player.hpp"
 
-class Balatrogether::Config {
+class balatrogether::Config {
   public:
     Config();
     ~Config();

@@ -6,11 +6,11 @@
 
 #define BUFFER_SIZE 65536
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "player.hpp"
 
-class Balatrogether::NetworkManager {
+class balatrogether::NetworkManager {
   public:
     NetworkManager(bool ssl, bool outputKey);
     ~NetworkManager();
@@ -25,7 +25,7 @@ class Balatrogether::NetworkManager {
 };
 
 template <class T>
-class Balatrogether::NetworkEvent {
+class balatrogether::NetworkEvent {
   public:
     NetworkEvent(string command);
     string getCommand();
@@ -35,7 +35,7 @@ class Balatrogether::NetworkEvent {
 };
 
 template <class T>
-class Balatrogether::EventListener {
+class balatrogether::EventListener {
   public:
     EventListener(T object);
     void add(NetworkEvent<T> *event);

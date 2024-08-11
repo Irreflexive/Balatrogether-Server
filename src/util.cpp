@@ -7,7 +7,7 @@
 #include "util.hpp"
 
 // Returns the directory that the program being executed is in
-string Balatrogether::getpath()
+string balatrogether::getpath()
 {
   char result[PATH_MAX];
   realpath("/proc/self/exe", result);
@@ -16,7 +16,7 @@ string Balatrogether::getpath()
 }
 
 // Constructs a JSON object that is interpreted as valid by the client
-json Balatrogether::success(string cmd, json data)
+json balatrogether::success(string cmd, json data)
 {
   json res;
   res["success"] = true;
@@ -26,13 +26,13 @@ json Balatrogether::success(string cmd, json data)
 }
 
 // Constructs a JSON object for a successful operation with no data
-json Balatrogether::success(string cmd)
+json balatrogether::success(string cmd)
 {
   return success(cmd, json::object());
 }
 
 // Constructs a JSON object that will make the client disconnect
-json Balatrogether::error(string msg)
+json balatrogether::error(string msg)
 {
   json res;
   res["success"] = false;
@@ -172,7 +172,7 @@ X509 *generate_x509(EVP_PKEY *pkey)
   
   /* Set the country code and common name. */
   X509_NAME_add_entry_by_txt(name, "C",  MBSTRING_ASC, (unsigned char *)"US", -1, -1, 0);
-  X509_NAME_add_entry_by_txt(name, "O",  MBSTRING_ASC, (unsigned char *)"Balatrogether", -1, -1, 0);
+  X509_NAME_add_entry_by_txt(name, "O",  MBSTRING_ASC, (unsigned char *)"balatrogether", -1, -1, 0);
   X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)"localhost", -1, -1, 0);
   
   /* Now set the issuer name. */

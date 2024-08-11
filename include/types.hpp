@@ -5,7 +5,7 @@
 #include <string>
 #include "json.hpp"
 
-namespace Balatrogether {
+namespace balatrogether {
   using json = nlohmann::json;
   using string = std::string;
 
