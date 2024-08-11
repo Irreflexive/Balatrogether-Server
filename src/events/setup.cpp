@@ -25,7 +25,7 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   if (!req["deck"].is_string()) throw std::invalid_argument("No deck provided");
   if (!req["stake"].is_number_integer()) throw std::invalid_argument("No stake provided");
   if (!req["versus"].is_boolean()) throw std::invalid_argument("No game mode provided");
-  if (lobby->getGame()->isRunning() || !lobby->isHost(client) || (lobby->getClients().size() <= 1 && !lobby->getServer()->getConfig()->isDebugMode())) {
+  if (!lobby->isHost(client) || (lobby->getClients().size() <= 1 && !lobby->getServer()->getConfig()->isDebugMode())) {
     throw std::runtime_error("Cannot start run");
   }
   
