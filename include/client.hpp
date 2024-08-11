@@ -9,13 +9,13 @@
 #include <unistd.h>
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "lobby.hpp"
 #include "player.hpp"
 #include "util.hpp"
 
-class Balatrogether::Client {
+class balatrogether::Client {
   public:
     Client(int fd, sockaddr_in addr);
     ~Client();

@@ -3,11 +3,11 @@
 
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "server.hpp"
 
-class Balatrogether::Command {
+class balatrogether::Command {
   public:
     Command(string name, std::vector<string> params, string desc, int num_optional = 0);
     string getUsage();
@@ -20,7 +20,7 @@ class Balatrogether::Command {
     string desc;
 };
 
-struct Balatrogether::Console {
+struct balatrogether::Console {
   Console(server_t server);
   ~Console();
   bool process(Command *command, string input);

@@ -3,11 +3,11 @@
 
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "player.hpp"
 
-class Balatrogether::PersistentRequest {
+class balatrogether::PersistentRequest {
   public:
     string getId();
     player_t getCreator();
@@ -22,7 +22,7 @@ class Balatrogether::PersistentRequest {
     clock_t created;
 };
 
-class Balatrogether::PersistentRequestManager {
+class balatrogether::PersistentRequestManager {
   public:
     PersistentRequestManager(int requestLifetime = 10, int collectionInterval = 60);
     ~PersistentRequestManager();

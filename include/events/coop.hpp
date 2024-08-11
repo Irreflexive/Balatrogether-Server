@@ -4,7 +4,7 @@
 #include "../network.hpp"
 #include "../lobby.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 // Triggered when a co-op player is highlighting a card
 class HighlightCardEvent : public NetworkEvent<lobby_t> {

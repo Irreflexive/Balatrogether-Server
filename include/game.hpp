@@ -3,11 +3,11 @@
 
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "player.hpp"
 
-enum Balatrogether::GameState : int {
+enum balatrogether::GameState : int {
   NOT_RUNNING = 1,
   IN_PROGRESS,
   WAITING_FOR_BOSS,
@@ -15,7 +15,7 @@ enum Balatrogether::GameState : int {
   WAITING_FOR_LEADERBOARD,
 };
 
-class Balatrogether::Game {
+class balatrogether::Game {
   public:
     Game();
 

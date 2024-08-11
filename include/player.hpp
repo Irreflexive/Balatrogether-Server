@@ -9,12 +9,12 @@
 #include <unistd.h>
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "client.hpp"
 #include "util.hpp"
 
-class Balatrogether::Player {
+class balatrogether::Player {
   public:
     Player(steamid_t steamId, string unlockHash);
 

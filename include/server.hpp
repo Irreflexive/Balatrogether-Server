@@ -21,7 +21,7 @@
 
 #include "types.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 #include "network.hpp"
 #include "player.hpp"
@@ -29,7 +29,7 @@ using namespace Balatrogether;
 #include "preq.hpp"
 #include "config.hpp"
 
-class Balatrogether::Server {
+class balatrogether::Server {
   public:
     Server(int port);
     ~Server();

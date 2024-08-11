@@ -4,7 +4,7 @@
 #include "../network.hpp"
 #include "../lobby.hpp"
 
-using namespace Balatrogether;
+using namespace balatrogether;
 
 // Triggered when a player sells Annie and Hallie
 class SwapJokersEvent : public NetworkEvent<lobby_t> {
