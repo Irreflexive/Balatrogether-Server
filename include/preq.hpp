@@ -26,8 +26,8 @@ class Balatrogether::PersistentRequestManager {
   public:
     PersistentRequestManager(int requestLifetime = 10, int collectionInterval = 60);
     ~PersistentRequestManager();
-    PersistentRequest* create(player_t creator);
-    PersistentRequest* getById(string requestId);
+    preq_t create(player_t creator);
+    preq_t getById(string requestId);
     void complete(string requestId);
     void clearUnresolved();
   private:

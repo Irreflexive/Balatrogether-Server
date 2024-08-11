@@ -12,7 +12,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
     }
 
     string requestId = req["request_id"].get<string>();
-    PersistentRequest* preq = lobby->getServer()->getPersistentRequestManager()->getById(requestId);
+    preq_t preq = lobby->getServer()->getPersistentRequestManager()->getById(requestId);
     if (!preq) return;
 
     json data;
@@ -24,7 +24,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
       if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
     }
 
-    PersistentRequest* preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
+    preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
     json data;
     data["jokers"] = req["jokers"];
     data["request_id"] = preq->getId();
@@ -79,7 +79,7 @@ void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
     if (!req["cards"].is_array()) throw std::invalid_argument("No cards provided");
 
     string requestId = req["request_id"].get<string>();
-    PersistentRequest* preq = lobby->getServer()->getPersistentRequestManager()->getById(requestId);
+    preq_t preq = lobby->getServer()->getPersistentRequestManager()->getById(requestId);
     if (!preq) return;
 
     json preqData = preq->getData();
@@ -109,7 +109,7 @@ void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
     lobby->sendToPlayer(preq->getCreator()->getClient(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
     lobby->getServer()->getPersistentRequestManager()->complete(preq->getId());
   } else {
-    PersistentRequest* preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
+    preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
     json preqData;
     preqData["contributed"] = json::object();
     preqData["contributed"][client->getPlayer()->getSteamId()] = true;
