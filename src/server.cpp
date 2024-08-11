@@ -145,9 +145,10 @@ std::vector<string> Server::getLobbyCodes()
   return codes;
 }
 
-lobby_t Server::getLobby()
+lobby_t Server::getDefaultLobby()
 {
-  if (this->lobbies.size() == 0) return nullptr;
+  if (this->getConfig()->getMaxLobbies() > 1) return nullptr;
+  if (this->lobbies.size() == 0) this->createLobby();
   return this->lobbies.begin()->second;
 }
 

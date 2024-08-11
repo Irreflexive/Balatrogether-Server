@@ -42,7 +42,7 @@ class balatrogether::Server {
 
     lobby_t createLobby();
     std::vector<string> getLobbyCodes();
-    lobby_t getLobby();
+    lobby_t getDefaultLobby();
     lobby_t getLobby(string code);
     void deleteLobby(lobby_t lobby);
 
