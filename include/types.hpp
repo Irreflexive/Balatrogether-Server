@@ -28,7 +28,9 @@ namespace Balatrogether {
 
   // game.hpp
   class Game;
+  enum GameState : int;
   typedef Game* game_t;
+  typedef enum GameState game_state_t;
 
   // preq.hpp
   class PersistentRequest;

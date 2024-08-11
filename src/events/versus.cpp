@@ -135,7 +135,7 @@ void ReadyForBossEvent::execute(lobby_t lobby, client_t client, json req)
 
   lobby->getGame()->prepareForBoss(client->getPlayer());
   if (lobby->getGame()->isBossReady()) {
-    lobby->getGame()->setBossPhaseEnabled(true);
+    lobby->getGame()->setState(FIGHTING_BOSS);
     lobby->broadcast(success("START_BOSS"), true);
   }
 }
@@ -145,6 +145,13 @@ void EliminatedEvent::execute(lobby_t lobby, client_t client, json req)
   if (!lobby->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
 
   lobby->getGame()->eliminate(client->getPlayer());
+  if (lobby->getGame()->getRemaining().size() == 1) {
+    client_t winner = lobby->getClients().at(0);
+    lobby->getGame()->reset();
+    lobby->sendToPlayer(winner, success("WIN"));
+  } else {
+    lobby->broadcast(success("NODATA"));
+  }
 }
 
 void DefeatedBossEvent::execute(lobby_t lobby, client_t client, json req)
@@ -156,7 +163,7 @@ void DefeatedBossEvent::execute(lobby_t lobby, client_t client, json req)
   if (lobby->getGame()->isScoringFinished()) {
     json data;
     data["leaderboard"] = lobby->getGame()->getLeaderboard();
-    lobby->getGame()->setBossPhaseEnabled(false);
+    lobby->getGame()->setState(IN_PROGRESS);
     lobby->broadcast(success("LEADERBOARD", data), true);
   }
 }

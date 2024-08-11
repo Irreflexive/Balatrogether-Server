@@ -80,10 +80,7 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
-  data["game"] = {
-    {"remaining", lobby->getGame()->getRemaining().size()},
-    {"eliminated", lobby->getGame()->getEliminated().size()}
-  };
+  data["state"] = lobby->getGame()->getJSON();
   if (lobby->getServer()->getConfig()->isDebugMode()) data["debug"] = true;
   lobby->broadcast(success("START", data));
 }

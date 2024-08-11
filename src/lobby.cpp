@@ -74,11 +74,13 @@ client_t Lobby::getHost()
 
 void Lobby::sendToPlayer(client_t client, json payload)
 {
+  payload["game_state"] = this->getGame()->getJSON();
   this->getServer()->getNetworkManager()->send({client}, payload);
 }
 
 void Lobby::sendToOthers(client_t client, json payload, bool ignoreEliminated)
 {
+  payload["game_state"] = this->getGame()->getJSON();
   client_list_t clients;
   for (client_t c : this->getClients()) {
     if (client != c && (!ignoreEliminated || !this->getGame()->isEliminated(c->getPlayer()))) clients.push_back(c);
@@ -88,6 +90,7 @@ void Lobby::sendToOthers(client_t client, json payload, bool ignoreEliminated)
 
 void Lobby::broadcast(json payload, bool ignoreEliminated)
 {
+  payload["game_state"] = this->getGame()->getJSON();
   client_list_t clients;
   for (client_t c : this->getClients()) {
     if (!ignoreEliminated || !this->getGame()->isEliminated(c->getPlayer())) clients.push_back(c);
