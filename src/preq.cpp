@@ -1,6 +1,6 @@
 #include "preq.hpp"
 
-typedef std::unordered_map<string, PersistentRequest*>::iterator preq_iter_t;
+typedef std::unordered_map<string, preq_t>::iterator preq_iter_t;
 
 PersistentRequest::PersistentRequest(player_t creator)
 {
@@ -39,19 +39,19 @@ PersistentRequestManager::PersistentRequestManager(int requestLifetime, int coll
 
 PersistentRequestManager::~PersistentRequestManager()
 {
-  for (std::pair<string, PersistentRequest*> it : this->requests) {
+  for (std::pair<string, preq_t> it : this->requests) {
     delete it.second;
   }
 }
 
-PersistentRequest *PersistentRequestManager::create(player_t creator)
+preq_t PersistentRequestManager::create(player_t creator)
 {
-  PersistentRequest* preq = new PersistentRequest(creator);
+  preq_t preq = new PersistentRequest(creator);
   this->requests.insert(std::make_pair(preq->id, preq));
   return preq;
 }
 
-PersistentRequest *PersistentRequestManager::getById(string requestId)
+preq_t PersistentRequestManager::getById(string requestId)
 {
   preq_iter_t result = this->requests.find(requestId);
   if (result == this->requests.end()) return NULL;

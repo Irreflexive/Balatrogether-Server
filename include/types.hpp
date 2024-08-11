@@ -36,14 +36,16 @@ namespace Balatrogether {
   typedef PersistentRequest* preq_t;
   typedef PersistentRequestManager* preq_manager_t;
 
-  // player.hpp
+  // client.hpp
   class Client;
+  typedef Client* client_t;
+  typedef std::vector<client_t> client_list_t;
+
+  // player.hpp
   class Player;
   typedef std::string steamid_t;
-  typedef Client* client_t;
   typedef std::shared_ptr<Player> player_t;
   typedef std::vector<steamid_t> steamid_list_t;
-  typedef std::vector<client_t> client_list_t;
   typedef std::vector<player_t> player_list_t;
   typedef std::pair<player_t, double> score_t;
   typedef std::vector<score_t> leaderboard_t;
