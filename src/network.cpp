@@ -36,13 +36,8 @@ void NetworkManager::send(client_list_t receivers, json payload)
   strncpy(buffer, jsonString.c_str(), BUFFER_SIZE - 2);
   buffer[jsonString.size()] = '\n';
   for (client_t receiver : receivers) {
-    if (this->ssl_ctx && receiver->getSSL()) {
-      int s = SSL_write(receiver->getSSL(), buffer, strlen(buffer));
-      if (s <= 0) logger::debug("SSL send error %d", SSL_get_error(receiver->getSSL(), s));
-    } else {
-      ::send(receiver->getFd(), buffer, strlen(buffer), 0);
-    }
-    logger::debug("Server -> %s: %s", receiver->getIdentity().c_str(), payload.dump().c_str());
+    size_t n = this->write(receiver, buffer, strlen(buffer));
+    if (n > 0) logger::debug("Server -> %s: %s", receiver->getIdentity().c_str(), payload.dump().c_str());
   }
 }
 
@@ -51,20 +46,71 @@ json NetworkManager::receive(client_t sender)
 {
   char buffer[BUFFER_SIZE];
   memset(buffer, 0, BUFFER_SIZE);
-  size_t n;
-  if (this->ssl_ctx && sender->getSSL()) {
-    int s = SSL_read_ex(sender->getSSL(), buffer, BUFFER_SIZE, &n);
-    if (s <= 0) logger::debug("SSL receive error %d", SSL_get_error(sender->getSSL(), s));
-    if (s <= 0 || n == 0) return json();
-  } else {
-    n = recv(sender->getFd(), buffer, BUFFER_SIZE, 0);
-    if (n <= 0) return json();
+  size_t n = this->peek(sender, buffer, BUFFER_SIZE);
+  size_t read_amount = 0;
+  for (size_t i = 0; i < n; i++) {
+    if (buffer[i] == '\n') {
+      read_amount = i + 1;
+      break;
+    }
   }
+  if (read_amount == 0) return json();
+
+  memset(buffer, 0, BUFFER_SIZE);
+  n = this->read(sender, buffer, read_amount);
+  if (n == 0) return json();
+
   try {
+    buffer[n - 1] = '\0';
     logger::debug("%s -> Server: %s", sender->getIdentity().c_str(), buffer);
     json req = json::parse(buffer);
     return req;
   } catch (...) {
     return json();
   }
+}
+
+size_t NetworkManager::peek(client_t client, char* buffer, size_t bytes)
+{
+  size_t n;
+  if (this->ssl_ctx && client->getSSL()) {
+    int s = SSL_peek_ex(client->getSSL(), buffer, bytes, &n);
+    if (s <= 0) {
+      logger::debug("SSL peek error %d", SSL_get_error(client->getSSL(), s));
+      n = 0;
+    }
+  } else {
+    n = recv(client->getFd(), buffer, bytes, MSG_PEEK);
+  }
+  return n;
+}
+
+size_t NetworkManager::read(client_t client, char* buffer, size_t bytes)
+{
+  size_t n;
+  if (this->ssl_ctx && client->getSSL()) {
+    int s = SSL_read_ex(client->getSSL(), buffer, bytes, &n);
+    if (s <= 0) {
+      logger::debug("SSL read error %d", SSL_get_error(client->getSSL(), s));
+      n = 0;
+    }
+  } else {
+    n = recv(client->getFd(), buffer, bytes, 0);
+  }
+  return n;
+}
+
+size_t NetworkManager::write(client_t client, char* buffer, size_t bytes)
+{
+  size_t n;
+  if (this->ssl_ctx && client->getSSL()) {
+    int s = SSL_write_ex(client->getSSL(), buffer, bytes, &n);
+    if (s <= 0) {
+      logger::debug("SSL write error %d", SSL_get_error(client->getSSL(), s));
+      n = 0;
+    }
+  } else {
+    n = ::send(client->getFd(), buffer, bytes, 0);
+  }
+  return n;
 }
