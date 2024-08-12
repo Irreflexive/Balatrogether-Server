@@ -24,7 +24,7 @@ namespace balatrogether {
   // lobby.hpp
   class Lobby;
   typedef Lobby* lobby_t;
-  typedef lobby_t* lobby_list_t;
+  typedef std::vector<lobby_t> lobby_list_t;
 
   // game.hpp
   class Game;

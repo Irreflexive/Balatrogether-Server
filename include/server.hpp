@@ -42,6 +42,7 @@ class balatrogether::Server {
 
     lobby_t getDefaultLobby();
     lobby_t getLobby(int index);
+    lobby_list_t getLobbies();
 
     // State management
     void lock();
