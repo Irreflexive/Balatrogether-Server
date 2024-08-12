@@ -12,7 +12,7 @@ Server::Server(int port)
   this->persistentRequests = new PersistentRequestManager;
   this->lobbies = new lobby_t[this->getConfig()->getMaxLobbies()];
   for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
-    lobbies[i] = new Lobby(this);
+    lobbies[i] = new Lobby(this, i + 1);
   }
 
   logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
@@ -77,6 +77,9 @@ Server::~Server()
   logger::info("Shutting down server");
   for (client_t c : this->clients) {
     this->disconnect(c);
+  }
+  for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
+    delete this->lobbies[i];
   }
   delete[] this->lobbies;
   delete this->config;

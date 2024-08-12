@@ -3,13 +3,9 @@
 #include "events/versus.hpp"
 #include "lobby.hpp"
 
-const char* roomCodeAlphabet = "0123456789ABCDEF";
-
-Lobby::Lobby(server_t server) 
+Lobby::Lobby(server_t server, int roomNumber) 
 {
-  for (int i = 0; i < ROOM_CODE_LEN; i++) {
-    this->code += roomCodeAlphabet[rand() % strlen(roomCodeAlphabet)];
-  }
+  this->roomNumber = roomNumber;
   this->server = server;
   this->listener = new EventListener<lobby_t>(this);
   this->game = new Game;
@@ -103,13 +99,13 @@ void Lobby::add(client_t client)
   if (!this->canJoin(client)) throw client_exception("Cannot join lobby");
   this->clients.push_back(client);
   client->setLobby(this);
-  logger::info("[%s] Player %s joined lobby", this->getCode().c_str(), client->getPlayer()->getSteamId().c_str());
+  logger::info("[ROOM %d] Player %s joined lobby", this->getRoomNumber(), client->getPlayer()->getSteamId().c_str());
   this->broadcast(success("JOIN", this->getJSON()));
 }
 
 void Lobby::remove(client_t client)
 {
-  logger::info("[%s] Player %s left lobby", this->getCode().c_str(), client->getPlayer()->getSteamId().c_str());
+  logger::info("[ROOM %d] Player %s left lobby", this->getRoomNumber(), client->getPlayer()->getSteamId().c_str());
   this->getGame()->eliminate(client->getPlayer());
   for (int i = 0; i < this->clients.size(); i++) {
     client_t c = this->clients.at(i);
@@ -120,6 +116,7 @@ void Lobby::remove(client_t client)
       break;
     }
   }
+  if (this->getClients().size() == 0) this->close();
 }
 
 void Lobby::close()
@@ -130,9 +127,9 @@ void Lobby::close()
   }
 }
 
-string Lobby::getCode()
+int Lobby::getRoomNumber()
 {
-  return this->code;
+  return this->roomNumber;
 }
 
 server_t Lobby::getServer()
@@ -163,6 +160,6 @@ json Lobby::getJSON()
     data["players"].push_back(c->getPlayer()->getSteamId());
   }
   data["maxPlayers"] = this->getServer()->getConfig()->getMaxPlayers();
-  if (this != this->getServer()->getDefaultLobby()) data["code"] = this->getCode();
+  if (this != this->getServer()->getDefaultLobby()) data["room"] = this->getRoomNumber();
   return data;
 }
