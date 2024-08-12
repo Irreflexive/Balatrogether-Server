@@ -13,13 +13,6 @@ class JoinEvent : public NetworkEvent<server_t> {
     virtual void execute(server_t server, client_t client, json req);
 };
 
-// Triggered when a player wants to create a lobby
-class CreateLobbyEvent : public NetworkEvent<server_t> {
-  public:
-    CreateLobbyEvent() : NetworkEvent("CREATE_LOBBY") {};
-    virtual void execute(server_t server, client_t client, json req);
-};
-
 // Triggered when a player wants to join a lobby
 class JoinLobbyEvent : public NetworkEvent<server_t> {
   public:
