@@ -52,8 +52,9 @@ player_t Client::getPlayer()
 
 void Client::setPlayer(player_t player)
 {
+  if (this->player) this->player->client = nullptr;
+  if (player) player->client = this;
   this->player = player;
-  this->player->client = this;
 }
 
 lobby_t Client::getLobby()
