@@ -100,6 +100,7 @@ void Lobby::broadcast(json payload, bool ignoreEliminated)
 void Lobby::add(client_t client)
 {
   if (!client->getPlayer()) return;
+  if (!this->canJoin(client)) throw client_exception("Cannot join lobby");
   this->clients.push_back(client);
   client->setLobby(this);
   logger::info("[%s] Player %s joined lobby", this->getCode().c_str(), client->getPlayer()->getSteamId().c_str());
