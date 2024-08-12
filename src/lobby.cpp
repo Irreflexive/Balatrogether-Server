@@ -120,7 +120,6 @@ void Lobby::remove(client_t client)
       break;
     }
   }
-  if (this->clients.size() == 0) this->getServer()->deleteLobby(this);
 }
 
 void Lobby::close()

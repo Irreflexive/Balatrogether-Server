@@ -40,11 +40,8 @@ class balatrogether::Server {
     void connect(client_t c, steamid_t steamId, string unlockHash);
     void disconnect(client_t c);
 
-    lobby_t createLobby();
-    std::vector<string> getLobbyCodes();
     lobby_t getDefaultLobby();
-    lobby_t getLobby(string code);
-    void deleteLobby(lobby_t lobby);
+    lobby_t getLobby(int index);
 
     // State management
     void lock();
