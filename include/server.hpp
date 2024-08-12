@@ -15,6 +15,7 @@
 #else
   #include <sys/socket.h>
   #include <netinet/in.h>
+  #include <netinet/tcp.h>
   #include <arpa/inet.h>
   #define closesocket close
 #endif
@@ -55,6 +56,7 @@ class balatrogether::Server {
     server_listener_t getEventListener();
     preq_manager_t getPersistentRequestManager();
   private:
+    void setSocketOption(int level, int option, int value, const char *err_message = "Failed to set option");
     network_t net;
     server_listener_t listener;
     client_list_t clients;

@@ -33,7 +33,7 @@ void JoinEvent::execute(server_t server, client_t client, json req)
 void JoinLobbyEvent::execute(server_t server, client_t client, json req)
 {
   if (server->getDefaultLobby()) throw std::runtime_error("Bad request");
-  if (!req["number"].is_string()) throw std::invalid_argument("No lobby number provided");
+  if (!req["number"].is_number_integer()) throw std::invalid_argument("No lobby number provided");
   lobby_t lobby = server->getLobby(req["number"].get<int>());
   if (!lobby) throw std::invalid_argument("No lobby found");
 

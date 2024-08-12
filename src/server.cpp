@@ -26,32 +26,19 @@ Server::Server(int port)
 
   logger::info("Configuring socket options");
 
-  int opt = 1;
-  if (setsockopt(this->sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-    logger::error("Failed to set reuse address");
-    exit(EXIT_FAILURE);
-  }
+  this->setSocketOption(SOL_SOCKET, SO_REUSEADDR, true, "Failed to set reuse address");
   logger::info("Allowed address reuse");
 
-  int send_size = BUFFER_SIZE;
-  if (setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &send_size, sizeof(send_size)) < 0) {
-    logger::error("Failed to set send buffer size");
-    exit(EXIT_FAILURE);
-  }
+  this->setSocketOption(SOL_SOCKET, SO_SNDBUF, BUFFER_SIZE, "Failed to set send buffer size");
   logger::info("Set send buffer size");
 
-  int recv_size = BUFFER_SIZE;
-  if (setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &recv_size, sizeof(recv_size)) < 0) {
-    logger::error("Failed to set receive buffer size");
-    exit(EXIT_FAILURE);
-  }
+  this->setSocketOption(SOL_SOCKET, SO_RCVBUF, BUFFER_SIZE, "Failed to set receive buffer size");
   logger::info("Set receive buffer size");
 
-  int keepalive = 1;
-  if (setsockopt(this->sockfd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) < 0) {
-    logger::error("Failed to set keepalive");
-    exit(EXIT_FAILURE);
-  }
+  this->setSocketOption(SOL_SOCKET, SO_KEEPALIVE, true, "Failed to set keepalive");
+  this->setSocketOption(IPPROTO_TCP, TCP_KEEPIDLE, 60, "Failed to set idle timer");
+  this->setSocketOption(IPPROTO_TCP, TCP_KEEPINTVL, 10, "Failed to set probe interval");
+  this->setSocketOption(IPPROTO_TCP, TCP_KEEPCNT, 2, "Failed to set probe count");
   logger::info("Enabled keepalive timer");
 
   int bindStatus = bind(this->sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
@@ -67,6 +54,7 @@ Server::Server(int port)
   }
 
   this->listener->add(new JoinEvent);
+  this->listener->add(new JoinLobbyEvent);
 
   logger::info("Registered events");
 }
@@ -190,6 +178,14 @@ server_listener_t Server::getEventListener()
 preq_manager_t Server::getPersistentRequestManager()
 {
   return this->persistentRequests;
+}
+
+void Server::setSocketOption(int level, int option, int value, const char *err_message)
+{
+  if (setsockopt(this->sockfd, level, option, &value, sizeof(value)) < 0) {
+    logger::error("%s", err_message);
+    exit(EXIT_FAILURE);
+  }
 }
 
 // Processes incoming client packets, executing the correct event handler
