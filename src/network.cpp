@@ -48,7 +48,7 @@ json NetworkManager::receive(client_t sender)
   memset(buffer, 0, BUFFER_SIZE);
   size_t n = this->peek(sender, buffer, BUFFER_SIZE);
   size_t read_amount = 0;
-  for (size_t i = 0; i < n; i++) {
+  for (size_t i = 0; i < n && i < BUFFER_SIZE; i++) {
     if (buffer[i] == '\n') {
       read_amount = i + 1;
       break;

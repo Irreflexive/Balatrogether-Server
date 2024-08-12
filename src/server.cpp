@@ -127,6 +127,7 @@ void Server::disconnect(client_t c) {
       this->clients.erase(this->clients.begin() + i);
       lobby_t lobby = c->getLobby();
       if (lobby) lobby->remove(c);
+      c->setPlayer(nullptr);
       delete c;
       break;
     }
