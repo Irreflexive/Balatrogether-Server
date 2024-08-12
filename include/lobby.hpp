@@ -14,7 +14,7 @@ using namespace balatrogether;
 
 class balatrogether::Lobby {
   public:
-    Lobby(server_t server);
+    Lobby(server_t server, int roomNumber);
     ~Lobby();
 
     bool canJoin(client_t client);
@@ -29,14 +29,14 @@ class balatrogether::Lobby {
     void remove(client_t client);
     void close();
 
-    string getCode();
+    int getRoomNumber();
     server_t getServer();
     lobby_listener_t getEventListener();
     client_list_t getClients();
     game_t getGame();
     json getJSON();
   private:
-    string code;
+    int roomNumber;
     server_t server;
     lobby_listener_t listener;
     client_list_t clients;
