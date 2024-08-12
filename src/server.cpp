@@ -110,7 +110,7 @@ bool Server::canConnect(client_t c)
 void Server::connect(client_t c, steamid_t steamId, string unlockHash)
 {
   if (!c->getPlayer()) c->setPlayer(std::make_shared<Player>(steamId, unlockHash));
-  if (!this->canConnect(c)) throw std::runtime_error("Cannot connect to server");
+  if (!this->canConnect(c)) throw client_exception("Cannot connect to server", true);
 
   logger::info("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
   this->clients.push_back(c);

@@ -78,6 +78,10 @@ inline bool EventListener<T>::process(client_t client, json req)
       try {
         event->execute(this->object, client, req);
         return true;
+      } catch (client_exception& e) {
+        logger::debug("%s", e.what());
+        // TODO: add client error functionality
+        return e.keep();
       } catch (std::exception& e) {
         logger::error("%s", e.what());
         return false;
