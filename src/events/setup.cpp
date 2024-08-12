@@ -13,25 +13,18 @@ void JoinEvent::execute(server_t server, client_t client, json req)
   if (defaultLobby) {
     defaultLobby->add(client);
   } else {
-    json data = server->getLobbyCodes();
-    server->getNetworkManager()->send({client}, success("LOBBIES", data));
+    // TODO: add json for each lobby
+    server->getNetworkManager()->send({client}, success("LOBBIES"));
+    server->disconnect(client);
   }
-}
-
-void CreateLobbyEvent::execute(server_t server, client_t client, json req)
-{
-  if (server->getDefaultLobby() || server->getLobbyCodes().size() >= server->getConfig()->getMaxLobbies()) throw std::runtime_error("Cannot create lobby");
-
-  lobby_t lobby = server->createLobby();
-  lobby->add(client);
 }
 
 void JoinLobbyEvent::execute(server_t server, client_t client, json req)
 {
   if (server->getDefaultLobby()) throw std::runtime_error("Cannot join by code");
-  if (!req["code"].is_string()) throw std::invalid_argument("No code provided");
+  if (!req["number"].is_string()) throw std::invalid_argument("No lobby number provided");
 
-  lobby_t lobby = server->getLobby(req["code"].get<string>());
+  lobby_t lobby = server->getLobby(req["number"].get<int>());
   if (!lobby) throw std::invalid_argument("No lobby found");
 
   lobby->add(client);

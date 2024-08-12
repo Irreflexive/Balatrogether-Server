@@ -10,6 +10,10 @@ Server::Server(int port)
   this->net = new NetworkManager(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
   this->listener = new EventListener<server_t>(this);
   this->persistentRequests = new PersistentRequestManager;
+  this->lobbies = new lobby_t[this->getConfig()->getMaxLobbies()];
+  for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
+    lobbies[i] = new Lobby(this);
+  }
 
   logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
   logger::info("Starting server");
@@ -74,9 +78,7 @@ Server::~Server()
   for (client_t c : this->clients) {
     this->disconnect(c);
   }
-  for (std::pair<string, lobby_t> l : this->lobbies) {
-    delete l.second;
-  }
+  delete[] this->lobbies;
   delete this->config;
   delete this->net;
   delete this->listener;
@@ -129,41 +131,16 @@ void Server::disconnect(client_t c) {
   }
 }
 
-lobby_t Server::createLobby()
-{
-  lobby_t lobby = new Lobby(this);
-  this->lobbies.insert(std::make_pair(lobby->getCode(), lobby));
-  return lobby;
-}
-
-std::vector<string> Server::getLobbyCodes()
-{
-  std::vector<string> codes;
-  for (std::pair<string, lobby_t> l : this->lobbies) {
-    codes.push_back(l.first);
-  }
-  return codes;
-}
-
 lobby_t Server::getDefaultLobby()
 {
-  if (this->getConfig()->getMaxLobbies() > 1) return nullptr;
-  if (this->lobbies.size() == 0) this->createLobby();
-  return this->lobbies.begin()->second;
+  if (this->getConfig()->getMaxLobbies() != 1) return nullptr;
+  return this->lobbies[0];
 }
 
-lobby_t Server::getLobby(string code)
+lobby_t Server::getLobby(int index)
 {
-  auto it = this->lobbies.find(code);
-  if (it == this->lobbies.end()) return nullptr;
-  return it->second;
-}
-
-void Server::deleteLobby(lobby_t lobby)
-{
-  this->lobbies.erase(lobby->getCode());
-  lobby->close();
-  delete lobby;
+  if (index <= 0 || index > this->getConfig()->getMaxLobbies()) return nullptr;
+  return this->lobbies[index - 1];
 }
 
 // Locks the mutex
