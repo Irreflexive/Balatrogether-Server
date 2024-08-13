@@ -5,7 +5,7 @@
 
 #define PORT 7063
 
-Console* console;
+console_t console;
 
 int main() {
   server_t server = new Server(PORT);

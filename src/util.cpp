@@ -7,16 +7,16 @@
 #include "util.hpp"
 
 // Returns the directory that the program being executed is in
-std::string getpath()
+string balatrogether::getpath()
 {
-  char result[ PATH_MAX ];
+  char result[PATH_MAX];
   realpath("/proc/self/exe", result);
-  std::string path = std::string(result);
+  string path = string(result);
   return path.substr(0, path.find_last_of('/'));
 }
 
 // Constructs a JSON object that is interpreted as valid by the client
-json success(std::string cmd, json data)
+json balatrogether::success(string cmd, json data)
 {
   json res;
   res["success"] = true;
@@ -26,13 +26,13 @@ json success(std::string cmd, json data)
 }
 
 // Constructs a JSON object for a successful operation with no data
-json success(std::string cmd)
+json balatrogether::success(string cmd)
 {
   return success(cmd, json::object());
 }
 
 // Constructs a JSON object that will make the client disconnect
-json error(std::string msg)
+json balatrogether::error(string msg)
 {
   json res;
   res["success"] = false;
@@ -48,7 +48,7 @@ void logger::setDebugOutputEnabled(bool enabled)
   debugOutput = enabled;
 }
 
-int log(std::string format, va_list args, std::string color = "0", FILE *fd = stdout)
+int log(string format, va_list args, string color = "0", FILE *fd = stdout)
 {
   std::stringstream modifiedFormat;
   std::time_t currentTime = std::time(nullptr);
@@ -58,9 +58,9 @@ int log(std::string format, va_list args, std::string color = "0", FILE *fd = st
 }
 
 // Prints a new line with timestamp and [INFO] prefix
-int logger::info(std::string format, ...)
+int logger::info(string format, ...)
 {
-  std::string fmt = "[INFO] " + format;
+  string fmt = "[INFO] " + format;
   va_list args;
   va_start(args, format);
   int n = log(fmt, args);
@@ -69,10 +69,10 @@ int logger::info(std::string format, ...)
 }
 
 // Prints a new line with timestamp and [DEBUG] prefix, only if debug mode is enabled
-int logger::debug(std::string format, ...)
+int logger::debug(string format, ...)
 {
   if (!debugOutput) return 0;
-  std::string fmt = "[DEBUG] " + format;
+  string fmt = "[DEBUG] " + format;
   va_list args;
   va_start(args, format);
   int n = log(fmt, args, "33");
@@ -81,9 +81,9 @@ int logger::debug(std::string format, ...)
 }
 
 // Prints an error message with timestamp
-int logger::error(std::string format, ...)
+int logger::error(string format, ...)
 {
-  std::string fmt = "[ERROR] " + format;
+  string fmt = "[ERROR] " + format;
   va_list args;
   va_start(args, format);
   int n = log(fmt, args, "31", stderr);
@@ -172,7 +172,7 @@ X509 *generate_x509(EVP_PKEY *pkey)
   
   /* Set the country code and common name. */
   X509_NAME_add_entry_by_txt(name, "C",  MBSTRING_ASC, (unsigned char *)"US", -1, -1, 0);
-  X509_NAME_add_entry_by_txt(name, "O",  MBSTRING_ASC, (unsigned char *)"Balatrogether", -1, -1, 0);
+  X509_NAME_add_entry_by_txt(name, "O",  MBSTRING_ASC, (unsigned char *)"balatrogether", -1, -1, 0);
   X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char *)"localhost", -1, -1, 0);
   
   /* Now set the issuer name. */
@@ -231,4 +231,39 @@ void ssl::configure_context(SSL_CTX *ctx, bool debugMode)
   
   EVP_PKEY_free(pkey);
   X509_free(x509);
+}
+
+bool validation::string(json& data)
+{
+  return data.is_string();
+}
+
+bool validation::string(json& data, size_t maxLength)
+{
+  return validation::string(data, 0, maxLength);
+}
+
+bool validation::string(json& data, size_t minLength, size_t maxLength)
+{
+  if (!validation::string(data)) return false;
+  balatrogether::string str = data.get<balatrogether::string>();
+  if (str.size() < minLength || str.size() > maxLength) return false;
+  return true;
+}
+
+bool validation::integer(json& data, int min, int max)
+{
+  if (!data.is_number_integer()) return false;
+  int num = data.get<int>();
+  if (num < min || num > max) return false;
+  return true;
+}
+
+bool validation::steamid(json& data)
+{
+  if (!validation::string(data, 32)) return false;
+  steamid_t str = data.get<steamid_t>();
+  uint64_t num = strtoull(str.c_str(), nullptr, 10);
+  if (std::to_string(num) != str) return false;
+  return true;
 }

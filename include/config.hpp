@@ -1,12 +1,13 @@
 #ifndef BALATROGETHER_CONFIG_H
 #define BALATROGETHER_CONFIG_H
 
-#include "json.hpp"
+#include "types.hpp"
+
+using namespace balatrogether;
+
 #include "player.hpp"
 
-using json = nlohmann::json;
-
-class Config {
+class balatrogether::Config {
   public:
     Config();
     ~Config();
@@ -44,7 +45,5 @@ class Config {
     bool whitelistEnabled = false;
     steamid_list_t whitelisted;
 };
-
-typedef Config* config_t;
 
 #endif

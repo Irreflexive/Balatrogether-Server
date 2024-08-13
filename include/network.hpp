@@ -1,16 +1,16 @@
 #ifndef BALATROGETHER_NETWORK_H
 #define BALATROGETHER_NETWORK_H
 
-#include "preq.hpp"
+#include "types.hpp"
 #include "util.hpp"
-#include "player.hpp"
 
 #define BUFFER_SIZE 65536
 
-using std::string;
-using json = nlohmann::json;
+using namespace balatrogether;
 
-class NetworkManager {
+#include "player.hpp"
+
+class balatrogether::NetworkManager {
   public:
     NetworkManager(bool ssl, bool outputKey);
     ~NetworkManager();
@@ -18,13 +18,14 @@ class NetworkManager {
     void send(client_list_t receivers, json payload);
     json receive(client_t sender);
   private:
+    size_t peek(client_t client, char* buffer, size_t bytes);
+    size_t read(client_t client, char* buffer, size_t bytes);
+    size_t write(client_t client, char* buffer, size_t bytes);
     SSL_CTX* ssl_ctx = nullptr;
 };
 
-typedef NetworkManager* network_t;
-
 template <class T>
-class NetworkEvent {
+class balatrogether::NetworkEvent {
   public:
     NetworkEvent(string command);
     string getCommand();
@@ -34,7 +35,7 @@ class NetworkEvent {
 };
 
 template <class T>
-class EventListener {
+class balatrogether::EventListener {
   public:
     EventListener(T object);
     void add(NetworkEvent<T> *event);
@@ -77,6 +78,10 @@ inline bool EventListener<T>::process(client_t client, json req)
       try {
         event->execute(this->object, client, req);
         return true;
+      } catch (client_exception& e) {
+        logger::debug("%s", e.what());
+        // TODO: add client error functionality
+        return e.keep();
       } catch (std::exception& e) {
         logger::error("%s", e.what());
         return false;

@@ -6,26 +6,46 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <string>
-#include "json.hpp"
+#include "types.hpp"
 
-using json = nlohmann::json;
+using namespace balatrogether;
 
-std::string getpath();
-json success(std::string cmd, json data);
-json success(std::string cmd);
-json error(std::string msg);
+namespace balatrogether {
+  class client_exception : public std::runtime_error {
+    public:
+      client_exception(const char* msg, bool disconnect = false) : std::runtime_error(msg), disconnect(disconnect) {};
+      bool keep() { return !this->disconnect; };
+    private:
+      bool disconnect;
+  };
 
-namespace logger {
-  void setDebugOutputEnabled(bool enabled);
+  string getpath();
+  json success(string cmd, json data);
+  json success(string cmd);
+  json error(string msg);
 
-  int info(std::string format, ...);
-  int debug(std::string format, ...);
-  int error(std::string format, ...);
-}
+  namespace logger {
+    void setDebugOutputEnabled(bool enabled);
 
-namespace ssl {
-  SSL_CTX *create_context();
-  void configure_context(SSL_CTX *ctx, bool debug);
+    int info(string format, ...);
+    int debug(string format, ...);
+    int error(string format, ...);
+  }
+
+  namespace ssl {
+    SSL_CTX *create_context();
+    void configure_context(SSL_CTX *ctx, bool debug);
+  }
+
+  namespace validation {
+    bool string(json& data);
+    bool string(json& data, size_t maxLength);
+    bool string(json& data, size_t minLength, size_t maxLength);
+
+    bool integer(json& data, int min = INT_MIN, int max = INT_MAX);
+
+    bool steamid(json& data);
+  }
 }
 
 #endif
