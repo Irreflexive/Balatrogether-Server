@@ -78,6 +78,30 @@ class StopCommand : public Command {
     };
 };
 
+class LobbyListCommand : public Command {
+  public:
+    LobbyListCommand() : Command("lobbies", {"page"}, "List information about the server's lobbies", 1) {};
+    void execute(Console *console, std::unordered_map<string, string> args) {
+      lobby_list_t lobbies = console->server->getLobbies();
+      size_t page = 1;
+      if (args.size() >= 1) {
+        page = strtol(args["page"].c_str(), nullptr, 0);
+      }
+      size_t max_pages = ceil(lobbies.size() / 4.0);
+      if (page < 1 || page > max_pages) {
+        logger::info("Usage: %s", this->getUsage());
+      } else {
+        size_t start = (page - 1)*4 + 1;
+        size_t end = std::min(page*4, lobbies.size());
+        logger::info("Showing rooms %d-%d of %d", start, end, lobbies.size());
+        for (int i = start; i <= end; i++) {
+          lobby_t lobby = console->server->getLobby(i);
+          logger::info("Room %d - %d/%d players", lobby->getRoomNumber(), lobby->getClients().size(), console->server->getConfig()->getMaxPlayers());
+        }
+      }
+    };
+};
+
 class KickCommand : public Command {
   public:
     KickCommand() : Command("kick", {"id"}, "Disconnects a player from the server by their Steam ID") {};
@@ -141,6 +165,7 @@ Console::Console(server_t server)
   this->server = server;
   this->commands.push_back(new HelpCommand);
   this->commands.push_back(new PlayerListCommand);
+  this->commands.push_back(new LobbyListCommand);
   this->commands.push_back(new StopCommand);
   this->commands.push_back(new KickCommand);
   this->commands.push_back(new BanCommand);
