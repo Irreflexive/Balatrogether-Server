@@ -171,6 +171,9 @@ Console::Console(server_t server)
   this->commands.push_back(new BanCommand);
   this->commands.push_back(new UnbanCommand);
   this->commands.push_back(new WhitelistCommand);
+  std::sort(this->commands.begin(), this->commands.end(), [](Command *a, Command *b) {
+    return a->getUsage() < b->getUsage();
+  });
 }
 
 Console::~Console()
