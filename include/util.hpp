@@ -36,6 +36,16 @@ namespace balatrogether {
     SSL_CTX *create_context();
     void configure_context(SSL_CTX *ctx, bool debug);
   }
+
+  namespace validation {
+    bool string(json& data);
+    bool string(json& data, size_t maxLength);
+    bool string(json& data, size_t minLength, size_t maxLength);
+
+    bool integer(json& data, int min = INT_MIN, int max = INT_MAX);
+
+    bool steamid(json& data);
+  }
 }
 
 #endif
