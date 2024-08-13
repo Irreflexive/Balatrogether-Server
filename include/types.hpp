@@ -12,6 +12,8 @@ namespace balatrogether {
   // console.hpp
   struct Console;
   class Command;
+  typedef Console* console_t;
+  typedef Command* command_t;
 
   // server.hpp
   class Server;

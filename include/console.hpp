@@ -11,7 +11,7 @@ class balatrogether::Command {
   public:
     Command(string name, std::vector<string> params, string desc, int num_optional = 0);
     string getUsage();
-    virtual void execute(Console *console, std::unordered_map<string, string> args) {};
+    virtual void execute(console_t console, std::unordered_map<string, string> args) {};
     friend class Console;
   private:
     string name;
@@ -23,12 +23,12 @@ class balatrogether::Command {
 struct balatrogether::Console {
   Console(server_t server);
   ~Console();
-  bool process(Command *command, string input);
+  bool process(command_t command, string input);
   void execute(string cmd, std::unordered_map<string, string> args);
   server_t server;
-  std::vector<Command*> commands;
+  std::vector<command_t> commands;
 };
 
-void console_thread(Console *console);
+void console_thread(console_t console);
 
 #endif
