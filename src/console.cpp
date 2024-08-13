@@ -60,11 +60,21 @@ class PlayerListCommand : public Command {
 
 class StopCommand : public Command {
   public:
-    StopCommand() : Command("stop", {}, "Immediately shutdown the server") {};
+    StopCommand() : Command("stop", {"lobby"}, "Immediately shutdown the server/lobby", 1) {};
     void execute(Console *console, std::unordered_map<string, string> args) {
-      delete console->server;
-      delete console;
-      exit(0);
+      lobby_t lobby = nullptr;
+      if (args.size() >= 1) {
+        int lobbyNumber = strtol(args["lobby"].c_str(), nullptr, 10);
+        lobby = console->server->getLobby(lobbyNumber);
+      }
+      if (lobby) {
+        logger::info("Stopping room %d", lobby->getRoomNumber());
+        lobby->close();
+      } else {
+        delete console->server;
+        delete console;
+        exit(0);
+      }
     };
 };
 
