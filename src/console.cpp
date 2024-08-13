@@ -13,7 +13,7 @@ string Command::getUsage()
 {
   string usage = this->name;
   for (int i = 0; i < this->params.size(); i++) {
-    if (i > this->params.size() - 1 - num_optional) {
+    if (i >= this->params.size() - this->num_optional) {
       usage += " [" + this->params[i] + "]";
     } else {
       usage += " <" + this->params[i] + ">";
@@ -36,10 +36,22 @@ class HelpCommand : public Command {
 
 class PlayerListCommand : public Command {
   public:
-    PlayerListCommand() : Command("list", {}, "Display a list of all connected players") {};
+    PlayerListCommand() : Command("list", {"lobby"}, "Display a list of all connected players", 1) {};
     void execute(Console *console, std::unordered_map<string, string> args) {
-      logger::info("%d player(s) connected", console->server->getClients().size());
-      for (client_t c : console->server->getClients()) {
+      client_list_t clients = console->server->getClients();
+      if (args.size() >= 1) {
+        int lobbyNumber = strtol(args["lobby"].c_str(), nullptr, 10);
+        lobby_t lobby = console->server->getLobby(lobbyNumber);
+        if (lobby) {
+          clients = lobby->getClients();
+          logger::info("%d player(s) connected to room %d", clients.size(), lobbyNumber);
+        } else {
+          logger::info("%d player(s) connected to server", clients.size());
+        }
+      } else {
+        logger::info("%d player(s) connected to server", clients.size());
+      }
+      for (client_t c : clients) {
         if (!c->getPlayer()) continue;
         logger::info(c->getPlayer()->getSteamId());
       }
