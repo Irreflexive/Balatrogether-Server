@@ -1,12 +1,6 @@
 #ifndef BALATROGETHER_PLAYER_H
 #define BALATROGETHER_PLAYER_H
 
-#include <memory>
-#include <iostream>
-#include <vector>
-#include <arpa/inet.h>
-#include <openssl/ssl.h>
-#include <unistd.h>
 #include "types.hpp"
 #include "client.hpp"
 

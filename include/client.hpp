@@ -1,13 +1,9 @@
 #ifndef BALATROGETHER_CLIENT_H
 #define BALATROGETHER_CLIENT_H
 
-#include <memory>
-#include <iostream>
-#include <vector>
 #include <arpa/inet.h>
-#include <openssl/ssl.h>
-#include <unistd.h>
 #include "types.hpp"
+#include "util/ssl.hpp"
 #include "util/logs.hpp"
 #include "util/misc.hpp"
 #include "lobby.hpp"

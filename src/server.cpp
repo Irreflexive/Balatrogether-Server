@@ -1,13 +1,8 @@
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-  #include <winsock2.h>
-  #define closesocket closesocket
-#else
-  #include <sys/socket.h>
-  #include <netinet/in.h>
-  #include <netinet/tcp.h>
-  #include <arpa/inet.h>
-  #define closesocket close
-#endif
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #include <thread>
 #include "util/logs.hpp"
 #include "util/misc.hpp"
@@ -84,7 +79,7 @@ Server::~Server()
   delete this->net;
   delete this->listener;
   delete this->persistentRequests;
-  closesocket(this->sockfd);
+  close(this->sockfd);
 }
 
 // Accepts an incoming TCP connection and spawns the client's processing thread
