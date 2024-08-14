@@ -1,4 +1,5 @@
-#include "util.hpp"
+#include "util/logs.hpp"
+#include "util/misc.hpp"
 #include "config.hpp"
 
 Config::Config()

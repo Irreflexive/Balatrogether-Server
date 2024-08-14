@@ -12,7 +12,6 @@
 using namespace balatrogether;
 
 #include "client.hpp"
-#include "util.hpp"
 
 class balatrogether::Player {
   public:

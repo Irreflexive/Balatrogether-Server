@@ -1,4 +1,6 @@
-#include "util.hpp"
+#include "util/logs.hpp"
+#include "util/response.hpp"
+#include "util/validation.hpp"
 #include "events/setup.hpp"
 
 void connectToServer(server_t server, client_t client, json req) {
@@ -25,7 +27,7 @@ void JoinEvent::execute(server_t server, client_t client, json req)
       status["max"] = server->getConfig()->getMaxPlayers();
       lobbies.push_back(status);
     }
-    server->getNetworkManager()->send({client}, success("LOBBIES", lobbies));
+    server->getNetworkManager()->send({client}, response::success("LOBBIES", lobbies));
     server->disconnect(client);
   }
 }
@@ -105,5 +107,5 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   data["versus"] = versus;
   data["state"] = lobby->getGame()->getJSON();
   if (lobby->getServer()->getConfig()->isDebugMode()) data["debug"] = true;
-  lobby->broadcast(success("START", data));
+  lobby->broadcast(response::success("START", data));
 }

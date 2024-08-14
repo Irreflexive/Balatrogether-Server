@@ -1,4 +1,5 @@
 #include "listeners/lobby.hpp"
+#include "util/response.hpp"
 #include "events/setup.hpp"
 #include "events/coop.hpp"
 #include "events/versus.hpp"
@@ -40,5 +41,5 @@ LobbyEventListener::LobbyEventListener(lobby_t lobby) : EventListener(lobby)
 
 void LobbyEventListener::client_error(lobby_t lobby, client_t client, json req, client_exception &e)
 {
-  lobby->getServer()->getNetworkManager()->send({client}, error(e.what()));
+  lobby->getServer()->getNetworkManager()->send({client}, response::error(e.what()));
 }

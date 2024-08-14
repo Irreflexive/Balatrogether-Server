@@ -11,9 +11,10 @@
 
 using namespace balatrogether;
 
+#include "util/logs.hpp"
+#include "util/misc.hpp"
 #include "lobby.hpp"
 #include "player.hpp"
-#include "util.hpp"
 
 class balatrogether::Client {
   public:

@@ -1,5 +1,5 @@
 #include <csignal>
-#include "util.hpp"
+#include "util/logs.hpp"
 #include "server.hpp"
 #include "console.hpp"
 

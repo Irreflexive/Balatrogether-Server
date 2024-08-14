@@ -1,4 +1,5 @@
-#include "util.hpp"
+#include "util/validation.hpp"
+#include "util/response.hpp"
 #include "events/versus.hpp"
 
 void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
@@ -17,7 +18,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
 
     json data;
     data["jokers"] = req["jokers"];
-    lobby->sendToPlayer(preq->getCreator()->getClient(), success("SWAP_JOKERS", data));
+    lobby->sendToPlayer(preq->getCreator()->getClient(), response::success("SWAP_JOKERS", data));
     lobby->getServer()->getPersistentRequestManager()->complete(requestId);
   } else {
     for (json joker : req["jokers"]) {
@@ -29,7 +30,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
     data["jokers"] = req["jokers"];
     data["request_id"] = preq->getId();
     player_t randomPlayer = lobby->getGame()->getRandomPlayer(client->getPlayer());
-    if (randomPlayer) lobby->sendToPlayer(randomPlayer->getClient(), success("SWAP_JOKERS", data));
+    if (randomPlayer) lobby->sendToPlayer(randomPlayer->getClient(), response::success("SWAP_JOKERS", data));
   }
 }
 
@@ -39,7 +40,7 @@ void GreenSealEvent::execute(lobby_t lobby, client_t client, json req)
 
   json data;
   data["money"] = -1;
-  lobby->sendToOthers(client, success("MONEY", data));
+  lobby->sendToOthers(client, response::success("MONEY", data));
 }
 
 void EraserEvent::execute(lobby_t lobby, client_t client, json req)
@@ -49,7 +50,7 @@ void EraserEvent::execute(lobby_t lobby, client_t client, json req)
   json data;
   data["hand_size"] = -1;
   player_t randomPlayer = lobby->getGame()->getRandomPlayer(client->getPlayer());
-  if (randomPlayer) lobby->sendToPlayer(randomPlayer->getClient(), success("HAND_SIZE", data));
+  if (randomPlayer) lobby->sendToPlayer(randomPlayer->getClient(), response::success("HAND_SIZE", data));
 }
 
 void PaintBucketEvent::execute(lobby_t lobby, client_t client, json req)
@@ -58,7 +59,7 @@ void PaintBucketEvent::execute(lobby_t lobby, client_t client, json req)
 
   json data;
   data["hand_size"] = -1;
-  lobby->sendToOthers(client, success("HAND_SIZE", data));
+  lobby->sendToOthers(client, response::success("HAND_SIZE", data));
 }
 
 void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
@@ -97,7 +98,7 @@ void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
       preqData["results"]["cards"].erase(cardIndex);
     }
     preqData["results"]["cards"] = randomCards;
-    lobby->sendToPlayer(preq->getCreator()->getClient(), success("GET_CARDS_AND_JOKERS", preqData["results"]));
+    lobby->sendToPlayer(preq->getCreator()->getClient(), response::success("GET_CARDS_AND_JOKERS", preqData["results"]));
     lobby->getServer()->getPersistentRequestManager()->complete(preq->getId());
   } else {
     preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
@@ -111,11 +112,11 @@ void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
 
     json data;
     data["request_id"] = preq->getId();
-    lobby->sendToOthers(client, success("GET_CARDS_AND_JOKERS", data), true);
+    lobby->sendToOthers(client, response::success("GET_CARDS_AND_JOKERS", data), true);
     for (player_t p : lobby->getGame()->getRemaining()) {
       if (!preqData["contributed"][p->getSteamId()].get<bool>()) return;
     }
-    lobby->sendToPlayer(client, success("GET_CARDS_AND_JOKERS", preqData["results"]));
+    lobby->sendToPlayer(client, response::success("GET_CARDS_AND_JOKERS", preqData["results"]));
     lobby->getServer()->getPersistentRequestManager()->complete(preq->getId());
   }
 }
@@ -127,7 +128,7 @@ void ReadyForBossEvent::execute(lobby_t lobby, client_t client, json req)
   lobby->getGame()->prepareForBoss(client->getPlayer());
   if (lobby->getGame()->isBossReady()) {
     lobby->getGame()->setState(FIGHTING_BOSS);
-    lobby->broadcast(success("START_BOSS"), true);
+    lobby->broadcast(response::success("START_BOSS"), true);
   }
 }
 
@@ -139,9 +140,9 @@ void EliminatedEvent::execute(lobby_t lobby, client_t client, json req)
   if (lobby->getGame()->getRemaining().size() == 1) {
     client_t winner = lobby->getClients().at(0);
     lobby->getGame()->reset();
-    lobby->sendToPlayer(winner, success("WIN"));
+    lobby->sendToPlayer(winner, response::success("WIN"));
   } else {
-    lobby->broadcast(success("NODATA"));
+    lobby->broadcast(response::success("NODATA"));
   }
 }
 
@@ -155,6 +156,6 @@ void DefeatedBossEvent::execute(lobby_t lobby, client_t client, json req)
     json data;
     data["leaderboard"] = lobby->getGame()->getLeaderboard();
     lobby->getGame()->setState(IN_PROGRESS);
-    lobby->broadcast(success("LEADERBOARD", data), true);
+    lobby->broadcast(response::success("LEADERBOARD", data), true);
   }
 }

@@ -1,4 +1,4 @@
-#include "util.hpp"
+#include "util/logs.hpp"
 #include "console.hpp"
 
 Command::Command(string name, std::vector<string> params, string desc, int num_optional)

@@ -1,3 +1,4 @@
+#include "util/response.hpp"
 #include "lobby.hpp"
 
 Lobby::Lobby(server_t server, int roomNumber) : logger(string("[INFO] [ROOM ") + std::to_string(roomNumber) + "] ", std::cout)
@@ -68,7 +69,7 @@ void Lobby::add(client_t client)
   this->clients.push_back(client);
   client->setLobby(this);
   this->getLogger() << "Player " << client->getPlayer()->getSteamId() << " joined lobby" << std::endl;
-  this->broadcast(success("JOIN", this->getJSON()));
+  this->broadcast(response::success("JOIN", this->getJSON()));
 }
 
 void Lobby::remove(client_t client)
@@ -80,7 +81,7 @@ void Lobby::remove(client_t client)
     if (c == client) {
       this->clients.erase(this->clients.begin() + i);
       client->setLobby(nullptr);
-      this->broadcast(success("LEAVE", this->getJSON()));
+      this->broadcast(response::success("LEAVE", this->getJSON()));
       break;
     }
   }

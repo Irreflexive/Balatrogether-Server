@@ -1,4 +1,5 @@
-#include "util.hpp"
+#include "util/logs.hpp"
+#include "util/misc.hpp"
 #include "server.hpp"
 
 // Construct a server object, initializating the mutex, SSL context, and config

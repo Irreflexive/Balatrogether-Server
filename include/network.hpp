@@ -2,7 +2,7 @@
 #define BALATROGETHER_NETWORK_H
 
 #include "types.hpp"
-#include "util.hpp"
+#include "util/ssl.hpp"
 
 #define BUFFER_SIZE 65536
 
