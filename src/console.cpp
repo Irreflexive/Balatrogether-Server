@@ -89,7 +89,7 @@ class LobbyListCommand : public Command {
       }
       size_t max_pages = ceil(lobbies.size() / 4.0);
       if (page < 1 || page > max_pages) {
-        logger::info("Usage: %s", this->getUsage());
+        logger::info("Usage: %s", this->getUsage().c_str());
       } else {
         size_t start = (page - 1)*4 + 1;
         size_t end = std::min(page*4, lobbies.size());

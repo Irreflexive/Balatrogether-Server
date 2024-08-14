@@ -4,8 +4,8 @@
 void HighlightCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
-  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+  if (!validation::string(req["type"], 1, 32)) throw std::invalid_argument("No card type provided");
+  if (!validation::integer(req["index"], 0)) throw std::invalid_argument("No index provided");
 
   json data;
   data["type"] = req["type"];
@@ -16,8 +16,8 @@ void HighlightCardEvent::execute(lobby_t lobby, client_t client, json req)
 void UnhighlightCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
-  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+  if (!validation::string(req["type"], 1, 32)) throw std::invalid_argument("No card type provided");
+  if (!validation::integer(req["index"], 0)) throw std::invalid_argument("No index provided");
 
   json data;
   data["type"] = req["type"];
@@ -49,7 +49,7 @@ void DiscardHandEvent::execute(lobby_t lobby, client_t client, json req)
 void SortHandEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["type"].is_string()) throw std::invalid_argument("No sort type provided");
+  if (!validation::string(req["type"], 1, 8)) throw std::invalid_argument("No sort type provided");
   string sortType = req["type"].get<string>();
   if (sortType != "suit" && sortType != "value") throw std::invalid_argument("Invalid sort type");
 
@@ -61,9 +61,9 @@ void SortHandEvent::execute(lobby_t lobby, client_t client, json req)
 void ReorderCardsEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
-  if (!req["from"].is_number_integer()) throw std::invalid_argument("No from index provided");
-  if (!req["to"].is_number_integer()) throw std::invalid_argument("No to index provided");
+  if (!validation::string(req["type"], 1, 32)) throw std::invalid_argument("No card type provided");
+  if (!validation::integer(req["from"], 0)) throw std::invalid_argument("No from index provided");
+  if (!validation::integer(req["to"], 0)) throw std::invalid_argument("No to index provided");
 
   json data;
   data["type"] = req["type"];
@@ -89,8 +89,8 @@ void SkipBlindEvent::execute(lobby_t lobby, client_t client, json req)
 void SellCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
-  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+  if (!validation::string(req["type"], 1, 32)) throw std::invalid_argument("No card type provided");
+  if (!validation::integer(req["index"], 0)) throw std::invalid_argument("No index provided");
 
   json data;
   data["type"] = req["type"];
@@ -101,8 +101,8 @@ void SellCardEvent::execute(lobby_t lobby, client_t client, json req)
 void BuyCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["type"].is_string()) throw std::invalid_argument("No card type provided");
-  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+  if (!validation::string(req["type"], 1, 32)) throw std::invalid_argument("No card type provided");
+  if (!validation::integer(req["index"], 0)) throw std::invalid_argument("No index provided");
 
   json data;
   data["type"] = req["type"];
@@ -113,7 +113,7 @@ void BuyCardEvent::execute(lobby_t lobby, client_t client, json req)
 void UseCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+  if (!validation::integer(req["index"], 0)) throw std::invalid_argument("No index provided");
 
   json data;
   data["index"] = req["index"];
@@ -123,7 +123,7 @@ void UseCardEvent::execute(lobby_t lobby, client_t client, json req)
 void BuyAndUseCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
-  if (!req["index"].is_number_integer()) throw std::invalid_argument("No index provided");
+  if (!validation::integer(req["index"], 0)) throw std::invalid_argument("No index provided");
 
   json data;
   data["index"] = req["index"];

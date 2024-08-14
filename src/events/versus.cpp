@@ -8,7 +8,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
 
   if (req["request_id"].is_string()) {
     for (json joker : req["jokers"]) {
-      if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
+      if (!validation::string(joker["k"], 1, 32)) throw std::invalid_argument("No joker key");
     }
 
     string requestId = req["request_id"].get<string>();
@@ -21,7 +21,7 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
     lobby->getServer()->getPersistentRequestManager()->complete(requestId);
   } else {
     for (json joker : req["jokers"]) {
-      if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
+      if (!validation::string(joker["k"], 1, 32)) throw std::invalid_argument("No joker key");
     }
 
     preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
@@ -76,11 +76,11 @@ void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
     json preqData = preq->getData();
     if (preqData["contributed"][client->getPlayer()->getSteamId()].get<bool>()) return;
     for (json joker : req["jokers"]) {
-      if (joker["k"].is_null()) throw std::invalid_argument("No joker key");
+      if (!validation::string(joker["k"], 1, 32)) throw std::invalid_argument("No joker key");
       preqData["results"]["jokers"].push_back(joker);
     }
     for (json card : req["cards"]) {
-      if (card["k"].is_null()) throw std::invalid_argument("No card key");
+      if (!validation::string(card["k"], 1, 32)) throw std::invalid_argument("No card key");
       preqData["results"]["cards"].push_back(card);
     }
     preqData["contributed"][client->getPlayer()->getSteamId()] = true;
