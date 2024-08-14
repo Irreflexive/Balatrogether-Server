@@ -1,5 +1,7 @@
 #include "network.hpp"
 
+using namespace balatrogether;
+
 NetworkManager::NetworkManager(bool ssl, bool outputKey)
 {
   if (ssl) {

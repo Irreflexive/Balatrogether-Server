@@ -4,6 +4,8 @@
 #include "events/coop.hpp"
 #include "events/versus.hpp"
 
+using namespace balatrogether;
+
 LobbyEventListener::LobbyEventListener(lobby_t lobby) : EventListener(lobby)
 {
   this->add(new StartRunEvent);

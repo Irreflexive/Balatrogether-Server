@@ -2,6 +2,8 @@
 #include "util/response.hpp"
 #include "events/setup.hpp"
 
+using namespace balatrogether;
+
 ServerEventListener::ServerEventListener(server_t server) : EventListener(server)
 {
   this->add(new JoinEvent);

@@ -2,6 +2,8 @@
 #include "util/misc.hpp"
 #include "config.hpp"
 
+using namespace balatrogether;
+
 Config::Config()
 {
   FILE* config_file = fopen((getpath() + "/config.json").c_str(), "r");

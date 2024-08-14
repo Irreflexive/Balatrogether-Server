@@ -1,6 +1,8 @@
 #include "util/response.hpp"
 #include "lobby.hpp"
 
+using namespace balatrogether;
+
 Lobby::Lobby(server_t server, int roomNumber) : logger(string("[INFO] [ROOM ") + std::to_string(roomNumber) + "] ", std::cout)
 {
   this->roomNumber = roomNumber;

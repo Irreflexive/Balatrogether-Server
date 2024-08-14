@@ -1,5 +1,7 @@
 #include "player.hpp"
 
+using namespace balatrogether;
+
 Player::Player(steamid_t steamId, string unlockHash)
 {
   this->steamId = steamId;

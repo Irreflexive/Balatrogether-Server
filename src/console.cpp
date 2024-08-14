@@ -1,6 +1,8 @@
 #include "util/logs.hpp"
 #include "console.hpp"
 
+using namespace balatrogether;
+
 Command::Command(string name, std::vector<string> params, string desc, int num_optional)
 {
   this->name = name;
@@ -228,7 +230,7 @@ void Console::execute(string cmd, std::unordered_map<string, string> args)
   }
 }
 
-void console_thread(console_t console)
+void balatrogether::console_thread(console_t console)
 {
   while (true) {
     string line;

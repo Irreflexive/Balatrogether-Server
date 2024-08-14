@@ -8,23 +8,22 @@
 #include <openssl/ssl.h>
 #include <unistd.h>
 #include "types.hpp"
-
-using namespace balatrogether;
-
 #include "client.hpp"
 
-class balatrogether::Player {
-  public:
-    Player(steamid_t steamId, string unlockHash);
+namespace balatrogether {
+  class Player {
+    public:
+      Player(steamid_t steamId, string unlockHash);
 
-    client_t getClient();
-    steamid_t getSteamId();
-    string getUnlocks();
-  private:
-    friend class Client;
-    steamid_t steamId;
-    string unlockHash;
-    client_t client = nullptr;
-};
+      client_t getClient();
+      steamid_t getSteamId();
+      string getUnlocks();
+    private:
+      friend class Client;
+      steamid_t steamId;
+      string unlockHash;
+      client_t client = nullptr;
+  };
+}
 
 #endif

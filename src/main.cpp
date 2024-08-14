@@ -5,14 +5,14 @@
 
 #define PORT 7063
 
-console_t console;
+balatrogether::console_t console;
 
 int main() {
-  server_t server = new Server(PORT);
-  logger::info << "Balatrogether is listening on port " << PORT << std::endl;
+  balatrogether::server_t server = new balatrogether::Server(PORT);
+  balatrogether::logger::info << "Balatrogether is listening on port " << PORT << std::endl;
 
-  console = new Console(server);
-  std::thread(console_thread, console).detach();
+  console = new balatrogether::Console(server);
+  std::thread(balatrogether::console_thread, console).detach();
 
   auto stopFunc = [](int s) { console->execute("stop", {}); };
   signal(SIGTERM, stopFunc);

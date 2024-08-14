@@ -2,6 +2,8 @@
 #include "util/misc.hpp"
 #include "server.hpp"
 
+using namespace balatrogether;
+
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
 {
@@ -187,7 +189,7 @@ void Server::setSocketOption(int level, int option, int value, const char *err_m
 }
 
 // Processes incoming client packets, executing the correct event handler
-void client_thread(server_t server, client_t client) {
+void balatrogether::client_thread(server_t server, client_t client) {
   if (!server->getNetworkManager()->handshake(client)) {
     server->lock();
     logger::error << "TLS handshake failed for " << client->getIP() << std::endl;

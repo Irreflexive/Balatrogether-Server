@@ -2,6 +2,8 @@
 #include "util/response.hpp"
 #include "events/versus.hpp"
 
+using namespace balatrogether;
+
 void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isVersus()) throw std::runtime_error("Not a versus game");

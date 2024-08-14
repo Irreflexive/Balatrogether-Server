@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+using namespace balatrogether;
+
 Game::Game()
 {
   this->setState(NOT_RUNNING);

@@ -2,6 +2,8 @@
 #include "util/validation.hpp"
 #include "events/coop.hpp"
 
+using namespace balatrogether;
+
 void HighlightCardEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");

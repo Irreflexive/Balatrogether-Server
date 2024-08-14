@@ -3,6 +3,8 @@
 #include "util/logs.hpp"
 #include "preq.hpp"
 
+using namespace balatrogether;
+
 typedef std::unordered_map<string, preq_t>::iterator preq_iter_t;
 
 PersistentRequest::PersistentRequest(steamid_t creator)

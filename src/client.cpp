@@ -1,5 +1,7 @@
 #include "client.hpp"
 
+using namespace balatrogether;
+
 Client::Client(int fd, sockaddr_in addr)
 {
   this->fd = fd;
