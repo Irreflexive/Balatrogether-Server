@@ -35,6 +35,7 @@ PersistentRequestManager::PersistentRequestManager(int requestLifetime, int coll
   this->requestLifetime = requestLifetime;
   this->collectionInterval = collectionInterval;
   std::thread(&PersistentRequestManager::clearUnresolved, this).detach();
+  logger::info("Persistent request manager initialized");
 }
 
 PersistentRequestManager::~PersistentRequestManager()

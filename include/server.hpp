@@ -29,6 +29,7 @@ using namespace balatrogether;
 #include "lobby.hpp"
 #include "preq.hpp"
 #include "config.hpp"
+#include "listeners/server.hpp"
 
 class balatrogether::Server {
   public:

@@ -8,6 +8,7 @@ NetworkManager::NetworkManager(bool ssl, bool outputKey)
   } else {
     this->ssl_ctx = nullptr;
   }
+  logger::info("Network manager initialized with TLS %s", ssl ? "enabled" : "disabled");
 }
 
 NetworkManager::~NetworkManager()
@@ -113,14 +114,4 @@ size_t NetworkManager::write(client_t client, char* buffer, size_t bytes)
     n = ::send(client->getFd(), buffer, bytes, 0);
   }
   return n;
-}
-
-void ServerEventListener::client_error(server_t server, client_t client, json req, client_exception &e)
-{
-  server->getNetworkManager()->send({client}, error(e.what()));
-}
-
-void LobbyEventListener::client_error(lobby_t lobby, client_t client, json req, client_exception &e)
-{
-  lobby->getServer()->getNetworkManager()->send({client}, error(e.what()));
 }

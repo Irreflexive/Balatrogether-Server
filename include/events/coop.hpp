@@ -3,132 +3,133 @@
 
 #include "../network.hpp"
 #include "../lobby.hpp"
+#include "../listener.hpp"
 
 using namespace balatrogether;
 
 // Triggered when a co-op player is highlighting a card
-class HighlightCardEvent : public NetworkEvent<lobby_t> {
+class HighlightCardEvent : public Event<lobby_t> {
   public:
-    HighlightCardEvent() : NetworkEvent("HIGHLIGHT") {};
+    HighlightCardEvent() : Event("HIGHLIGHT") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player is unhighlighting a card
-class UnhighlightCardEvent : public NetworkEvent<lobby_t> {
+class UnhighlightCardEvent : public Event<lobby_t> {
   public:
-    UnhighlightCardEvent() : NetworkEvent("UNHIGHLIGHT") {};
+    UnhighlightCardEvent() : Event("UNHIGHLIGHT") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player unhighlights the entire hand
-class UnhighlightAllEvent : public NetworkEvent<lobby_t> {
+class UnhighlightAllEvent : public Event<lobby_t> {
   public:
-    UnhighlightAllEvent() : NetworkEvent("UNHIGHLIGHT_ALL") {};
+    UnhighlightAllEvent() : Event("UNHIGHLIGHT_ALL") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player plays selected cards
-class PlayHandEvent : public NetworkEvent<lobby_t> {
+class PlayHandEvent : public Event<lobby_t> {
   public:
-    PlayHandEvent() : NetworkEvent("PLAY_HAND") {};
+    PlayHandEvent() : Event("PLAY_HAND") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player discards a hand
-class DiscardHandEvent : public NetworkEvent<lobby_t> {
+class DiscardHandEvent : public Event<lobby_t> {
   public:
-    DiscardHandEvent() : NetworkEvent("DISCARD_HAND") {};
+    DiscardHandEvent() : Event("DISCARD_HAND") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player clicks the sort by suit/rank buttons
-class SortHandEvent : public NetworkEvent<lobby_t> {
+class SortHandEvent : public Event<lobby_t> {
   public:
-    SortHandEvent() : NetworkEvent("SORT_HAND") {};
+    SortHandEvent() : Event("SORT_HAND") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player moves a card from one position to another
-class ReorderCardsEvent : public NetworkEvent<lobby_t> {
+class ReorderCardsEvent : public Event<lobby_t> {
   public:
-    ReorderCardsEvent() : NetworkEvent("REORDER") {};
+    ReorderCardsEvent() : Event("REORDER") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player selects a blind
-class SelectBlindEvent : public NetworkEvent<lobby_t> {
+class SelectBlindEvent : public Event<lobby_t> {
   public:
-    SelectBlindEvent() : NetworkEvent("SELECT_BLIND") {};
+    SelectBlindEvent() : Event("SELECT_BLIND") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player skips a blind
-class SkipBlindEvent : public NetworkEvent<lobby_t> {
+class SkipBlindEvent : public Event<lobby_t> {
   public:
-    SkipBlindEvent() : NetworkEvent("SKIP_BLIND") {};
+    SkipBlindEvent() : Event("SKIP_BLIND") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player sells a card
-class SellCardEvent : public NetworkEvent<lobby_t> {
+class SellCardEvent : public Event<lobby_t> {
   public:
-    SellCardEvent() : NetworkEvent("SELL") {};
+    SellCardEvent() : Event("SELL") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player buys a card
-class BuyCardEvent : public NetworkEvent<lobby_t> {
+class BuyCardEvent : public Event<lobby_t> {
   public:
-    BuyCardEvent() : NetworkEvent("BUY") {};
+    BuyCardEvent() : Event("BUY") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player uses a card
-class UseCardEvent : public NetworkEvent<lobby_t> {
+class UseCardEvent : public Event<lobby_t> {
   public:
-    UseCardEvent() : NetworkEvent("USE") {};
+    UseCardEvent() : Event("USE") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player clicks the buy and use button on a card
-class BuyAndUseCardEvent : public NetworkEvent<lobby_t> {
+class BuyAndUseCardEvent : public Event<lobby_t> {
   public:
-    BuyAndUseCardEvent() : NetworkEvent("BUY_AND_USE") {};
+    BuyAndUseCardEvent() : Event("BUY_AND_USE") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player skips a booster pack
-class SkipBoosterEvent : public NetworkEvent<lobby_t> {
+class SkipBoosterEvent : public Event<lobby_t> {
   public:
-    SkipBoosterEvent() : NetworkEvent("SKIP_BOOSTER") {};
+    SkipBoosterEvent() : Event("SKIP_BOOSTER") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player rerolls in the shop
-class RerollEvent : public NetworkEvent<lobby_t> {
+class RerollEvent : public Event<lobby_t> {
   public:
-    RerollEvent() : NetworkEvent("REROLL") {};
+    RerollEvent() : Event("REROLL") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player exits the shop
-class NextRoundEvent : public NetworkEvent<lobby_t> {
+class NextRoundEvent : public Event<lobby_t> {
   public:
-    NextRoundEvent() : NetworkEvent("NEXT_ROUND") {};
+    NextRoundEvent() : Event("NEXT_ROUND") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player ends the round and goes to the shop
-class GoToShopEvent : public NetworkEvent<lobby_t> {
+class GoToShopEvent : public Event<lobby_t> {
   public:
-    GoToShopEvent() : NetworkEvent("GO_TO_SHOP") {};
+    GoToShopEvent() : Event("GO_TO_SHOP") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 
 // Triggered when a co-op player clicks the endless mode button
-class EndlessEvent : public NetworkEvent<lobby_t> {
+class EndlessEvent : public Event<lobby_t> {
   public:
-    EndlessEvent() : NetworkEvent("ENDLESS") {};
+    EndlessEvent() : Event("ENDLESS") {};
     virtual void execute(lobby_t lobby, client_t client, json req);
 };
 

@@ -56,11 +56,13 @@ namespace balatrogether {
 
   // network.hpp
   class NetworkManager;
-  template <class T> class NetworkEvent;
+  typedef NetworkManager* network_t;
+
+  // listener.hpp
+  template <class T> class Event;
   template <class T> class EventListener;
   class ServerEventListener;
   class LobbyEventListener;
-  typedef NetworkManager* network_t;
   typedef ServerEventListener* server_listener_t;
   typedef LobbyEventListener* lobby_listener_t;
 

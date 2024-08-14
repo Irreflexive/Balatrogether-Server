@@ -1,6 +1,3 @@
-#include "events/setup.hpp"
-#include "events/coop.hpp"
-#include "events/versus.hpp"
 #include "lobby.hpp"
 
 Lobby::Lobby(server_t server, int roomNumber) 
@@ -9,36 +6,7 @@ Lobby::Lobby(server_t server, int roomNumber)
   this->server = server;
   this->listener = new LobbyEventListener(this);
   this->game = new Game;
-
-  this->listener->add(new StartRunEvent);
-
-  this->listener->add(new HighlightCardEvent);
-  this->listener->add(new UnhighlightCardEvent);
-  this->listener->add(new UnhighlightAllEvent);
-  this->listener->add(new PlayHandEvent);
-  this->listener->add(new DiscardHandEvent);
-  this->listener->add(new SortHandEvent);
-  this->listener->add(new ReorderCardsEvent);
-  this->listener->add(new SelectBlindEvent);
-  this->listener->add(new SkipBlindEvent);
-  this->listener->add(new SellCardEvent);
-  this->listener->add(new BuyCardEvent);
-  this->listener->add(new UseCardEvent);
-  this->listener->add(new BuyAndUseCardEvent);
-  this->listener->add(new SkipBoosterEvent);
-  this->listener->add(new RerollEvent);
-  this->listener->add(new NextRoundEvent);
-  this->listener->add(new GoToShopEvent);
-  this->listener->add(new EndlessEvent);
-
-  this->listener->add(new SwapJokersEvent);
-  this->listener->add(new GreenSealEvent);
-  this->listener->add(new EraserEvent);
-  this->listener->add(new PaintBucketEvent);
-  this->listener->add(new GetCardsAndJokersEvent);
-  this->listener->add(new ReadyForBossEvent);
-  this->listener->add(new EliminatedEvent);
-  this->listener->add(new DefeatedBossEvent);
+  logger::info("[ROOM %d] Lobby initialization complete", this->getRoomNumber());
 }
 
 Lobby::~Lobby() 

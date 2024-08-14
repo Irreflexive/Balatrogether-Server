@@ -11,6 +11,7 @@ using namespace balatrogether;
 #include "network.hpp"
 #include "game.hpp"
 #include "server.hpp"
+#include "listeners/lobby.hpp"
 
 class balatrogether::Lobby {
   public:

@@ -1,21 +1,9 @@
 #include "util.hpp"
 #include "server.hpp"
-#include "events/setup.hpp"
 
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
 {
-  srand(time(NULL));
-  this->config = new Config;
-  this->net = new NetworkManager(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
-  this->listener = new ServerEventListener(this);
-  this->persistentRequests = new PersistentRequestManager;
-  this->lobbies = lobby_list_t(this->getConfig()->getMaxLobbies());
-  for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
-    lobbies.at(i) = new Lobby(this, i + 1);
-  }
-
-  logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
   logger::info("Starting server");
 
   this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -47,16 +35,25 @@ Server::Server(int port)
     exit(EXIT_FAILURE);
   }
   logger::info("Bound to address");
+
+  srand(time(NULL));
+  this->config = new Config;
+  this->net = new NetworkManager(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
+  this->listener = new ServerEventListener(this);
+  this->persistentRequests = new PersistentRequestManager;
+  this->lobbies = lobby_list_t(this->getConfig()->getMaxLobbies());
+  logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
+
+  logger::info("Creating lobbies");
+  for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
+    lobbies.at(i) = new Lobby(this, i + 1);
+  }
+  logger::info("Lobby state setup complete");
   
   if (listen(this->sockfd, 3) < 0) {
     logger::error("Failed to listen");
     exit(EXIT_FAILURE);
   }
-
-  this->listener->add(new JoinEvent);
-  this->listener->add(new JoinLobbyEvent);
-
-  logger::info("Registered events");
 }
 
 // Cleans up the SSL context and other state
