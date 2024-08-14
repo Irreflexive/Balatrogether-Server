@@ -259,6 +259,19 @@ bool validation::integer(json& data, int min, int max)
   return true;
 }
 
+bool validation::decimal(json &data, double min, double max)
+{
+  if (!data.is_number_float()) return false;
+  double num = data.get<double>();
+  if (num < min || num > max) return false;
+  return true;
+}
+
+bool validation::boolean(json &data)
+{
+  return data.is_boolean();
+}
+
 bool validation::steamid(json& data)
 {
   if (!validation::string(data, 32)) return false;

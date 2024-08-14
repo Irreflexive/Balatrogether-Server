@@ -43,6 +43,8 @@ namespace balatrogether {
     bool string(json& data, size_t minLength, size_t maxLength);
 
     bool integer(json& data, int min = INT_MIN, int max = INT_MAX);
+    bool decimal(json& data, double min = __DBL_MIN__, double max = __DBL_MAX__);
+    bool boolean(json& data);
 
     bool steamid(json& data);
   }

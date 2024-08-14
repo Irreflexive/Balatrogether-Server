@@ -148,7 +148,7 @@ void EliminatedEvent::execute(lobby_t lobby, client_t client, json req)
 void DefeatedBossEvent::execute(lobby_t lobby, client_t client, json req)
 {
   if (!lobby->getGame()->isVersus()) throw std::runtime_error("Not a versus game");
-  if (!req["score"].is_number_float()) throw std::runtime_error("No score provided");
+  if (validation::decimal(req["score"], 0)) throw std::runtime_error("No score provided");
 
   lobby->getGame()->addScore(client->getPlayer(), req["score"].get<double>());
   if (lobby->getGame()->isScoringFinished()) {
