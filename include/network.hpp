@@ -40,6 +40,7 @@ class balatrogether::EventListener {
     EventListener(T object);
     void add(NetworkEvent<T> *event);
     bool process(client_t client, json req);
+    virtual void client_error(T object, client_t client, json req, client_exception& e) {};
   private:
     std::vector<NetworkEvent<T>*> events;
     T object;
@@ -80,7 +81,7 @@ inline bool EventListener<T>::process(client_t client, json req)
         return true;
       } catch (client_exception& e) {
         logger::debug("%s", e.what());
-        // TODO: add client error functionality
+        this->client_error(this->object, client, req, e);
         return e.keep();
       } catch (std::exception& e) {
         logger::error("%s", e.what());
@@ -90,5 +91,17 @@ inline bool EventListener<T>::process(client_t client, json req)
   }
   return false;
 }
+
+class balatrogether::ServerEventListener : public EventListener<server_t> {
+  using EventListener<server_t>::EventListener;
+  public:
+    void client_error(server_t server, client_t client, json req, client_exception& e);
+};
+
+class balatrogether::LobbyEventListener : public EventListener<lobby_t> {
+  using EventListener<lobby_t>::EventListener;
+  public:
+    void client_error(lobby_t lobby, client_t client, json req, client_exception& e);
+};
 
 #endif

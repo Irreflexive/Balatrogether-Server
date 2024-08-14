@@ -43,7 +43,7 @@ void JoinLobbyEvent::execute(server_t server, client_t client, json req)
 
 void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
 {
-  if (!validation::string(req["seed"], 6, 6)) throw std::invalid_argument("No seed provided");
+  if (!validation::string(req["seed"], 8, 8)) throw std::invalid_argument("No seed provided");
   if (!validation::string(req["deck"], 1, 32)) throw std::invalid_argument("No deck provided");
   if (!validation::integer(req["stake"], 1, 8)) throw std::invalid_argument("No stake provided");
   if (!validation::boolean(req["versus"])) throw std::invalid_argument("No game mode provided");

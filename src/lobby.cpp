@@ -7,7 +7,7 @@ Lobby::Lobby(server_t server, int roomNumber)
 {
   this->roomNumber = roomNumber;
   this->server = server;
-  this->listener = new EventListener<lobby_t>(this);
+  this->listener = new LobbyEventListener(this);
   this->game = new Game;
 
   this->listener->add(new StartRunEvent);

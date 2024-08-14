@@ -8,7 +8,7 @@ Server::Server(int port)
   srand(time(NULL));
   this->config = new Config;
   this->net = new NetworkManager(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
-  this->listener = new EventListener<server_t>(this);
+  this->listener = new ServerEventListener(this);
   this->persistentRequests = new PersistentRequestManager;
   this->lobbies = lobby_list_t(this->getConfig()->getMaxLobbies());
   for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {

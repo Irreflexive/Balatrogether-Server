@@ -114,3 +114,13 @@ size_t NetworkManager::write(client_t client, char* buffer, size_t bytes)
   }
   return n;
 }
+
+void ServerEventListener::client_error(server_t server, client_t client, json req, client_exception &e)
+{
+  server->getNetworkManager()->send({client}, error(e.what()));
+}
+
+void LobbyEventListener::client_error(lobby_t lobby, client_t client, json req, client_exception &e)
+{
+  lobby->getServer()->getNetworkManager()->send({client}, error(e.what()));
+}
