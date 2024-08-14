@@ -5,6 +5,8 @@
 
 using namespace balatrogether;
 
+typedef std::vector<steamid_t> steamid_list_t;
+
 class balatrogether::Config {
   public:
     Config();

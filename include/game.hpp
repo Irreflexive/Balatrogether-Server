@@ -7,6 +7,9 @@ using namespace balatrogether;
 
 #include "player.hpp"
 
+typedef std::pair<player_t, double> score_t;
+typedef std::vector<score_t> leaderboard_t;
+
 enum balatrogether::GameState : int {
   NOT_RUNNING = 1,
   IN_PROGRESS,

@@ -8,6 +8,7 @@
 namespace balatrogether {
   using json = nlohmann::json;
   using string = std::string;
+  typedef std::string steamid_t;
 
   // console.hpp
   struct Console;
@@ -47,12 +48,8 @@ namespace balatrogether {
 
   // player.hpp
   class Player;
-  typedef std::string steamid_t;
   typedef std::shared_ptr<Player> player_t;
-  typedef std::vector<steamid_t> steamid_list_t;
   typedef std::vector<player_t> player_list_t;
-  typedef std::pair<player_t, double> score_t;
-  typedef std::vector<score_t> leaderboard_t;
 
   // network.hpp
   class NetworkManager;
