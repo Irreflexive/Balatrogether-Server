@@ -8,7 +8,7 @@ NetworkManager::NetworkManager(bool ssl, bool outputKey)
   } else {
     this->ssl_ctx = nullptr;
   }
-  logger::info("Network manager initialized with TLS %s", ssl ? "enabled" : "disabled");
+  logger::info << "Network manager initialized with TLS " << (ssl ? "enabled" : "disabled") << std::endl;
 }
 
 NetworkManager::~NetworkManager()
@@ -38,7 +38,7 @@ void NetworkManager::send(client_list_t receivers, json payload)
   buffer[jsonString.size()] = '\n';
   for (client_t receiver : receivers) {
     size_t n = this->write(receiver, buffer, strlen(buffer));
-    if (n > 0) logger::debug("Server -> %s: %s", receiver->getIdentity().c_str(), payload.dump().c_str());
+    if (n > 0) logger::debug << "Server -> " << receiver->getIdentity() << ": " << payload.dump() << std::endl;
   }
 }
 
@@ -63,7 +63,7 @@ json NetworkManager::receive(client_t sender)
 
   try {
     buffer[n - 1] = '\0';
-    logger::debug("%s -> Server: %s", sender->getIdentity().c_str(), buffer);
+    logger::debug << sender->getIdentity() << " -> Server: " << buffer << std::endl;
     json req = json::parse(buffer);
     return req;
   } catch (...) {
@@ -77,7 +77,7 @@ size_t NetworkManager::peek(client_t client, char* buffer, size_t bytes)
   if (this->ssl_ctx && client->getSSL()) {
     int s = SSL_peek_ex(client->getSSL(), buffer, bytes, &n);
     if (s <= 0) {
-      logger::debug("SSL peek error %d", SSL_get_error(client->getSSL(), s));
+      logger::debug << "SSL peek error " << SSL_get_error(client->getSSL(), s) << std::endl;
       n = 0;
     }
   } else {
@@ -92,7 +92,7 @@ size_t NetworkManager::read(client_t client, char* buffer, size_t bytes)
   if (this->ssl_ctx && client->getSSL()) {
     int s = SSL_read_ex(client->getSSL(), buffer, bytes, &n);
     if (s <= 0) {
-      logger::debug("SSL read error %d", SSL_get_error(client->getSSL(), s));
+      logger::debug << "SSL read error " << SSL_get_error(client->getSSL(), s) << std::endl;
       n = 0;
     }
   } else {
@@ -107,7 +107,7 @@ size_t NetworkManager::write(client_t client, char* buffer, size_t bytes)
   if (this->ssl_ctx && client->getSSL()) {
     int s = SSL_write_ex(client->getSSL(), buffer, bytes, &n);
     if (s <= 0) {
-      logger::debug("SSL write error %d", SSL_get_error(client->getSSL(), s));
+      logger::debug << "SSL write error " << SSL_get_error(client->getSSL(), s) << std::endl;
       n = 0;
     }
   } else {

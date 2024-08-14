@@ -4,7 +4,7 @@
 // Construct a server object, initializating the mutex, SSL context, and config
 Server::Server(int port) 
 {
-  logger::info("Starting server");
+  logger::info << "Starting server" << std::endl;
 
   this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
   struct sockaddr_in serv_addr;
@@ -12,29 +12,29 @@ Server::Server(int port)
   serv_addr.sin_port = htons(port);
   serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-  logger::info("Configuring socket options");
+  logger::info << "Configuring socket options" << std::endl;
 
   this->setSocketOption(SOL_SOCKET, SO_REUSEADDR, true, "Failed to set reuse address");
-  logger::info("Allowed address reuse");
+  logger::info << "Allowed address reuse" << std::endl;
 
   this->setSocketOption(SOL_SOCKET, SO_SNDBUF, BUFFER_SIZE, "Failed to set send buffer size");
-  logger::info("Set send buffer size");
+  logger::info << "Set send buffer size" << std::endl;
 
   this->setSocketOption(SOL_SOCKET, SO_RCVBUF, BUFFER_SIZE, "Failed to set receive buffer size");
-  logger::info("Set receive buffer size");
+  logger::info << "Set receive buffer size" << std::endl;
 
   this->setSocketOption(SOL_SOCKET, SO_KEEPALIVE, true, "Failed to set keepalive");
   this->setSocketOption(IPPROTO_TCP, TCP_KEEPIDLE, 60, "Failed to set idle timer");
   this->setSocketOption(IPPROTO_TCP, TCP_KEEPINTVL, 10, "Failed to set probe interval");
   this->setSocketOption(IPPROTO_TCP, TCP_KEEPCNT, 2, "Failed to set probe count");
-  logger::info("Enabled keepalive timer");
+  logger::info << "Enabled keepalive timer" << std::endl;
 
   int bindStatus = bind(this->sockfd, (const struct sockaddr*) &serv_addr, sizeof(serv_addr));
   if (bindStatus < 0) {
-    logger::error("Failed to bind");
+    logger::error << "Failed to bind" << std::endl;
     exit(EXIT_FAILURE);
   }
-  logger::info("Bound to address");
+  logger::info << "Bound to address" << std::endl;
 
   srand(time(NULL));
   this->config = new Config;
@@ -44,14 +44,14 @@ Server::Server(int port)
   this->lobbies = lobby_list_t(this->getConfig()->getMaxLobbies());
   logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
 
-  logger::info("Creating lobbies");
+  logger::info << "Creating lobbies" << std::endl;
   for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
     lobbies.at(i) = new Lobby(this, i + 1);
   }
-  logger::info("Lobby state setup complete");
+  logger::info << "Lobby state setup complete" << std::endl;
   
   if (listen(this->sockfd, 3) < 0) {
-    logger::error("Failed to listen");
+    logger::error << "Failed to listen" << std::endl;
     exit(EXIT_FAILURE);
   }
 }
@@ -59,7 +59,7 @@ Server::Server(int port)
 // Cleans up the SSL context and other state
 Server::~Server()
 {
-  logger::info("Shutting down server");
+  logger::info << "Shutting down server" << std::endl;
   for (client_t c : this->clients) {
     this->disconnect(c);
   }
@@ -80,7 +80,7 @@ void Server::acceptClient()
   socklen_t cli_len = sizeof(cli_addr);
   int clientfd = accept(this->sockfd, (struct sockaddr*) &cli_addr, &cli_len);
   client_t client = new Client(clientfd, cli_addr);
-  logger::info("Client from %s attempting to connect", client->getIP().c_str());
+  logger::info << "Client from " << client->getIP() << " attempting to connect" << std::endl;
   std::thread(client_thread, this, client).detach();
 }
 
@@ -101,7 +101,7 @@ void Server::connect(client_t c, steamid_t steamId, string unlockHash)
   if (!c->getPlayer()) c->setPlayer(std::make_shared<Player>(steamId, unlockHash));
   if (!this->canConnect(c)) throw client_exception("Cannot connect to server", true);
 
-  logger::info("Client from %s joined server with Steam ID %s", c->getIP().c_str(), c->getPlayer()->getSteamId().c_str());
+  logger::info << "Client from " << c->getIP() << " joined server with Steam ID " << c->getPlayer()->getSteamId() << std::endl;
   this->clients.push_back(c);
 }
 
@@ -180,7 +180,7 @@ preq_manager_t Server::getPersistentRequestManager()
 void Server::setSocketOption(int level, int option, int value, const char *err_message)
 {
   if (setsockopt(this->sockfd, level, option, &value, sizeof(value)) < 0) {
-    logger::error("%s", err_message);
+    logger::error << err_message << std::endl;
     exit(EXIT_FAILURE);
   }
 }
@@ -189,7 +189,7 @@ void Server::setSocketOption(int level, int option, int value, const char *err_m
 void client_thread(server_t server, client_t client) {
   if (!server->getNetworkManager()->handshake(client)) {
     server->lock();
-    logger::error("TLS handshake failed for %s", client->getIP().c_str());
+    logger::error << "TLS handshake failed for " << client->getIP() << std::endl;
     server->disconnect(client);
     server->unlock();
     return;
@@ -215,6 +215,6 @@ void client_thread(server_t server, client_t client) {
   server->lock();
   string ip = client->getIP();
   server->disconnect(client);
-  logger::info("Client from %s disconnected", ip.c_str());
+  logger::info << "Client from " << ip << " disconnected" << std::endl;
   server->unlock();
 }

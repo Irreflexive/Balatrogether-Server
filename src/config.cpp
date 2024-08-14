@@ -14,9 +14,9 @@ Config::Config()
     if (config["whitelist_enabled"].is_boolean()) this->whitelistEnabled = config["whitelist_enabled"].get<bool>();
     if (config["whitelist"].is_array()) this->whitelisted = config["whitelist"].get<steamid_list_t>();
     fclose(config_file);
-    logger::info("Config loaded from config.json");
+    logger::info << "Config loaded from config.json" << std::endl;
   } else {
-    logger::info("No config file found, creating default config");
+    logger::info << "No config file found, creating default config" << std::endl;
   }
   save();
 }

@@ -9,7 +9,7 @@ console_t console;
 
 int main() {
   server_t server = new Server(PORT);
-  logger::info("Balatrogether is listening on port %i", PORT);
+  logger::info << "Balatrogether is listening on port " << PORT << std::endl;
 
   console = new Console(server);
   std::thread(console_thread, console).detach();

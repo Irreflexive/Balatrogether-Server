@@ -70,11 +70,11 @@ inline bool EventListener<T>::process(client_t client, json req)
         event->execute(this->object, client, req);
         return true;
       } catch (client_exception& e) {
-        logger::debug("%s", e.what());
+        logger::debug << e.what() << std::endl;
         this->client_error(this->object, client, req, e);
         return e.keep();
       } catch (std::exception& e) {
-        logger::error("%s", e.what());
+        logger::error << e.what() << std::endl;
         return false;
       }
     }

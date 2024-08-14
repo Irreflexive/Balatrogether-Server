@@ -86,14 +86,15 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
     "GOLD"
   };
 
-  logger::info("[ROOM %d] ===========START RUN===========", lobby->getRoomNumber());
-  logger::info("[ROOM %d] %-10s %20s", lobby->getRoomNumber(), "MODE", versus ? "VERSUS" : "CO-OP");
-  logger::info("[ROOM %d] %-10s %20s", lobby->getRoomNumber(), "SEED", seed.c_str());
+  logger::stream info = lobby->getLogger();
+  info << "===========START RUN===========" << std::endl;
+  info << std::left << std::setw(10) << "MODE" << std::right << std::setw(21) << (versus ? "VERSUS" : "CO-OP") << std::endl;
+  info << std::left << std::setw(10) << "SEED" << std::right << std::setw(21) << seed << std::endl;
   string upperDeck = deck;
   std::transform(upperDeck.begin(), upperDeck.end(), upperDeck.begin(), [](unsigned char c){ return std::toupper(c); });
-  logger::info("[ROOM %d] %-10s %20s", lobby->getRoomNumber(), "DECK", upperDeck.c_str());
-  logger::info("[ROOM %d] %-10s %20s", lobby->getRoomNumber(), "STAKE", (stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN");
-  logger::info("[ROOM %d] ===============================", lobby->getRoomNumber());
+  info << std::left << std::setw(10) << "DECK" << std::right << std::setw(21) << upperDeck << std::endl;
+  info << std::left << std::setw(10) << "STAKE" << std::right << std::setw(21) << ((stake >= 1 && stake <= 8) ? stakes[stake - 1] : "UNKNOWN") << std::endl;
+  info << "===============================" << std::endl;
 
   lobby->getGame()->start(players, versus);
 

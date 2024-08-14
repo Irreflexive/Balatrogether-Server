@@ -1,12 +1,12 @@
 #include "lobby.hpp"
 
-Lobby::Lobby(server_t server, int roomNumber) 
+Lobby::Lobby(server_t server, int roomNumber) : logger(string("[INFO] [ROOM ") + std::to_string(roomNumber) + "] ", std::cout)
 {
   this->roomNumber = roomNumber;
   this->server = server;
   this->listener = new LobbyEventListener(this);
   this->game = new Game;
-  logger::info("[ROOM %d] Lobby initialization complete", this->getRoomNumber());
+  this->getLogger() << "Lobby initialization complete" << std::endl;
 }
 
 Lobby::~Lobby() 
@@ -67,13 +67,13 @@ void Lobby::add(client_t client)
   if (!this->canJoin(client)) throw client_exception("Cannot join lobby");
   this->clients.push_back(client);
   client->setLobby(this);
-  logger::info("[ROOM %d] Player %s joined lobby", this->getRoomNumber(), client->getPlayer()->getSteamId().c_str());
+  this->getLogger() << "Player " << client->getPlayer()->getSteamId() << " joined lobby" << std::endl;
   this->broadcast(success("JOIN", this->getJSON()));
 }
 
 void Lobby::remove(client_t client)
 {
-  logger::info("[ROOM %d] Player %s left lobby", this->getRoomNumber(), client->getPlayer()->getSteamId().c_str());
+  this->getLogger() << "Player " << client->getPlayer()->getSteamId() << " left lobby" << std::endl;
   this->getGame()->eliminate(client->getPlayer());
   for (int i = 0; i < this->clients.size(); i++) {
     client_t c = this->clients.at(i);
@@ -118,6 +118,11 @@ client_list_t Lobby::getClients()
 game_t Lobby::getGame()
 {
   return this->game;
+}
+
+logger::stream Lobby::getLogger()
+{
+  return this->logger;
 }
 
 json Lobby::getJSON()

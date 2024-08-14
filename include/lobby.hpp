@@ -35,12 +35,14 @@ class balatrogether::Lobby {
     lobby_listener_t getEventListener();
     client_list_t getClients();
     game_t getGame();
+    logger::stream getLogger();
     json getJSON();
   private:
     int roomNumber;
     server_t server;
     lobby_listener_t listener;
     client_list_t clients;
+    logger::stream logger;
     game_t game;
 };
 

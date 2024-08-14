@@ -27,9 +27,9 @@ class HelpCommand : public Command {
   public:
     HelpCommand() : Command("help", {}, "Displays this list of commands") {};
     void execute(console_t console, std::unordered_map<string, string> args) {
-      logger::info("Command list:");
+      logger::info << "Command list:" << std::endl;
       for (command_t command : console->commands) {
-        logger::info(command->getUsage());
+        logger::info << command->getUsage() << std::endl;
       }
     };
 };
@@ -44,16 +44,16 @@ class PlayerListCommand : public Command {
         lobby_t lobby = console->server->getLobby(lobbyNumber);
         if (lobby) {
           clients = lobby->getClients();
-          logger::info("%d player(s) connected to room %d", clients.size(), lobbyNumber);
+          logger::info << clients.size() << " player(s) connected to room " << lobbyNumber << std::endl;
         } else {
-          logger::info("%d player(s) connected to server", clients.size());
+          logger::info << clients.size() << " player(s) connected to server" << std::endl;
         }
       } else {
-        logger::info("%d player(s) connected to server", clients.size());
+        logger::info << clients.size() << " player(s) connected to server" << std::endl;
       }
       for (client_t c : clients) {
         if (!c->getPlayer()) continue;
-        logger::info(c->getPlayer()->getSteamId());
+        logger::info << c->getPlayer()->getSteamId() << std::endl;
       }
     };
 };
@@ -68,7 +68,7 @@ class StopCommand : public Command {
         lobby = console->server->getLobby(lobbyNumber);
       }
       if (lobby) {
-        logger::info("Stopping room %d", lobby->getRoomNumber());
+        logger::info << "Stopping room " << lobby->getRoomNumber() << std::endl;
         lobby->close();
       } else {
         delete console->server;
@@ -89,14 +89,14 @@ class LobbyListCommand : public Command {
       }
       size_t max_pages = ceil(lobbies.size() / 4.0);
       if (page < 1 || page > max_pages) {
-        logger::info("Usage: %s", this->getUsage().c_str());
+        logger::info << "Usage: " << this->getUsage() << std::endl;
       } else {
         size_t start = (page - 1)*4 + 1;
         size_t end = std::min(page*4, lobbies.size());
-        logger::info("Showing rooms %d-%d of %d", start, end, lobbies.size());
+        logger::info << "Showing rooms " << start << "-" << end << " of " << lobbies.size() << std::endl;
         for (int i = start; i <= end; i++) {
           lobby_t lobby = console->server->getLobby(i);
-          logger::info("Room %d - %d/%d players", lobby->getRoomNumber(), lobby->getClients().size(), console->server->getConfig()->getMaxPlayers());
+          logger::info << "Room " << lobby->getRoomNumber() << " - " << lobby->getClients().size() << "/" << console->server->getConfig()->getMaxPlayers() << std::endl;
         }
       }
     };
@@ -110,7 +110,7 @@ class KickCommand : public Command {
         if (!c->getPlayer()) continue;
         if (args["id"] == c->getPlayer()->getSteamId()) {
           console->server->disconnect(c);
-          logger::info("Player %s kicked", args["id"].c_str());
+          logger::info << "Player " << args["id"] << " kicked" << std::endl;
         }
       }
     };
@@ -122,7 +122,7 @@ class BanCommand : public Command {
     void execute(console_t console, std::unordered_map<string, string> args) {
       console->execute("kick", args);
       console->server->getConfig()->ban(args["id"]);
-      logger::info("Player %s banned", args["id"].c_str());
+        logger::info << "Player " << args["id"] << " banned" << std::endl;
     };
 };
 
@@ -131,7 +131,7 @@ class UnbanCommand : public Command {
     UnbanCommand() : Command("unban", {"id"}, "Remove a Steam ID from the ban list") {};
     void execute(console_t console, std::unordered_map<string, string> args) {
       console->server->getConfig()->unban(args["id"]);
-      logger::info("Player %s unbanned", args["id"].c_str());
+        logger::info << "Player " << args["id"] << " unbanned" << std::endl;
     };
 };
 
@@ -142,20 +142,20 @@ class WhitelistCommand : public Command {
       string subcommand = args["on/off/add/remove"];
       if (subcommand == "on") {
         console->server->getConfig()->setWhitelistEnabled(true);
-        logger::info("Whitelist enabled");
+        logger::info << "Whitelist enabled" << std::endl;
       } else if (subcommand == "off") {
         console->server->getConfig()->setWhitelistEnabled(false);
-        logger::info("Whitelist disabled");
+        logger::info << "Whitelist disabled" << std::endl;
       } else if (subcommand == "add" && args.size() >= 2) {
         steamid_t steamId = args["id"];
         console->server->getConfig()->whitelist(steamId);
-        logger::info("Added player %s to whitelist", steamId.c_str());
+        logger::info << "Added player " << args["id"] << " to whitelist" << std::endl;
       } else if (subcommand == "remove" && args.size() >= 2) {
         steamid_t steamId = args["id"];
         console->server->getConfig()->unwhitelist(steamId);
-        logger::info("Removed player %s from whitelist", steamId.c_str());
+        logger::info << "Removed player " << args["id"] << " from whitelist" << std::endl;
       } else {
-        logger::info("Usage: %s", this->getUsage().c_str());
+        logger::info << "Usage: " << this->getUsage() << std::endl;
       }
     };
 };
@@ -200,7 +200,7 @@ bool Console::process(command_t command, string input)
   if (cmd != command->name) return false;
   args.erase(args.begin());
   if (args.size() < command->params.size() - command->num_optional) {
-    logger::info("Usage: %s", command->getUsage().c_str());
+    logger::info << "Usage: " << command->getUsage() << std::endl;
     return true;
   }
   if (args.size() > command->params.size() && command->params.size() > 0) {
@@ -235,7 +235,7 @@ void console_thread(console_t console)
     std::getline(std::cin, line);
     console->server->lock();
     bool matchedCommand = false;
-    logger::info("Console executed command \"%s\"", line.c_str());
+    logger::info << "Console executed command \"" << line << "\"" << std::endl;
     for (command_t command : console->commands) {
       if (console->process(command, line)) {
         matchedCommand = true;
@@ -243,7 +243,7 @@ void console_thread(console_t console)
       }
     }
     if (!matchedCommand) {
-      logger::info("Unknown command, type \"help\" for a list of commands");
+      logger::info << "Unknown command, type \"help\" for a list of commands" << std::endl;
     }
     console->server->unlock();
   }

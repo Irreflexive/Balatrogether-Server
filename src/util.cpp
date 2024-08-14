@@ -40,56 +40,15 @@ json balatrogether::error(string msg)
   return res;
 }
 
-bool debugOutput = false;
-
 // Enables or disables debug logs from being output to stdout
 void logger::setDebugOutputEnabled(bool enabled)
 {
-  debugOutput = enabled;
+  logger::debug.setEnabled(enabled);
 }
 
-int log(string format, va_list args, string color = "0", FILE *fd = stdout)
-{
-  std::stringstream modifiedFormat;
-  std::time_t currentTime = std::time(nullptr);
-  modifiedFormat << "\033[" << color << "m[" << std::put_time(std::gmtime(&currentTime), "%FT%TZ") << "] " << format << "\033[0m" << std::endl;
-  int n = vfprintf(fd, modifiedFormat.str().c_str(), args);
-  return n;
-}
-
-// Prints a new line with timestamp and [INFO] prefix
-int logger::info(string format, ...)
-{
-  string fmt = "[INFO] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = log(fmt, args);
-  va_end(args);
-  return n;
-}
-
-// Prints a new line with timestamp and [DEBUG] prefix, only if debug mode is enabled
-int logger::debug(string format, ...)
-{
-  if (!debugOutput) return 0;
-  string fmt = "[DEBUG] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = log(fmt, args, "33");
-  va_end(args);
-  return n;
-}
-
-// Prints an error message with timestamp
-int logger::error(string format, ...)
-{
-  string fmt = "[ERROR] " + format;
-  va_list args;
-  va_start(args, format);
-  int n = log(fmt, args, "31", stderr);
-  va_end(args);
-  return n;
-}
+logger::stream logger::info("[INFO] ", std::cout, "0");
+logger::stream logger::debug("[DEBUG] ", std::cout, "33");
+logger::stream logger::error("[ERROR] ", std::cerr, "31");
 
 // From https://wiki.openssl.org/index.php/Simple_TLS_Server
 // and https://gist.github.com/nathan-osman/5041136

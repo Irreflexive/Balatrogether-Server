@@ -35,7 +35,7 @@ LobbyEventListener::LobbyEventListener(lobby_t lobby) : EventListener(lobby)
   this->add(new EliminatedEvent);
   this->add(new DefeatedBossEvent);
 
-  logger::info("[ROOM %d] Listening for lobby events", lobby->getRoomNumber());
+  lobby->getLogger() << "Listening for lobby events" << std::endl;
 }
 
 void LobbyEventListener::client_error(lobby_t lobby, client_t client, json req, client_exception &e)
