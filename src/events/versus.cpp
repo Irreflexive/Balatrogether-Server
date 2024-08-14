@@ -18,14 +18,19 @@ void SwapJokersEvent::execute(lobby_t lobby, client_t client, json req)
 
     json data;
     data["jokers"] = req["jokers"];
-    lobby->sendToPlayer(preq->getCreator()->getClient(), response::success("SWAP_JOKERS", data));
+    for (client_t client : lobby->getClients()) {
+      if (client->getPlayer()->getSteamId() == preq->getCreator()) {
+        lobby->sendToPlayer(client, response::success("SWAP_JOKERS", data));
+        break;
+      }
+    }
     lobby->getServer()->getPersistentRequestManager()->complete(requestId);
   } else {
     for (json joker : req["jokers"]) {
       if (!validation::string(joker["k"], 1, 32)) throw std::invalid_argument("No joker key");
     }
 
-    preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
+    preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer()->getSteamId());
     json data;
     data["jokers"] = req["jokers"];
     data["request_id"] = preq->getId();
@@ -98,10 +103,15 @@ void GetCardsAndJokersEvent::execute(lobby_t lobby, client_t client, json req)
       preqData["results"]["cards"].erase(cardIndex);
     }
     preqData["results"]["cards"] = randomCards;
-    lobby->sendToPlayer(preq->getCreator()->getClient(), response::success("GET_CARDS_AND_JOKERS", preqData["results"]));
+    for (client_t client : lobby->getClients()) {
+      if (client->getPlayer()->getSteamId() == preq->getCreator()) {
+        lobby->sendToPlayer(client, response::success("GET_CARDS_AND_JOKERS", preqData["results"]));
+        break;
+      }
+    }
     lobby->getServer()->getPersistentRequestManager()->complete(preq->getId());
   } else {
-    preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer());
+    preq_t preq = lobby->getServer()->getPersistentRequestManager()->create(client->getPlayer()->getSteamId());
     json preqData;
     preqData["contributed"] = json::object();
     preqData["contributed"][client->getPlayer()->getSteamId()] = true;

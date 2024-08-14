@@ -1,8 +1,11 @@
+#include <thread>
+#include <chrono>
+#include "util/logs.hpp"
 #include "preq.hpp"
 
 typedef std::unordered_map<string, preq_t>::iterator preq_iter_t;
 
-PersistentRequest::PersistentRequest(player_t creator)
+PersistentRequest::PersistentRequest(steamid_t creator)
 {
   this->id = std::to_string(rand());
   this->original = creator;
@@ -15,7 +18,7 @@ string PersistentRequest::getId()
   return this->id;
 }
 
-player_t PersistentRequest::getCreator()
+steamid_t PersistentRequest::getCreator()
 {
   return this->original;
 }
@@ -45,7 +48,7 @@ PersistentRequestManager::~PersistentRequestManager()
   }
 }
 
-preq_t PersistentRequestManager::create(player_t creator)
+preq_t PersistentRequestManager::create(steamid_t creator)
 {
   preq_t preq = new PersistentRequest(creator);
   this->requests.insert(std::make_pair(preq->id, preq));

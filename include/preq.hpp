@@ -5,19 +5,17 @@
 
 using namespace balatrogether;
 
-#include "player.hpp"
-
 class balatrogether::PersistentRequest {
   public:
     string getId();
-    player_t getCreator();
+    steamid_t getCreator();
     json getData();
     void setData(json data);
   private:
     friend class PersistentRequestManager;
-    PersistentRequest(player_t creator);
+    PersistentRequest(steamid_t creator);
     string id;
-    player_t original;
+    steamid_t original;
     json data;
     clock_t created;
 };
@@ -26,7 +24,7 @@ class balatrogether::PersistentRequestManager {
   public:
     PersistentRequestManager(int requestLifetime = 10, int collectionInterval = 60);
     ~PersistentRequestManager();
-    preq_t create(player_t creator);
+    preq_t create(steamid_t creator);
     preq_t getById(string requestId);
     void complete(string requestId);
     void clearUnresolved();

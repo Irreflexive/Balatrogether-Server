@@ -88,8 +88,8 @@ void Server::acceptClient()
 // Returns false if the server is in progress, is full, or the player has been banned
 bool Server::canConnect(client_t c)
 {
-  if (!this->getConfig()->isWhitelisted(c->getPlayer())) return false;
-  if (this->getConfig()->isBanned(c->getPlayer())) return false;
+  if (!this->getConfig()->isWhitelisted(c->getPlayer()->getSteamId())) return false;
+  if (this->getConfig()->isBanned(c->getPlayer()->getSteamId())) return false;
   for (client_t client : this->clients) {
     if (client->getIdentity() == c->getIdentity()) return false;
   }

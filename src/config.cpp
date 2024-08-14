@@ -76,11 +76,6 @@ void Config::setWhitelistEnabled(bool whitelistEnabled)
   save();
 }
 
-bool Config::isBanned(player_t p)
-{
-  return this->isBanned(p->getSteamId());
-}
-
 bool Config::isBanned(steamid_t steamId)
 {
   for (steamid_t id : this->banned) {
@@ -89,21 +84,11 @@ bool Config::isBanned(steamid_t steamId)
   return false;
 }
 
-void Config::ban(player_t p)
-{
-  this->ban(p->getSteamId());
-}
-
 void Config::ban(steamid_t steamId)
 {
   if (this->isBanned(steamId)) return;
   this->banned.push_back(steamId);
   save();
-}
-
-void Config::unban(player_t p)
-{
-  this->unban(p->getSteamId());
 }
 
 void Config::unban(steamid_t steamId)
@@ -118,11 +103,6 @@ void Config::unban(steamid_t steamId)
   }
 }
 
-bool Config::isWhitelisted(player_t p)
-{
-  return this->isWhitelisted(p->getSteamId());
-}
-
 bool Config::isWhitelisted(steamid_t steamId)
 {
   if (!this->whitelistEnabled) return true;
@@ -132,21 +112,11 @@ bool Config::isWhitelisted(steamid_t steamId)
   return false;
 }
 
-void Config::whitelist(player_t p)
-{
-  this->whitelist(p->getSteamId());
-}
-
 void Config::whitelist(steamid_t steamId)
 {
   if (this->isWhitelisted(steamId)) return;
   this->whitelisted.push_back(steamId);
   save();
-}
-
-void Config::unwhitelist(player_t p)
-{
-  this->unwhitelist(p->getSteamId());
 }
 
 void Config::unwhitelist(steamid_t steamId)
