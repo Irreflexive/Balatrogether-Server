@@ -2,10 +2,11 @@
 #define BALATROGETHER_LISTENER_H
 
 #include "types.hpp"
-#include "player.hpp"
+#include "util/misc.hpp"
+#include "util/logs.hpp"
 
 namespace balatrogether {
-  template <class T>
+  template <typename T>
   class Event {
     public:
       Event(string command);
@@ -15,7 +16,7 @@ namespace balatrogether {
       string command;
   };
 
-  template <class T>
+  template <typename T>
   class EventListener {
     public:
       EventListener(T object);
@@ -28,37 +29,37 @@ namespace balatrogether {
       T object;
   };
 
-  template <class T>
+  template <typename T>
   inline Event<T>::Event(string command)
   {
     this->command = command;
   }
 
-  template <class T>
+  template <typename T>
   inline string Event<T>::getCommand()
   {
     return this->command;
   }
 
-  template <class T>
+  template <typename T>
   inline EventListener<T>::EventListener(T object)
   {
     this->object = object;
   }
 
-  template <class T>
+  template <typename T>
   inline EventListener<T>::~EventListener()
   {
     for (Event<T> *event : this->events) delete event;
   }
 
-  template <class T>
+  template <typename T>
   inline void EventListener<T>::add(Event<T> *event)
   {
     this->events.push_back(event);
   }
 
-  template <class T>
+  template <typename T>
   inline bool EventListener<T>::process(client_t client, json req)
   {
     if (!req["cmd"].is_string()) return false;

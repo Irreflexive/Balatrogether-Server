@@ -1,9 +1,8 @@
 #ifndef BALATROGETHER_LOBBY_LISTENER_HPP
 #define BALATROGETHER_LOBBY_LISTENER_HPP
 
-#include "../types.hpp"
-#include "../lobby.hpp"
-#include "../listener.hpp"
+#include "types.hpp"
+#include "listener.hpp"
 
 namespace balatrogether {
   class LobbyEventListener : public EventListener<lobby_t> {

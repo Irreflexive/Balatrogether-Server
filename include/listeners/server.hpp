@@ -1,9 +1,8 @@
 #ifndef BALATROGETHER_SERVER_LISTENER_HPP
 #define BALATROGETHER_SERVER_LISTENER_HPP
 
-#include "../types.hpp"
-#include "../server.hpp"
-#include "../listener.hpp"
+#include "types.hpp"
+#include "listener.hpp"
 
 namespace balatrogether {
   class ServerEventListener : public EventListener<server_t> {

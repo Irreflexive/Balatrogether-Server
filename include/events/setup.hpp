@@ -1,9 +1,9 @@
 #ifndef BALATROGETHER_SERVER_EVENTS_H
 #define BALATROGETHER_SERVER_EVENTS_H
 
-#include "../network.hpp"
-#include "../server.hpp"
-#include "../listener.hpp"
+#include "network.hpp"
+#include "server.hpp"
+#include "listener.hpp"
 
 namespace balatrogether {
   // Triggered when a player wants to join the server, exchanging their steam ID and unlock hash

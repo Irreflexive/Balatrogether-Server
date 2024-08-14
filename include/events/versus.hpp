@@ -1,9 +1,9 @@
 #ifndef BALATROGETHER_VERSUS_EVENTS_H
 #define BALATROGETHER_VERSUS_EVENTS_H
 
-#include "../network.hpp"
-#include "../lobby.hpp"
-#include "../listener.hpp"
+#include "network.hpp"
+#include "lobby.hpp"
+#include "listener.hpp"
 
 namespace balatrogether {
   // Triggered when a player sells Annie and Hallie

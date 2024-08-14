@@ -1,3 +1,4 @@
+#include <thread>
 #include <csignal>
 #include "util/logs.hpp"
 #include "server.hpp"
