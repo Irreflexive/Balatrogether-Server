@@ -1,6 +1,10 @@
 #include "util/validation.hpp"
 #include "util/response.hpp"
 #include "events/versus.hpp"
+#include "lobby.hpp"
+#include "server.hpp"
+#include "player.hpp"
+#include "client.hpp"
 
 using namespace balatrogether;
 

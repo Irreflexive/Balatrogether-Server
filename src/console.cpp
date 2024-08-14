@@ -1,5 +1,7 @@
 #include "util/logs.hpp"
 #include "console.hpp"
+#include "lobby.hpp"
+#include "client.hpp"
 
 using namespace balatrogether;
 

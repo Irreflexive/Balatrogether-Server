@@ -1,5 +1,7 @@
 #include "util/response.hpp"
 #include "lobby.hpp"
+#include "server.hpp"
+#include "client.hpp"
 
 using namespace balatrogether;
 

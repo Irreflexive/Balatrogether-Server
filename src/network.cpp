@@ -1,4 +1,6 @@
 #include "network.hpp"
+#include "util/logs.hpp"
+#include "client.hpp"
 
 using namespace balatrogether;
 

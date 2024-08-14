@@ -1,6 +1,7 @@
 #include "util/response.hpp"
 #include "util/validation.hpp"
 #include "events/coop.hpp"
+#include "lobby.hpp"
 
 using namespace balatrogether;
 

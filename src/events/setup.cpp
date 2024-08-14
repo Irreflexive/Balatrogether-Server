@@ -2,6 +2,9 @@
 #include "util/response.hpp"
 #include "util/validation.hpp"
 #include "events/setup.hpp"
+#include "server.hpp"
+#include "lobby.hpp"
+#include "client.hpp"
 
 using namespace balatrogether;
 

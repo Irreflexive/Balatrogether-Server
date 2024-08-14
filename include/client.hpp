@@ -6,8 +6,6 @@
 #include "util/ssl.hpp"
 #include "util/logs.hpp"
 #include "util/misc.hpp"
-#include "lobby.hpp"
-#include "player.hpp"
 
 namespace balatrogether {
   class Client {

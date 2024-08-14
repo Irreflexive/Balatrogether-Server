@@ -2,10 +2,8 @@
 #define BALATROGETHER_LOBBY_H
 
 #include "types.hpp"
-#include "player.hpp"
-#include "network.hpp"
+#include "util/logs.hpp"
 #include "game.hpp"
-#include "server.hpp"
 #include "listeners/lobby.hpp"
 
 namespace balatrogether {

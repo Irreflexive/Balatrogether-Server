@@ -4,8 +4,6 @@
 #include <mutex>
 #include "types.hpp"
 #include "network.hpp"
-#include "client.hpp"
-#include "lobby.hpp"
 #include "preq.hpp"
 #include "config.hpp"
 #include "listeners/server.hpp"

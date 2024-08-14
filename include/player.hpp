@@ -2,7 +2,6 @@
 #define BALATROGETHER_PLAYER_H
 
 #include "types.hpp"
-#include "client.hpp"
 
 namespace balatrogether {
   class Player {

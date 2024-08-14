@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include "client.hpp"
+#include "player.hpp"
+#include "lobby.hpp"
 
 using namespace balatrogether;
 

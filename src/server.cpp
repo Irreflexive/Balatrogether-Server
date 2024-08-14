@@ -7,6 +7,8 @@
 #include "util/logs.hpp"
 #include "util/misc.hpp"
 #include "server.hpp"
+#include "lobby.hpp"
+#include "client.hpp"
 
 using namespace balatrogether;
 
