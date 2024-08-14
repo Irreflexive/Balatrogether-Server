@@ -1,5 +1,7 @@
 #include "util/ssl.hpp"
-#include "util/misc.hpp"
+#include "util/logs.hpp"
+
+#define TLS_KEY_LENGTH 2048
 
 using namespace balatrogether;
 
@@ -34,7 +36,7 @@ EVP_PKEY *generate_key(bool debugMode)
     return NULL;
   }
 
-  if (RSA_generate_key_ex(rsa, 2048, bne, NULL) != 1) {
+  if (RSA_generate_key_ex(rsa, TLS_KEY_LENGTH, bne, NULL) != 1) {
     BN_free(bne);
     EVP_PKEY_free(pkey);
     RSA_free(rsa);
@@ -49,10 +51,12 @@ EVP_PKEY *generate_key(bool debugMode)
   }
 
   if (debugMode) {
-    FILE* fp = fopen((getpath() + "/key.pem").c_str(), "w");
+    char* buffer;
+    size_t len;
+    FILE* fp = open_memstream(&buffer, &len);
     PEM_write_RSAPrivateKey(fp, rsa, NULL, 0, 0, NULL, NULL);
-    fflush(fp);
     fclose(fp);
+    logger::debug << buffer;
   }
   
   /* The key has been generated, return it. */
