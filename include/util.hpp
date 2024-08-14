@@ -58,8 +58,6 @@ namespace balatrogether {
         string color;
       };
 
-    void setDebugOutputEnabled(bool enabled);
-
     extern stream info;
     extern stream debug;
     extern stream error;

@@ -41,11 +41,6 @@ json balatrogether::error(string msg)
 }
 
 // Enables or disables debug logs from being output to stdout
-void logger::setDebugOutputEnabled(bool enabled)
-{
-  logger::debug.setEnabled(enabled);
-}
-
 logger::stream logger::info("[INFO] ", std::cout, "0");
 logger::stream logger::debug("[DEBUG] ", std::cout, "33");
 logger::stream logger::error("[ERROR] ", std::cerr, "31");

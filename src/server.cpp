@@ -42,7 +42,7 @@ Server::Server(int port)
   this->listener = new ServerEventListener(this);
   this->persistentRequests = new PersistentRequestManager;
   this->lobbies = lobby_list_t(this->getConfig()->getMaxLobbies());
-  logger::setDebugOutputEnabled(this->getConfig()->isDebugMode());
+  logger::debug.setEnabled(this->getConfig()->isDebugMode());
 
   logger::info << "Creating lobbies" << std::endl;
   for (int i = 0; i < this->getConfig()->getMaxLobbies(); i++) {
