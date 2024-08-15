@@ -5,9 +5,6 @@
 #include "player.hpp"
 
 namespace balatrogether {
-  typedef std::pair<player_t, double> score_t;
-  typedef std::vector<score_t> leaderboard_t;
-
   enum GameState : int {
     NOT_RUNNING = 1,
     IN_PROGRESS,
@@ -17,6 +14,8 @@ namespace balatrogether {
   };
 
   class Game {
+    typedef std::pair<player_t, double> score_t;
+    typedef std::vector<score_t> leaderboard_t;
     public:
       Game();
 

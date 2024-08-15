@@ -10,12 +10,6 @@ namespace balatrogether {
   using string = std::string;
   typedef std::string steamid_t;
 
-  // console.hpp
-  struct Console;
-  class Command;
-  typedef Console* console_t;
-  typedef Command* command_t;
-
   // server.hpp
   class Server;
   typedef Server* server_t;
@@ -58,12 +52,18 @@ namespace balatrogether {
   // listener.hpp
   template <typename T> class Event;
   template <typename T, typename E = Event<T>*> class EventListener;
+
+  // listeners/server.hpp
   class ServerEventListener;
+  typedef ServerEventListener* server_listener_t;
+
+  // listeners/lobby.hpp
   class LobbyEventListener;
+  typedef LobbyEventListener* lobby_listener_t;
+
+  // listeners/console.hpp
   class ConsoleEventListener;
   class ConsoleEvent;
-  typedef ServerEventListener* server_listener_t;
-  typedef LobbyEventListener* lobby_listener_t;
   typedef ConsoleEventListener* console_listener_t;
 
   // util.hpp
