@@ -26,7 +26,7 @@ namespace balatrogether::logger {
       stream &operator<<(std::ostream& (*fn)(std::ostream&)) {
         if (!on) return *this;
         bool is_endl = fn == (std::ostream& (*)(std::ostream&)) std::endl;
-        if (is_endl) os << "\033[0m";
+        if (is_endl) os << "\033[34m";
         os << fn;
         if (is_endl) {
           new_line = true;
