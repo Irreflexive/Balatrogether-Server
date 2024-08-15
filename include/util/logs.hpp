@@ -26,12 +26,11 @@ namespace balatrogether::logger {
       stream &operator<<(std::ostream& (*fn)(std::ostream&)) {
         if (!on) return *this;
         bool is_endl = fn == (std::ostream& (*)(std::ostream&)) std::endl;
-        if (is_endl) os << "\033[34m";
+        bool is_flush = is_endl || fn == (std::ostream& (*)(std::ostream&)) std::flush;
+        if (is_flush) os << "\033[34m";
         os << fn;
-        if (is_endl) {
-          new_line = true;
-          mutex.unlock();
-        }
+        if (is_endl) new_line = true;
+        if (is_flush) mutex.unlock();
         return *this;
       };
       void setEnabled(bool enabled) { on = enabled; };
