@@ -7,6 +7,7 @@
 #include "preq.hpp"
 #include "config.hpp"
 #include "listeners/server.hpp"
+#include "listeners/console.hpp"
 
 namespace balatrogether {
   class Server {
@@ -31,11 +32,13 @@ namespace balatrogether {
       network_t getNetworkManager();
       config_t getConfig();
       server_listener_t getEventListener();
+      console_listener_t getConsole();
       preq_manager_t getPersistentRequestManager();
     private:
       void setSocketOption(int level, int option, int value, const char *err_message = "Failed to set option");
       network_t net;
       server_listener_t listener;
+      console_listener_t console;
       client_list_t clients;
       lobby_list_t lobbies;
       std::mutex mutex;
@@ -45,6 +48,7 @@ namespace balatrogether {
   };
 
   void client_thread(server_t server, client_t client);
+  void console_thread(server_t server);
 }
 
 #endif

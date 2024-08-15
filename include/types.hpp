@@ -57,11 +57,14 @@ namespace balatrogether {
 
   // listener.hpp
   template <typename T> class Event;
-  template <typename T> class EventListener;
+  template <typename T, typename E = Event<T>*> class EventListener;
   class ServerEventListener;
   class LobbyEventListener;
+  class ConsoleEventListener;
+  class ConsoleEvent;
   typedef ServerEventListener* server_listener_t;
   typedef LobbyEventListener* lobby_listener_t;
+  typedef ConsoleEventListener* console_listener_t;
 
   // util.hpp
   class client_exception;

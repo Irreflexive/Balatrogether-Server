@@ -51,6 +51,7 @@ Server::Server(int port)
   this->config = new Config;
   this->net = new NetworkManager(this->getConfig()->isTLSEnabled(), this->getConfig()->isDebugMode());
   this->listener = new ServerEventListener(this);
+  this->console = new ConsoleEventListener(this);
   this->persistentRequests = new PersistentRequestManager;
   this->lobbies = lobby_list_t(this->getConfig()->getMaxLobbies());
   logger::debug.setEnabled(this->getConfig()->isDebugMode());
@@ -65,6 +66,8 @@ Server::Server(int port)
     logger::error << "Failed to listen" << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  std::thread(console_thread, this).detach();
 }
 
 // Cleans up the SSL context and other state
@@ -80,6 +83,7 @@ Server::~Server()
   delete this->config;
   delete this->net;
   delete this->listener;
+  delete this->console;
   delete this->persistentRequests;
   close(this->sockfd);
 }
@@ -182,6 +186,11 @@ server_listener_t Server::getEventListener()
   return this->listener;
 }
 
+console_listener_t balatrogether::Server::getConsole()
+{
+  return this->console;
+}
+
 // Returns the persistent request manager
 preq_manager_t Server::getPersistentRequestManager()
 {
@@ -228,4 +237,15 @@ void balatrogether::client_thread(server_t server, client_t client) {
   server->disconnect(client);
   logger::info << "Client from " << ip << " disconnected" << std::endl;
   server->unlock();
+}
+
+void balatrogether::console_thread(server_t server)
+{
+  while (true) {
+    string line;
+    std::getline(std::cin, line);
+    server->lock();
+    server->getConsole()->process(line);
+    server->unlock();
+  }
 }
