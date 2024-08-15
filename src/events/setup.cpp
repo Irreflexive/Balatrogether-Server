@@ -10,7 +10,7 @@ using namespace balatrogether;
 
 void connectToServer(server_t server, client_t client, json req) {
   if (!validation::steamid(req["steam_id"])) throw std::invalid_argument("No Steam ID provided");
-  if (!validation::string(req["unlock_hash"], 64, 128)) throw std::invalid_argument("No unlock hash provided");
+  if (!validation::string(req["unlock_hash"], 64, 128) || !validation::base64(req["unlock_hash"])) throw std::invalid_argument("No unlock hash provided");
 
   steamid_t steamId = req["steam_id"].get<steamid_t>();
   string unlockHash = req["unlock_hash"].get<string>();

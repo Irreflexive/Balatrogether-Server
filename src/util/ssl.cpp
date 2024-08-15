@@ -56,7 +56,7 @@ EVP_PKEY *generate_key(bool debugMode)
     FILE* fp = open_memstream(&buffer, &len);
     PEM_write_RSAPrivateKey(fp, rsa, NULL, 0, 0, NULL, NULL);
     fclose(fp);
-    logger::debug << buffer;
+    logger::debug << buffer << std::endl;
   }
   
   /* The key has been generated, return it. */

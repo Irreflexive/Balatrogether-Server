@@ -1,3 +1,4 @@
+#include <regex>
 #include "util/validation.hpp"
 
 using namespace balatrogether;
@@ -20,7 +21,14 @@ bool validation::string(json& data, size_t minLength, size_t maxLength)
   return true;
 }
 
-bool validation::integer(json& data, int min, int max)
+bool validation::string(json &data, const char *regex)
+{
+  if (!validation::string(data)) return false;
+  std::regex expr(regex);
+  return std::regex_search(data.get<balatrogether::string>(), expr);
+}
+
+bool validation::integer(json &data, int min, int max)
 {
   if (!data.is_number_integer()) return false;
   int num = data.get<int>();
@@ -48,4 +56,9 @@ bool validation::steamid(json& data)
   uint64_t num = strtoull(str.c_str(), nullptr, 10);
   if (std::to_string(num) != str) return false;
   return true;
+}
+
+bool validation::base64(json& data)
+{
+  return validation::string(data, "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$");
 }
