@@ -13,7 +13,6 @@ Config::Config()
     if (config["max_lobbies"].is_number_integer()) this->maxLobbies = config["max_lobbies"].get<int>();
     if (config["tls_enabled"].is_boolean()) this->tlsEnabled = config["tls_enabled"].get<bool>();
     if (config["banned_users"].is_array()) this->banned = config["banned_users"].get<steamid_list_t>();
-    if (config["debug_mode"].is_boolean()) this->debugMode = config["debug_mode"].get<bool>();
     if (config["whitelist_enabled"].is_boolean()) this->whitelistEnabled = config["whitelist_enabled"].get<bool>();
     if (config["whitelist"].is_array()) this->whitelisted = config["whitelist"].get<steamid_list_t>();
     fclose(config_file);
@@ -64,12 +63,6 @@ void Config::setTLSEnabled(bool tlsEnabled)
 bool Config::isDebugMode()
 {
   return this->debugMode;
-}
-
-void Config::setDebugMode(bool debugMode)
-{
-  this->debugMode = debugMode;
-  save();
 }
 
 void Config::setWhitelistEnabled(bool whitelistEnabled)
@@ -141,7 +134,6 @@ void Config::save()
     {"max_lobbies", this->maxLobbies},
     {"tls_enabled", this->tlsEnabled},
     {"banned_users", this->banned},
-    {"debug_mode", this->debugMode},
     {"whitelist_enabled", this->whitelistEnabled},
     {"whitelist", this->whitelisted}
   };

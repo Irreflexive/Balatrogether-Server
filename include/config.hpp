@@ -18,7 +18,6 @@ namespace balatrogether {
       bool isTLSEnabled();
       void setTLSEnabled(bool tlsEnabled);
       bool isDebugMode();
-      void setDebugMode(bool debugMode);
       void setWhitelistEnabled(bool whitelistEnabled);
 
       bool isBanned(steamid_t steamId);
@@ -34,7 +33,7 @@ namespace balatrogether {
       int maxLobbies = 1;
       bool tlsEnabled = true;
       steamid_list_t banned;
-      bool debugMode = false;
+      bool debugMode = DEBUG;
       bool whitelistEnabled = false;
       steamid_list_t whitelisted;
   };
