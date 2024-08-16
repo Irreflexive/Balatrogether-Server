@@ -168,3 +168,13 @@ void EndlessEvent::execute(lobby_t lobby, client_t client, json req)
 
   lobby->broadcast(response::success("ENDLESS"));
 }
+
+void GameSpeedEvent::execute(lobby_t lobby, client_t client, json req)
+{
+  if (!lobby->getGame()->isCoop()) throw std::runtime_error("Not a co-op game");
+  if (!validation::integer(req["speed"], 0, 32)) throw std::invalid_argument("Invalid game speed");
+
+  json data;
+  data["speed"] = req["speed"].get<int>();
+  lobby->sendToOthers(client, response::success("GAME_SPEED", data));
+}

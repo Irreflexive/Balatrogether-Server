@@ -28,6 +28,7 @@ LobbyEventListener::LobbyEventListener(lobby_t lobby) : EventListener(lobby)
   this->add(new NextRoundEvent);
   this->add(new GoToShopEvent);
   this->add(new EndlessEvent);
+  this->add(new GameSpeedEvent);
 
   this->add(new SwapJokersEvent);
   this->add(new GreenSealEvent);

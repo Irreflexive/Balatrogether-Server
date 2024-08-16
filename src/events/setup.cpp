@@ -58,6 +58,7 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   if (!validation::string(req["deck"], 1, 32)) throw std::invalid_argument("No deck provided");
   if (!validation::integer(req["stake"], 1, 8)) throw std::invalid_argument("No stake provided");
   if (!validation::boolean(req["versus"])) throw std::invalid_argument("No game mode provided");
+  if (!req["versus"].get<bool>() && !validation::integer(req["speed"], 0, 32)) throw std::invalid_argument("Invalid game speed");
   if (!lobby->isHost(client) || (lobby->getClients().size() <= 1 && !lobby->getServer()->getConfig()->isDebugMode())) {
     throw std::runtime_error("Cannot start run");
   }
@@ -117,7 +118,7 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   data["deck"] = deck;
   data["stake"] = stake;
   data["versus"] = versus;
-  data["state"] = lobby->getGame()->getJSON();
+  data["speed"] = req["speed"].get<int>();
   if (lobby->getServer()->getConfig()->isDebugMode()) data["debug"] = true;
   lobby->broadcast(response::success("START", data));
 }
