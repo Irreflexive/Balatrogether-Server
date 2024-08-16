@@ -12,6 +12,12 @@ namespace balatrogether {
       bool disconnect;
   };
 
+  struct player_auth {
+    steamid_t steamId;
+    string unlockHash;
+    std::unordered_map<string, int> stakes;
+  };
+
   string getpath();
 }
 

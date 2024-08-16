@@ -18,7 +18,7 @@ namespace balatrogether {
       void acceptClient();
 
       bool canConnect(client_t c);
-      void connect(client_t c, steamid_t steamId, string unlockHash);
+      void connect(client_t c, player_auth auth);
       void disconnect(client_t c);
 
       lobby_t getDefaultLobby();

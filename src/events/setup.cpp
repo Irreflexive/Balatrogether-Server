@@ -11,10 +11,13 @@ using namespace balatrogether;
 void connectToServer(server_t server, client_t client, json req) {
   if (!validation::steamid(req["steam_id"])) throw std::invalid_argument("No Steam ID provided");
   if (!validation::string(req["unlock_hash"], 64, 128) || !validation::base64(req["unlock_hash"])) throw std::invalid_argument("No unlock hash provided");
+  if (!req["stakes"].is_object() || req["stakes"].size() > 20) throw std::invalid_argument("No stake unlocks provided");
 
-  steamid_t steamId = req["steam_id"].get<steamid_t>();
-  string unlockHash = req["unlock_hash"].get<string>();
-  server->connect(client, steamId, unlockHash);
+  player_auth auth;
+  auth.steamId = req["steam_id"].get<steamid_t>();
+  auth.unlockHash = req["unlock_hash"].get<string>();
+  auth.stakes = req["stakes"].get<std::unordered_map<string, int>>();
+  server->connect(client, auth);
 }
 
 void JoinEvent::execute(server_t server, client_t client, json req)
@@ -77,9 +80,12 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
         initialized = true;
         unlockHash = p->getUnlocks();
       } else if (unlockHash != p->getUnlocks()) {
-        return;
+        throw client_exception("Players do not have the same unlocks");
       }
     }
+  }
+  for (player_t p : players) {
+    if (p->getUnlockedStake(deck) < stake) throw client_exception("Players do not have deck/stake unlocked");
   }
 
   const char* stakes[] = {

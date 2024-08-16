@@ -68,6 +68,7 @@ namespace balatrogether {
 
   // util.hpp
   class client_exception;
+  struct player_auth;
 }
 
 #endif

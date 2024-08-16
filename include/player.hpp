@@ -2,19 +2,20 @@
 #define BALATROGETHER_PLAYER_H
 
 #include "types.hpp"
+#include "util/misc.hpp"
 
 namespace balatrogether {
   class Player {
     public:
-      Player(steamid_t steamId, string unlockHash);
+      Player(player_auth auth);
 
       client_t getClient();
       steamid_t getSteamId();
       string getUnlocks();
+      int getUnlockedStake(string deck);
     private:
       friend class Client;
-      steamid_t steamId;
-      string unlockHash;
+      player_auth auth;
       client_t client = nullptr;
   };
 }

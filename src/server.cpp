@@ -111,9 +111,9 @@ bool Server::canConnect(client_t c)
 }
 
 // Connects a player to the server if they are able
-void Server::connect(client_t c, steamid_t steamId, string unlockHash)
+void Server::connect(client_t c, player_auth auth)
 {
-  if (!c->getPlayer()) c->setPlayer(std::make_shared<Player>(steamId, unlockHash));
+  if (!c->getPlayer()) c->setPlayer(std::make_shared<Player>(auth));
   if (!this->canConnect(c)) throw client_exception("Cannot connect to server", true);
 
   logger::info << "Client from " << c->getIP() << " joined server with Steam ID " << c->getPlayer()->getSteamId() << std::endl;

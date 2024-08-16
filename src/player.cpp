@@ -2,10 +2,9 @@
 
 using namespace balatrogether;
 
-Player::Player(steamid_t steamId, string unlockHash)
+Player::Player(player_auth auth)
 {
-  this->steamId = steamId;
-  this->unlockHash = unlockHash;
+  this->auth = auth;
 }
 
 client_t Player::getClient()
@@ -15,10 +14,19 @@ client_t Player::getClient()
 
 steamid_t Player::getSteamId()
 {
-  return this->steamId;
+  return this->auth.steamId;
 }
 
 string Player::getUnlocks()
 {
-  return this->unlockHash;
+  return this->auth.unlockHash;
+}
+
+int Player::getUnlockedStake(string deck)
+{
+  try {
+    return this->auth.stakes.at(deck);
+  } catch (std::out_of_range& e) {
+    return -1;
+  }
 }
