@@ -98,7 +98,7 @@ void Game::eliminate(player_t p)
 {
   if (!this->isVersus()) return;
   if (this->isEliminated(p)) return;
-  this->eliminated.insert(std::make_pair(p, true));
+  this->eliminated.insert(p);
   for (int i = 0; i < this->scores.size(); i++) {
     score_t pair = this->scores[i];
     if (pair.first == p) {
@@ -122,7 +122,7 @@ void Game::prepareForBoss(player_t p)
   if (this->getState() != IN_PROGRESS && this->getState() != WAITING_FOR_BOSS) return;
   if (this->readyForBoss.find(p) != this->readyForBoss.end()) return;
   this->setState(WAITING_FOR_BOSS);
-  this->readyForBoss.insert(std::make_pair(p, true));
+  this->readyForBoss.insert(p);
 }
 
 bool Game::isScoringFinished()

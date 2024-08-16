@@ -1,6 +1,7 @@
 #ifndef BALATROGETHER_GAME_H
 #define BALATROGETHER_GAME_H
 
+#include <unordered_set>
 #include "types.hpp"
 #include "player.hpp"
 
@@ -46,8 +47,8 @@ namespace balatrogether {
       game_state_t state;
       bool versus;
       player_list_t players;
-      std::unordered_map<player_t, bool> readyForBoss;
-      std::unordered_map<player_t, bool> eliminated;
+      std::unordered_set<player_t> readyForBoss;
+      std::unordered_set<player_t> eliminated;
       leaderboard_t scores;
   };
 }
