@@ -16,6 +16,7 @@ namespace balatrogether {
     steamid_t steamId;
     string unlockHash;
     std::unordered_map<string, int> stakes;
+    string fetchKey;
   };
 
   string getpath();

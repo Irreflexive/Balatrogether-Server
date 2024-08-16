@@ -135,7 +135,10 @@ json Lobby::getJSON()
   json data;
   data["players"] = json::array();
   for (client_t c : this->getClients()) {
-    data["players"].push_back(c->getPlayer()->getSteamId());
+    json p;
+    p["id"] = c->getPlayer()->getSteamId();
+    if (this->getServer()->getConfig()->isSteamApiEnabled()) p["name"] = c->getPlayer()->getName();
+    data["players"].push_back(p);
   }
   data["maxPlayers"] = this->getServer()->getConfig()->getMaxPlayers();
   if (this != this->getServer()->getDefaultLobby()) data["room"] = this->getRoomNumber();

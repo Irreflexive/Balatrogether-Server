@@ -17,6 +17,7 @@ void connectToServer(server_t server, client_t client, json req) {
   auth.steamId = req["steam_id"].get<steamid_t>();
   auth.unlockHash = req["unlock_hash"].get<string>();
   auth.stakes = req["stakes"].get<std::unordered_map<string, int>>();
+  if (server->getConfig()->isSteamApiEnabled()) auth.fetchKey = server->getConfig()->getSteamApiKey();
   server->connect(client, auth);
 }
 

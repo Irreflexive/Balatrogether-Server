@@ -10,12 +10,14 @@ namespace balatrogether {
       Player(player_auth auth);
 
       client_t getClient();
+      string getName();
       steamid_t getSteamId();
       string getUnlocks();
       int getUnlockedStake(string deck);
     private:
       friend class Client;
       player_auth auth;
+      string name;
       client_t client = nullptr;
   };
 }

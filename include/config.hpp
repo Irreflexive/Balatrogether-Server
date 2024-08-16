@@ -12,11 +12,8 @@ namespace balatrogether {
       ~Config();
 
       int getMaxPlayers();
-      void setMaxPlayers(int maxPlayers);
       int getMaxLobbies();
-      void setMaxLobbies(int maxLobbies);
       bool isTLSEnabled();
-      void setTLSEnabled(bool tlsEnabled);
       bool isDebugMode();
       void setWhitelistEnabled(bool whitelistEnabled);
 
@@ -27,6 +24,9 @@ namespace balatrogether {
       bool isWhitelisted(steamid_t steamId);
       void whitelist(steamid_t steamId);
       void unwhitelist(steamid_t steamId);
+
+      bool isSteamApiEnabled();
+      string getSteamApiKey();
     private:
       void save();
       int maxPlayers = 8;
@@ -36,6 +36,8 @@ namespace balatrogether {
       bool debugMode = DEBUG;
       bool whitelistEnabled = false;
       steamid_list_t whitelisted;
+      bool steamApiEnabled = false;
+      string steamApiKey;
   };
 };
 
