@@ -132,7 +132,7 @@ namespace balatrogether {
       virtual void execute(lobby_t lobby, client_t client, json req);
   };
 
-  // Triggered when a co-op player clicks the endless mode button
+  // Triggered when a co-op player changes their game speed setting
   class GameSpeedEvent : public Event<lobby_t> {
     public:
       GameSpeedEvent() : Event("GAME_SPEED") {};
