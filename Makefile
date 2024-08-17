@@ -42,3 +42,7 @@ dirs:
 clean:
 	rm -rf $(BIN_PATH)
 	rm -rf $(BUILD_PATH)
+
+clean_objects:
+	rm -f $(OBJECTS)
+	rm -f $(DEPENDENCIES)
