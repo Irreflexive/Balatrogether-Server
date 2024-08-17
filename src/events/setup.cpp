@@ -119,6 +119,7 @@ void StartRunEvent::execute(lobby_t lobby, client_t client, json req)
   data["stake"] = stake;
   data["versus"] = versus;
   data["speed"] = req["speed"].get<int>();
-  if (lobby->getServer()->getConfig()->isDebugMode()) data["debug"] = true;
+  if (validation::boolean(req["debug"]) && req["debug"].get<bool>() && lobby->getServer()->getConfig()->isDebugMode())
+    data["debug"] = true;
   lobby->broadcast(response::success("START", data));
 }
