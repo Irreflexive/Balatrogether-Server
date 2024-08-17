@@ -20,6 +20,7 @@ namespace balatrogether {
   };
 
   string getpath();
+  string getplayername(player_auth& auth);
 }
 
 #endif
