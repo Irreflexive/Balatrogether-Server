@@ -8,7 +8,7 @@ The server is equipped with a console to handle some configuration options and m
 
 Go to the [releases](https://github.com/Irreflexive/Balatrogether-Server/releases) and download the version corresponding to your operating system. Place the executable in a folder. On launch, Balatrogether will create a default configuration file in the same folder. You may edit and save these settings while the server is *not running*, then start it again for them to take effect.
 
-```json
+```js
 {
   // A list of Steam IDs that will be unable to connect to the server in any capacity
   "banned_users": [],
